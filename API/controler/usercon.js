@@ -167,7 +167,6 @@ const logTok = async (req, res) => {
     }
   });
 };
-
 module.exports = {
   login,
   signup,

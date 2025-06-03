@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
-import { BedDouble, User, X } from "lucide-react";
+import { BedDouble, User } from "lucide-react";
+import GuestBookingForm from "./GuestBookingForm";
 
 const rooms = [
   { id: 1, name: "Room 1", type: "2-share" },
@@ -90,22 +91,13 @@ export default function CalendarGrid({ startDate }) {
     });
   };
 
-  const handleBookingSave = (e) => {
-    e.preventDefault();
-    const form = e.target;
+  const handleBookingSave = (formData) => {
     const bookingId = `B-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     const newBookings = selectedBooking.roomIds.map((roomId) => ({
       roomId,
       from: selectedBooking.from,
       to: selectedBooking.to,
-      name: form.name.value,
-      address: form.address.value,
-      phone: form.phone.value,
-      whatsapp: form.whatsapp.value,
-      email: form.email.value,
-      adults: form.adults.value,
-      children: form.children.value,
-      message: form.message.value,
+      ...formData,
       status: "Booked",
       bookingId,
     }));
@@ -115,12 +107,15 @@ export default function CalendarGrid({ startDate }) {
     setStartCell(null);
     setEndCell(null);
   };
+    
 
   return (
-    <div className="w-full overflow-x-auto p-4 bg-white" onMouseUp={handleMouseUp}>
-      {/* Calendar Grid */}
+    <div
+      className="w-full overflow-x-auto p-4 bg-white"
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp} 
+    >
       <div className="min-w-[300px] md:min-w-[900px] border rounded-xl shadow-xl">
-        {/* Header */}
         <div className="grid grid-cols-[150px_repeat(7,1fr)] bg-blue-600 text-white font-semibold text-sm">
           <div className="p-3 border-r">Room / Date</div>
           {dates.map((date, i) => (
@@ -131,7 +126,6 @@ export default function CalendarGrid({ startDate }) {
           ))}
         </div>
 
-        {/* Rows */}
         {rooms.map((room, rIdx) => (
           <div key={room.id} className="grid grid-cols-[150px_repeat(7,1fr)] text-sm">
             <div className="p-3 font-medium bg-white text-gray-800 border-r">
@@ -147,9 +141,10 @@ export default function CalendarGrid({ startDate }) {
                   key={`${room.id}-${dIdx}`}
                   onMouseDown={() => handleMouseDown(rIdx, dIdx)}
                   onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+                  onMouseUp={handleMouseUp} 
                   className={clsx(
                     "p-2 border-r flex flex-col items-center justify-center gap-1 cursor-pointer min-h-[80px]",
-                    selected && "bg-blue-200",
+                    selected && "bg-blue-400",
                     booking
                       ? "bg-red-300 text-gray-900 font-semibold"
                       : "bg-white text-gray-700"
@@ -173,7 +168,6 @@ export default function CalendarGrid({ startDate }) {
         ))}
       </div>
 
-      {/* Book Button */}
       {selectedCells.length > 0 && !selectedBooking && (
         <button
           className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white py-2 px-6 rounded-lg shadow-lg z-10"
@@ -183,50 +177,12 @@ export default function CalendarGrid({ startDate }) {
         </button>
       )}
 
-      {/* Booking Modal */}
       {selectedBooking && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-black">Guest Booking</h3>
-              <button onClick={() => setSelectedBooking(null)}>
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleBookingSave} className="space-y-4">
-              <div className="bg-gray-100 p-3 rounded text-black">
-                <p><strong>Dates:</strong> {format(selectedBooking.from, "MMM dd")} - {format(selectedBooking.to, "MMM dd")}</p>
-                <p><strong>Rooms:</strong> {selectedBooking.roomNames.join(", ")}</p>
-                <p><strong>Booking ID:</strong> Will be generated on confirmation</p>
-              </div>
-
-              <input name="name" placeholder="Guest Name" required className="w-full p-2 border rounded text-black" />
-              <input name="address" placeholder="Address" className="w-full p-2 border rounded text-black" />
-               <div className="grid grid-cols-2 gap-4">
-              <input name="phone" placeholder="Phone Number" required className="w-full p-2 border rounded text-black" />
-              <input name="whatsapp" placeholder="WhatsApp Number" className="w-full p-2 border rounded text-black" />
-              </div>
-              <input name="email" type="email" placeholder="Email" className="w-full p-2 border rounded text-black" />
-
-              <div className="grid grid-cols-2 gap-4">
-                <input name="adults" type="number" placeholder="Adults" min="1" required className="w-full p-2 border rounded text-black" />
-                <input name="children" type="number" placeholder="Children" min="0" className="w-full p-2 border rounded text-black" />
-              </div>
-
-              <textarea
-                name="message"
-                defaultValue={`Hi, your booking is confirmed at our hotel. Your Booking ID will be generated after confirmation.`}
-                className="w-full p-2 border rounded text-black"
-                rows={3}
-              />
-
-              <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">
-                Confirm Booking
-              </button>
-            </form>
-          </div>
-        </div>
+        <GuestBookingForm
+          selectedBooking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+          onSave={handleBookingSave}
+        />
       )}
     </div>
   );

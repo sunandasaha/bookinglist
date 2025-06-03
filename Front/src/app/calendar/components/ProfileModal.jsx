@@ -1,0 +1,52 @@
+import React from "react";
+import { X } from "lucide-react";
+
+export default function ProfileModal({ profile, onClose }) {
+  if (!profile) return null;
+  console.log("Profile passed to modal:", profile);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-black"
+          aria-label="Close Profile Modal"
+        >
+          <X size={20} />
+        </button>
+        <h2 className="text-xl font-semibold mb-4 text-center text-black">
+          Hotel Profile
+        </h2>
+
+        <div className="space-y-3 text-sm text-black">
+
+          <div>
+            <strong>🏨 Property Name:</strong>{" "}
+            {profile.propertyName || profile.property_name || "N/A"}
+          </div>
+          <div>
+            <strong>📍 Location:</strong>{" "}
+            {profile.location || "N/A"}
+          </div>
+          <div>
+            <strong>📞 Phone:</strong>{" "}
+            {profile.phone1 || profile.phone || "N/A"}
+            {profile.phone2 && `, ${profile.phone2}`}
+          </div>
+          <div>
+            <strong>💰 UPI ID:</strong> {profile.upi || "N/A"}
+          </div>
+          <div>
+            <strong>🛏️ Rooms:</strong> {profile.numRooms || profile.num_rooms || "N/A"}
+          </div>
+          {profile.email && (
+            <div>
+              <strong>📧 Email:</strong> {profile.email}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

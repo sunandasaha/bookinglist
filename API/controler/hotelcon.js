@@ -40,7 +40,6 @@ const updateHotel = async (req, res) => {
     res.json({ status: "No hotel found" });
   }
 };
-
 module.exports = {
   createHotel,
   updateHotel,
