@@ -47,6 +47,7 @@ const glogin = async (req, res) => {
       email: gres.email,
       password: "google",
       role: "",
+      status: 1,
     });
   }
   if (user._id) {
@@ -128,7 +129,12 @@ const signup = async (req, res) => {
     const hpass = createHmac("sha256", process.env.SECRET) // Password hashing
       .update(password)
       .digest("base64");
-    const user = await Usermodel.create({ email, password: hpass, role: "" });
+    const user = await Usermodel.create({
+      email,
+      password: hpass,
+      role: "",
+      status: 1,
+    });
     const tok = jwt.sign(
       { id: user._id, role: user.role },
       process.env.ACCESS_TOKEN
