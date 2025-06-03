@@ -55,7 +55,7 @@ const glogin = async (req, res) => {
       { id: user._id, role: user.role },
       process.env.ACCESS_TOKEN
     );
-    const cred = await getDet(chk.role, chk.sid);
+    const cred = await getDet(user?.role, user?.sid);
     res.json({
       status: "success",
       user: { role: user.role, token: tok, cred },
