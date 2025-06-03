@@ -7,7 +7,7 @@ import { postReq } from "./_utils/request";
 
 export default function Home() {
   const navigate = useRouter();
-  const { setUser, user } = useContext(Context);
+  const { setUser, user, setHosthotel } = useContext(Context);
 
   const logtok = async () => {
     const tok = localStorage.getItem("tok");
@@ -19,8 +19,13 @@ export default function Home() {
         localStorage.setItem("tok", res.user.token);
         if (res.user.role === "") {
           navigate.push("/role");
-        } else {
-          navigate.push("/home");
+        } else if (res.user.role === "host") {
+          if (res.user.cred) {
+            if (setHosthotel) setHosthotel(res.user.cred);
+            navigate.push("/calendar");
+          } else {
+            navigate.push("/hotel");
+          }
         }
       }
     } else {

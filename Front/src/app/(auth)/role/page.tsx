@@ -10,23 +10,28 @@ const SelectRole = () => {
   const navigate = useRouter();
 
   const set_role = async (role: string) => {
-    const res = await postReq("user/setrole", { role }, user.token);
-    if (res.status === "success") {
-      navigate.push("/hotel");
+    if (user.role === "") {
+      const res = await postReq("user/setrole", { role }, user.token);
+      if (res.status === "success") {
+        navigate.push("/hotel");
+      }
     }
   };
 
   return (
     <div className="con">
-      SelectRole
-      <button
-        onClick={() => {
-          set_role("host");
-        }}
-      >
-        Host
-      </button>
-      <button>Agent</button>
+      <h1 className="heading">Select Role</h1>
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          className="pbutton"
+          onClick={() => {
+            set_role("host");
+          }}
+        >
+          Host
+        </button>
+        <button className="pbutton">Agent</button>
+      </div>
     </div>
   );
 };

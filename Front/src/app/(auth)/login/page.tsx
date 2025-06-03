@@ -31,8 +31,13 @@ const Login = () => {
         localStorage.setItem("tok", res.user.token);
         if (res.user.role === "") {
           navigate.push("/role");
-        } else {
-          navigate.push("/home");
+        } else if (res.user.role === "host") {
+          if (res.user.cred) {
+            if (setHosthotel) setHosthotel(res.user.cred);
+            navigate.push("/calendar");
+          } else {
+            navigate.push("/hotel");
+          }
         }
       } else {
         setDisable(false);
@@ -56,7 +61,7 @@ const Login = () => {
           } else if (res.user.role === "host") {
             if (res.user.cred) {
               if (setHosthotel) setHosthotel(res.user.cred);
-              navigate.push("calendar");
+              navigate.push("/calendar");
             } else {
               navigate.push("/hotel");
             }
