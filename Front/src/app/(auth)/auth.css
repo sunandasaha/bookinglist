@@ -1,0 +1,28 @@
+.auth-navbar {
+  height: 50px;
+  display: flex;
+  padding: 2px 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-navbar img {
+  height: 50px;
+  width: 50px;
+}
+
+.nav-elcon {
+  display: flex;
+  font-weight: 500;
+  gap: 20px;
+  padding: 0 10px;
+}
+
+.nav-elcon p {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.nav-elcon p:hover {
+  color: #174994;
+}

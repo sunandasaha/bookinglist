@@ -1,0 +1,43 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useContext, useEffect } from "react";
+import { Context } from "./_components/ContextProvider";
+import { postReq } from "./_utils/request";
+
+export default function Home() {
+  const navigate = useRouter();
+  const { setUser, user } = useContext(Context);
+
+  const logtok = async () => {
+    const tok = localStorage.getItem("tok");
+    if (tok) {
+      localStorage.removeItem("tok");
+      const res = await postReq("user/logtok", { tok }, "");
+      if (res.status === "success") {
+        if (setUser) setUser(res.user);
+        localStorage.setItem("tok", res.user.token);
+        if (res.user.role === "") {
+          navigate.push("/role");
+        } else {
+          navigate.push("/home");
+        }
+      }
+    } else {
+      navigate.push("/login");
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role) {
+    } else {
+      logtok();
+    }
+  }, []);
+
+  return (
+    <div className="con">
+      <img src="/logo.png" style={{ height: 100, width: 100 }} />
+    </div>
+  );
+}
