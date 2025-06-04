@@ -1,33 +1,32 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
-import { BedDouble, User } from "lucide-react";
 import GuestBookingForm from "./GuestBookingForm";
-
-const rooms = [
-  { id: 1, name: "Room 1", type: "2-share" },
-  { id: 2, name: "Room 2", type: "3-share" },
-  { id: 3, name: "Room 3", type: "5-share" },
-  { id: 4, name: "Room 4", type: "2-share" },
-  { id: 5, name: "Room 5", type: "4-share" },
-];
+import { Context } from "../../_components/ContextProvider";
 
 export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
-  const [selectedBooking, setSelectedBooking] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [startCell, setStartCell] = useState(null);
   const [endCell, setEndCell] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
+  const { hosthotel } = useContext(Context);
+  const containerRef = useRef(null);
+  const rooms = useMemo(() => {
+    if (!hosthotel?.rooms) return [];
+    return Array.from({ length: hosthotel.rooms }, (_, i) => ({
+      id: i + 1,
+      name: `Room ${i + 1}`,
+    }));
+  }, [hosthotel]);
   useEffect(() => {
     if (!startDate) return;
     const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
     setDates(next7Days);
   }, [startDate]);
-
   const getBookingForCell = (roomId, date) => {
     return bookings.find(
       (b) =>
@@ -39,6 +38,7 @@ export default function CalendarGrid({ startDate }) {
     );
   };
 
+  // Calculate all cells between startCell and endCell for drag selection
   const getSelectedCells = () => {
     if (!startCell || !endCell) return [];
 
@@ -51,9 +51,9 @@ export default function CalendarGrid({ startDate }) {
     const maxDateIdx = Math.max(startDateIdx, endDateIdx);
 
     const selected = [];
-    for (let roomIdx = minRoomIdx; roomIdx <= maxRoomIdx; roomIdx++) {
-      for (let dateIdx = minDateIdx; dateIdx <= maxDateIdx; dateIdx++) {
-        selected.push([roomIdx, dateIdx]);
+    for (let r = minRoomIdx; r <= maxRoomIdx; r++) {
+      for (let d = minDateIdx; d <= maxDateIdx; d++) {
+        selected.push([r, d]);
       }
     }
     return selected;
@@ -62,7 +62,6 @@ export default function CalendarGrid({ startDate }) {
   const selectedCells = getSelectedCells();
   const isSelected = (roomIdx, dateIdx) =>
     selectedCells.some(([r, c]) => r === roomIdx && c === dateIdx);
-
   const handleMouseDown = (rIdx, dIdx) => {
     setStartCell([rIdx, dIdx]);
     setEndCell([rIdx, dIdx]);
@@ -76,10 +75,12 @@ export default function CalendarGrid({ startDate }) {
   const handleMouseUp = () => {
     setIsDragging(false);
   };
-
   const handleBookClick = () => {
+    if (selectedCells.length === 0) return;
+
     const uniqueRoomIndices = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, c]) => c);
+
     const from = dates[Math.min(...dateIndices)];
     const to = dates[Math.max(...dateIndices)];
 
@@ -90,9 +91,39 @@ export default function CalendarGrid({ startDate }) {
       roomNames: uniqueRoomIndices.map((i) => rooms[i].name),
     });
   };
+  const bookBtnPosition = useMemo(() => {
+    if (selectedCells.length === 0 || !containerRef.current) return null;
 
+    const rows = selectedCells.map(([r]) => r);
+    const cols = selectedCells.map(([_, c]) => c);
+
+    const minRow = Math.min(...rows);
+    const maxRow = Math.max(...rows);
+    const minCol = Math.min(...cols);
+    const maxCol = Math.max(...cols);
+
+    const gridRows = containerRef.current.querySelectorAll(".grid-row");
+    if (!gridRows[minRow]) return null;
+
+    const firstCell = gridRows[minRow].querySelectorAll(".grid-cell")[minCol];
+    const lastCell = gridRows[maxRow].querySelectorAll(".grid-cell")[maxCol];
+
+    if (!firstCell || !lastCell) return null;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const firstRect = firstCell.getBoundingClientRect();
+    const lastRect = lastCell.getBoundingClientRect();
+
+    const top = firstRect.top - containerRect.top;
+    const left = firstRect.left - containerRect.left;
+    const width = lastRect.right - firstRect.left;
+    const height = lastRect.bottom - firstRect.top;
+
+    return { top, left, width, height };
+  }, [selectedCells]);
   const handleBookingSave = (formData) => {
     const bookingId = `B-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+
     const newBookings = selectedBooking.roomIds.map((roomId) => ({
       roomId,
       from: selectedBooking.from,
@@ -102,20 +133,21 @@ export default function CalendarGrid({ startDate }) {
       bookingId,
     }));
 
-    setBookings([...bookings, ...newBookings]);
+    setBookings((prev) => [...prev, ...newBookings]);
     setSelectedBooking(null);
     setStartCell(null);
     setEndCell(null);
   };
-    
 
   return (
     <div
-      className="w-full overflow-x-auto p-4 bg-white"
+      className="w-full overflow-x-auto p-4 bg-white relative"
+      ref={containerRef}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp} 
+      onMouseLeave={handleMouseUp}
     >
-      <div className="min-w-[300px] md:min-w-[900px] border rounded-xl shadow-xl">
+      <div className="min-w-[300px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
+        {/* Header row */}
         <div className="grid grid-cols-[150px_repeat(7,1fr)] bg-blue-600 text-white font-semibold text-sm">
           <div className="p-3 border-r">Room / Date</div>
           {dates.map((date, i) => (
@@ -126,10 +158,14 @@ export default function CalendarGrid({ startDate }) {
           ))}
         </div>
 
+        {/* Room rows */}
         {rooms.map((room, rIdx) => (
-          <div key={room.id} className="grid grid-cols-[150px_repeat(7,1fr)] text-sm">
+          <div
+            key={room.id}
+            className="grid grid-cols-[150px_repeat(7,1fr)] text-sm border-t grid-row"
+          >
             <div className="p-3 font-medium bg-white text-gray-800 border-r">
-              {room.name} <span className="text-xs text-gray-500">({room.type})</span>
+              {room.name}
             </div>
 
             {dates.map((date, dIdx) => {
@@ -138,50 +174,52 @@ export default function CalendarGrid({ startDate }) {
 
               return (
                 <div
-                  key={`${room.id}-${dIdx}`}
+                  key={dIdx}
+                  className={clsx(
+                    "border-r border-b p-2 flex items-center justify-center cursor-pointer select-none grid-cell",
+                    selected && "bg-blue-300",
+                    booking && "bg-green-400 text-white",
+                    !booking && !selected && "hover:bg-blue-100"
+                  )}
                   onMouseDown={() => handleMouseDown(rIdx, dIdx)}
                   onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
-                  onMouseUp={handleMouseUp} 
-                  className={clsx(
-                    "p-2 border-r flex flex-col items-center justify-center gap-1 cursor-pointer min-h-[80px]",
-                    selected && "bg-blue-400",
-                    booking
-                      ? "bg-red-300 text-gray-900 font-semibold"
-                      : "bg-white text-gray-700"
-                  )}
                 >
-                  <BedDouble size={16} />
-                  {booking ? (
-                    <div className="text-xs text-center">
-                      <div className="font-bold">{booking.name}</div>
-                      <div className="text-[10px]">ID: {booking.bookingId}</div>
-                    </div>
-                  ) : (
-                    <div className="text-xs">
-                      <User size={12} className="inline" /> {room.type.split("-")[0]}
-                    </div>
-                  )}
+                  {!booking && selected ? "Selected" : null}
                 </div>
               );
             })}
           </div>
         ))}
+
+        {/* Floating Book button */}
+        {selectedCells.length > 0 && bookBtnPosition && !selectedBooking && (
+          <button
+            style={{
+              position: "absolute",
+              top: bookBtnPosition.top + bookBtnPosition.height + 5,
+              left: bookBtnPosition.left,
+              zIndex: 1000,
+              backgroundColor: "#2563eb",
+              color: "white",
+              padding: "6px 12px",
+              borderRadius: "6px",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+            onClick={handleBookClick}
+          >
+            Book
+          </button>
+        )}
       </div>
 
-      {selectedCells.length > 0 && !selectedBooking && (
-        <button
-          className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white py-2 px-6 rounded-lg shadow-lg z-10"
-          onClick={handleBookClick}
-        >
-          Book Selected ({selectedCells.length} cells)
-        </button>
-      )}
-
+      {/* Booking form modal */}
       {selectedBooking && (
         <GuestBookingForm
-          selectedBooking={selectedBooking}
-          onClose={() => setSelectedBooking(null)}
+          booking={selectedBooking}
           onSave={handleBookingSave}
+          onClose={() => setSelectedBooking(null)}
         />
       )}
     </div>
