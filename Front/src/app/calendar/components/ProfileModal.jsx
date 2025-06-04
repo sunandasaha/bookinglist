@@ -7,50 +7,52 @@ import { Context } from "../../_components/ContextProvider";
 
 export default function ProfileModal({ profile, onClose }) {
   if (!profile) return null;
-  // console.log("Profile passed to modal:", profile);
+
   const navigate = useRouter();
   const { setUser, setHosthotel } = useContext(Context);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-[500px] max-w-full relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black"
+          className="absolute top-4 right-4 text-gray-500 hover:text-black"
           aria-label="Close Profile Modal"
         >
-          <X size={20} />
+          <X size={22} />
         </button>
-        <h2 className="text-xl font-semibold mb-4 text-center text-black">
-          Hotel Profile
-        </h2>
 
+        <h2 className="text-2xl font-bold mb-6 text-center text-black">
+          🏨 Hotel Profile
+        </h2>
         <div className="space-y-3 text-sm text-black">
-          <div>
-            <strong>🏨 Property Name:</strong>{" "}
-            {profile.name || profile.name || "N/A"}
-          </div>
-          <div>
-            <strong>📍 Location:</strong> {profile.location || "N/A"}
-          </div>
-          <div>
-            <strong>📞 Phone:</strong> {profile.ph1 || profile.ph1 || "N/A"}
-            {profile.ph2 && `, ${profile.ph2}`}
-          </div>
-          <div>
-            <strong>💰 UPI ID:</strong> {profile.upi_id || "N/A"}
-          </div>
-          <div>
-            <strong>🛏️ Rooms:</strong>{" "}
-            {profile.roooms || profile.rooms || "N/A"}
-          </div>
-          {profile.email && (
-            <div>
-              <strong>📧 Email:</strong> {profile.email}
-            </div>
-          )}
+          <ProfileRow label="🏨 Property Name" value={profile.name} />
+          <ProfileRow label="📍 Location" value={profile.location} />
+          <ProfileRow label="📞 Phone" value={profile.ph1} />
+          <ProfileRow label="📱 WhatsApp" value={profile.ph2} />
+          <ProfileRow label="💰 UPI ID" value={profile.upi_id} />
+          <ProfileRow label="🛏️ Rooms" value={profile.rooms} />
+          <ProfileRow
+            label="🌐 URL"
+            value={
+              profile.url ? (
+                <a
+                  href={profile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline break-words max-w-[60%]"
+                >
+                  {profile.url}
+                </a>
+              ) : (
+                "N/A"
+              )
+            }
+          />
+          {profile.email && <ProfileRow label="📧 Email" value={profile.email} />}
         </div>
-        <div className="inline p-5 justify-center">
+
+        <div className="inline p-5 justify-center flex gap-4">
           <button
             className="pbutton"
             onClick={() => {
@@ -72,6 +74,17 @@ export default function ProfileModal({ profile, onClose }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ProfileRow({ label, value }) {
+  return (
+    <div className="flex justify-between items-start gap-4 border-b pb-2">
+      <span className="font-medium text-gray-700 whitespace-nowrap">{label}:</span>
+      <span className="text-blue-600 font-semibold text-right break-words max-w-[60%]">
+        {value || "N/A"}
+      </span>
     </div>
   );
 }

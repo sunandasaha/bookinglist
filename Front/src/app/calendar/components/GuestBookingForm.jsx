@@ -18,7 +18,7 @@ export default function GuestBookingForm({ selectedBooking, onClose, onSave }) {
 
   const [errors, setErrors] = useState({ phone: "" });
   const validatePhone = (number) => {
-    const cleaned = number.replace(/\D/g, ""); 
+    const cleaned = number.replace(/\D/g, "");
     if (cleaned.length !== 10) {
       return "Phone number must contain exactly 10 digits.";
     }
@@ -42,7 +42,7 @@ export default function GuestBookingForm({ selectedBooking, onClose, onSave }) {
     setErrors({ phone: phoneError });
 
     if (phoneError) {
-      return; 
+      return;
     }
 
     onSave(formData);
@@ -58,10 +58,7 @@ export default function GuestBookingForm({ selectedBooking, onClose, onSave }) {
           </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 flex flex-col items-center"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6 flex flex-col items-center">
           <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
             <p>
               <strong>Dates:</strong> {format(selectedBooking.from, "MMM dd")} -{" "}
