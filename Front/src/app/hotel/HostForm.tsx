@@ -22,7 +22,7 @@ const HostForm = ({ info, setInfo }: props) => {
   };
 
   return (
-    <div className="con">
+    <div className="p-15">
       <div className="grid2">
         <label htmlFor="hname"> Name : </label>
         <input

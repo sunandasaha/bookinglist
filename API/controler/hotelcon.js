@@ -26,6 +26,8 @@ const updateHotel = async (req, res) => {
   const hot = await Hotelmodel.findById(data._id);
   if (hot) {
     try {
+      hot.name = data.name;
+      hot.location = data.location;
       hot.rooms = data.rooms;
       hot.ph1 = data.ph1;
       hot.ph2 = data.ph2;

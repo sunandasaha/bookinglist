@@ -6,7 +6,7 @@ import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
-  startOfDay
+  startOfDay,
 } from "date-fns";
 import {
   CalendarDays,
@@ -22,14 +22,14 @@ import {
   DollarSign,
   CalendarCheck,
   CalendarX,
-  Search
+  Search,
 } from "lucide-react";
 import ProfileModal from "./ProfileModal";
 import { Context } from "../../_components/ContextProvider.tsx";
 
 export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
   const { hosthotel } = useContext(Context);
-    console.log("hosthotel from context:", hosthotel);
+  //console.log("hosthotel from context:", hosthotel);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
@@ -38,7 +38,7 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
 
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
-    end: endOfMonth(currentMonth)
+    end: endOfMonth(currentMonth),
   });
 
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
@@ -76,12 +76,11 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
     setSearchOpen(false);
   };
 
-   const openProfile = () => {
+  const openProfile = () => {
     console.log("openProfile called");
     setShowProfile(true);
     setShowSideMenu(false);
   };
-
 
   return (
     <div className="w-full px-6 py-4 flex items-center justify-between bg-white shadow-md z-50 relative">
@@ -110,11 +109,11 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
               <span>Profile</span>
             </button>
             {showProfile && (
-            <ProfileModal
-            profile={hosthotel}
-            onClose={() => setShowProfile(false)}
-                />
-              )}
+              <ProfileModal
+                profile={hosthotel}
+                onClose={() => setShowProfile(false)}
+              />
+            )}
 
             <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
               <CalendarCheck size={18} className="text-green-600" />
@@ -149,7 +148,10 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
               <DollarSign size={18} className="text-yellow-600" />
               <span>New Booking</span>
             </button>
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-red-600">
+            <button
+              onClick={() => {}}
+              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-red-600"
+            >
               <LogOut size={18} />
               <span>Logout</span>
             </button>
