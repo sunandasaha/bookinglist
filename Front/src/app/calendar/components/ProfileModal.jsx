@@ -23,7 +23,7 @@ export default function ProfileModal({ profile, onClose }) {
 
           <div>
             <strong>🏨 Property Name:</strong>{" "}
-            {profile.propertyName || profile.property_name || "N/A"}
+            {profile.name || profile.name || "N/A"}
           </div>
           <div>
             <strong>📍 Location:</strong>{" "}
@@ -31,14 +31,14 @@ export default function ProfileModal({ profile, onClose }) {
           </div>
           <div>
             <strong>📞 Phone:</strong>{" "}
-            {profile.phone1 || profile.phone || "N/A"}
-            {profile.phone2 && `, ${profile.phone2}`}
+            {profile.ph1 || profile.ph1 || "N/A"}
+            {profile.ph2 && `, ${profile.ph2}`}
           </div>
           <div>
-            <strong>💰 UPI ID:</strong> {profile.upi || "N/A"}
+            <strong>💰 UPI ID:</strong> {profile.upi_id || "N/A"}
           </div>
           <div>
-            <strong>🛏️ Rooms:</strong> {profile.numRooms || profile.num_rooms || "N/A"}
+            <strong>🛏️ Rooms:</strong> {profile.roooms || profile.rooms || "N/A"}
           </div>
           {profile.email && (
             <div>

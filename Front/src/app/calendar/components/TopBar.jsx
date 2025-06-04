@@ -28,7 +28,8 @@ import ProfileModal from "./ProfileModal";
 import { Context } from "../../_components/ContextProvider.tsx";
 
 export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
-  const { user } = useContext(Context);
+  const { hosthotel } = useContext(Context);
+    console.log("hosthotel from context:", hosthotel);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
@@ -76,6 +77,7 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
   };
 
    const openProfile = () => {
+    console.log("openProfile called");
     setShowProfile(true);
     setShowSideMenu(false);
   };
@@ -107,13 +109,13 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
               <User size={18} className="text-blue-600" />
               <span>Profile</span>
             </button>
-
             {showProfile && (
-              <ProfileModal
-                profile={user}  
-                onClose={() => setShowProfile(false)}
-              />
-            )}
+            <ProfileModal
+            profile={hosthotel}
+            onClose={() => setShowProfile(false)}
+                />
+              )}
+
             <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
               <CalendarCheck size={18} className="text-green-600" />
               <span>Check In</span>
