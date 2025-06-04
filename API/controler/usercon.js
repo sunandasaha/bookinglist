@@ -84,7 +84,7 @@ const setRole = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-  const ret = retry.get(chk.email);
+  const ret = retry.get(email);
   // Anti brute force
   if (ret && ret.time + ret.cd > Date.now()) {
     const rt = Math.floor((ret.time + ret.cd - Date.now()) / 1000);

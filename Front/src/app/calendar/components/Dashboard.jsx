@@ -1,14 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext, useEffect } from "react";
 import TopBar from "./TopBar";
 import CalendarGrid from "./CalendarGrid";
+import { Context } from "../../_components/ContextProvider";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchBookingId, setSearchBookingId] = useState("");
+  const { user, hosthotel } = useContext(Context);
+  const navigate = useRouter();
 
-  // Sample bookings 
+  useEffect(() => {
+    console.log(hosthotel);
+
+    if (!user) {
+      navigate.push("/");
+    }
+  }, []);
+
+  // Sample bookings
   const [bookings, setBookings] = useState([
     { id: "BK123", date: "2025-06-10", room: "Room1", guest: "Alice" },
     { id: "BK456", date: "2025-06-11", room: "Room2", guest: "Bob" },
