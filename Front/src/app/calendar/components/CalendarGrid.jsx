@@ -63,6 +63,13 @@ export default function CalendarGrid({ startDate }) {
   const isSelected = (roomIdx, dateIdx) =>
     selectedCells.some(([r, c]) => r === roomIdx && c === dateIdx);
   const handleMouseDown = (rIdx, dIdx) => {
+    if(isSelected(rIdx,dIdx)){
+       setStartCell(null);
+      setEndCell(null);
+      setIsDragging(false);
+      return;
+
+    }
     setStartCell([rIdx, dIdx]);
     setEndCell([rIdx, dIdx]);
     setIsDragging(true);
@@ -138,20 +145,67 @@ export default function CalendarGrid({ startDate }) {
     setStartCell(null);
     setEndCell(null);
   };
+useEffect(() => {
+   if (!startDate) return;
+  const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
+  setDates(next7Days);
+  const grid = containerRef.current;
+  if (!grid) return;
+
+  const getCellData = (el) => {
+    const cell = el?.closest(".grid-cell");
+    if (!cell) return null;
+    const rIdx = parseInt(cell.dataset.room);
+    const dIdx = parseInt(cell.dataset.date);
+    if (isNaN(rIdx) || isNaN(dIdx)) return null;
+    return [rIdx, dIdx];
+  };
+
+  const handleTouchStart = (e) => {
+    const data = getCellData(e.target);
+    if (!data) return;
+    setStartCell(data);
+    setEndCell(data);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const data = getCellData(el);
+    if (data && isDragging) setEndCell(data);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  grid.addEventListener("touchstart", handleTouchStart, { passive: true });
+  grid.addEventListener("touchmove", handleTouchMove); // 👈 Removed { passive: true }
+  grid.addEventListener("touchend", handleTouchEnd);
+
+  return () => {
+    grid.removeEventListener("touchstart", handleTouchStart);
+    grid.removeEventListener("touchmove", handleTouchMove);
+    grid.removeEventListener("touchend", handleTouchEnd);
+  };
+}, [startDate, containerRef, isDragging]);
+
 
   return (
     <div
-      className="w-full overflow-x-auto p-4 bg-white relative"
+      className="w-full overflow-x-auto  bg-white relative"
       ref={containerRef}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div className="min-w-[300px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
+      <div className="inline-block min-w-[700px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
         {/* Header row */}
-        <div className="grid grid-cols-[150px_repeat(7,1fr)] bg-blue-600 text-white font-semibold text-sm">
-          <div className="p-3 border-r">Room / Date</div>
+        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold md:text-sm">
+          <div className="p-2 md:p-3 border-r">Room / Date</div>
           {dates.map((date, i) => (
-            <div key={i} className="p-3 text-center border-r">
+            <div key={i} className="p-2 md:p-3 text-center border-r">
               <div>{format(date, "EEE")}</div>
               <div>{format(date, "dd MMM")}</div>
             </div>
@@ -162,9 +216,9 @@ export default function CalendarGrid({ startDate }) {
         {rooms.map((room, rIdx) => (
           <div
             key={room.id}
-            className="grid grid-cols-[150px_repeat(7,1fr)] text-sm border-t grid-row"
+            className="grid grid-cols-[120px_repeat(7,1fr)] text-sm border-t grid-row"
           >
-            <div className="p-3 font-medium bg-white text-gray-800 border-r">
+            <div className="p-2 md:p-3 font-medium bg-white text-gray-800 border-r">
               {room.name}
             </div>
 
@@ -183,6 +237,8 @@ export default function CalendarGrid({ startDate }) {
                   )}
                   onMouseDown={() => handleMouseDown(rIdx, dIdx)}
                   onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+                  data-room={rIdx}
+                  data-date={dIdx}
                 >
                   {!booking && selected ? "Selected" : null}
                 </div>
@@ -224,4 +280,47 @@ export default function CalendarGrid({ startDate }) {
       )}
     </div>
   );
+  useEffect(() => {
+  const grid = containerRef.current;
+  if (!grid) return;
+
+  const getCellData = (el) => {
+    const cell = el?.closest(".grid-cell");
+    if (!cell) return null;
+    const rIdx = parseInt(cell.dataset.room);
+    const dIdx = parseInt(cell.dataset.date);
+    if (isNaN(rIdx) || isNaN(dIdx)) return null;
+    return [rIdx, dIdx];
+  };
+
+  const handleTouchStart = (e) => {
+    const data = getCellData(e.target);
+    if (!data) return;
+    setStartCell(data);
+    setEndCell(data);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e) => {
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const data = getCellData(el);
+    if (data && isDragging) setEndCell(data);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  grid.addEventListener("touchstart", handleTouchStart, { passive: true });
+  grid.addEventListener("touchmove", handleTouchMove, { passive: true });
+  grid.addEventListener("touchend", handleTouchEnd);
+
+  return () => {
+    grid.removeEventListener("touchstart", handleTouchStart);
+    grid.removeEventListener("touchmove", handleTouchMove);
+    grid.removeEventListener("touchend", handleTouchEnd);
+  };
+}, [containerRef, isDragging]);
+
 }
