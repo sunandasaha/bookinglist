@@ -1,40 +1,19 @@
 "use client";
 
 import { useState, useContext } from "react";
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  startOfDay,
-} from "date-fns";
-import {
-  CalendarDays,
-  User,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
-  Home,
-  Bed,
-  LogOut,
-  Plus,
-  Minus,
-  DollarSign,
-  CalendarCheck,
-  CalendarX,
-  Search,
-} from "lucide-react";
+import {format,startOfMonth,endOfMonth,eachDayOfInterval,startOfDay,} from "date-fns";
+import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Home,Bed,LogOut,Plus,Minus,DollarSign,CalendarCheck,CalendarX,Search,} from "lucide-react";
 import ProfileModal from "./ProfileModal";
+import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider.tsx";
 
 export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
-  const { hosthotel } = useContext(Context);
-  //console.log("hosthotel from context:", hosthotel);
-
+  const { hosthotel,setUser, setHosthotel } = useContext(Context);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const navigate = useRouter();
 
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
@@ -108,13 +87,6 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
               <User size={18} className="text-blue-600" />
               <span>Profile</span>
             </button>
-            {showProfile && (
-              <ProfileModal
-                profile={hosthotel}
-                onClose={() => setShowProfile(false)}
-              />
-            )}
-
             <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
               <CalendarCheck size={18} className="text-green-600" />
               <span>Check In</span>
@@ -149,7 +121,12 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
               <span>New Booking</span>
             </button>
             <button
-              onClick={() => {}}
+              onClick={() => {
+                setUser(null);
+                setHosthotel(null);
+                localStorage.removeItem("tok");
+                navigate .push("/login");
+              }}
               className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-red-600"
             >
               <LogOut size={18} />
@@ -257,6 +234,12 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
           </form>
         )}
       </div>
+       {showProfile && (
+              <ProfileModal
+                profile={hosthotel}
+                onClose={() => setShowProfile(false)}
+              />
+            )}
     </div>
   );
 }
