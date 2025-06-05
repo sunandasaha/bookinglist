@@ -6,6 +6,7 @@ import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Home,Bed,LogOut,
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider.tsx";
+import RoomsPricing from "./RoomsPricing";
 
 export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
   const { hosthotel,setUser, setHosthotel } = useContext(Context);
@@ -13,6 +14,7 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showRoomsPricing, setShowRoomsPricing] = useState(false);
   const navigate = useRouter();
 
   const daysInMonth = eachDayOfInterval({
@@ -103,7 +105,12 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
               <span>Today's booking</span>
             </button>
 
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
+            <button
+              onClick = {()=>{
+                setShowRoomsPricing(true);
+                setShowSideMenu(false);
+              }}
+             className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
               <Home size={18} className="text-purple-600" />
               <span>Rooms & Pricing</span>
             </button>
@@ -240,6 +247,18 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
                 onClose={() => setShowProfile(false)}
               />
             )}
+            {showRoomsPricing && (
+                <div className="absolute top-16 left-0 right-0 z-40 bg-white border-t shadow-md p-4">
+                  <RoomsPricing pricingType={hosthotel?.pricingType} />
+                  <button
+                    onClick={() => setShowRoomsPricing(false)}
+                    className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  >
+                    Close
+                  </button>
+                </div>
+      )}
+
     </div>
   );
 }

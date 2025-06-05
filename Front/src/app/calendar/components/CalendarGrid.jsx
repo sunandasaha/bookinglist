@@ -37,8 +37,6 @@ export default function CalendarGrid({ startDate }) {
         })
     );
   };
-
-  // Calculate all cells between startCell and endCell for drag selection
   const getSelectedCells = () => {
     if (!startCell || !endCell) return [];
 
@@ -120,9 +118,10 @@ export default function CalendarGrid({ startDate }) {
     const containerRect = containerRef.current.getBoundingClientRect();
     const firstRect = firstCell.getBoundingClientRect();
     const lastRect = lastCell.getBoundingClientRect();
-
-    const top = firstRect.top - containerRect.top;
-    const left = firstRect.left - containerRect.left;
+    const scrollTop = containerRef.current.scrollTop;
+    const scrollLeft = containerRef.current.scrollLeft;
+    const top = firstRect.top - containerRect.top + scrollTop;
+    const left = firstRect.left - containerRect.left + scrollLeft;
     const width = lastRect.right - firstRect.left;
     const height = lastRect.bottom - firstRect.top;
 
@@ -182,7 +181,7 @@ useEffect(() => {
   };
 
   grid.addEventListener("touchstart", handleTouchStart, { passive: true });
-  grid.addEventListener("touchmove", handleTouchMove); // 👈 Removed { passive: true }
+  grid.addEventListener("touchmove", handleTouchMove); 
   grid.addEventListener("touchend", handleTouchEnd);
 
   return () => {
@@ -200,7 +199,8 @@ useEffect(() => {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div className="inline-block min-w-[700px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
+      <div className="inline-block w-full min-w-[600px] sm:min-w-[700px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
+
         {/* Header row */}
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold md:text-sm">
           <div className="p-2 md:p-3 border-r">Room / Date</div>
@@ -252,8 +252,8 @@ useEffect(() => {
           <button
             style={{
               position: "absolute",
-              top: bookBtnPosition.top + bookBtnPosition.height + 5,
-              left: bookBtnPosition.left,
+              top: bookBtnPosition.top + bookBtnPosition.height - 30,
+              left: bookBtnPosition.left + bookBtnPosition.width - 80,
               zIndex: 1000,
               backgroundColor: "#2563eb",
               color: "white",
@@ -280,47 +280,4 @@ useEffect(() => {
       )}
     </div>
   );
-  useEffect(() => {
-  const grid = containerRef.current;
-  if (!grid) return;
-
-  const getCellData = (el) => {
-    const cell = el?.closest(".grid-cell");
-    if (!cell) return null;
-    const rIdx = parseInt(cell.dataset.room);
-    const dIdx = parseInt(cell.dataset.date);
-    if (isNaN(rIdx) || isNaN(dIdx)) return null;
-    return [rIdx, dIdx];
-  };
-
-  const handleTouchStart = (e) => {
-    const data = getCellData(e.target);
-    if (!data) return;
-    setStartCell(data);
-    setEndCell(data);
-    setIsDragging(true);
-  };
-
-  const handleTouchMove = (e) => {
-    const touch = e.touches[0];
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const data = getCellData(el);
-    if (data && isDragging) setEndCell(data);
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  grid.addEventListener("touchstart", handleTouchStart, { passive: true });
-  grid.addEventListener("touchmove", handleTouchMove, { passive: true });
-  grid.addEventListener("touchend", handleTouchEnd);
-
-  return () => {
-    grid.removeEventListener("touchstart", handleTouchStart);
-    grid.removeEventListener("touchmove", handleTouchMove);
-    grid.removeEventListener("touchend", handleTouchEnd);
-  };
-}, [containerRef, isDragging]);
-
 }
