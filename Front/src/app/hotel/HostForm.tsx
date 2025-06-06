@@ -19,6 +19,16 @@ const HostForm = ({ info, setInfo }: props) => {
     if (e.target.id === "hph2") setInfo((p) => ({ ...p, ph2: e.target.value }));
     if (e.target.id === "hnr")
       setInfo((p) => ({ ...p, rooms: Number(e.target.value) }));
+    if (e.target.id === "hper")
+      setInfo((p) => ({
+        ...p,
+        pay_per: { ...p.pay_per, person: e.target.checked },
+      }));
+    if (e.target.id === "hrom")
+      setInfo((p) => ({
+        ...p,
+        pay_per: { ...p.pay_per, room: e.target.checked },
+      }));
   };
 
   return (
@@ -27,6 +37,7 @@ const HostForm = ({ info, setInfo }: props) => {
         <label htmlFor="hname"> Name : </label>
         <input
           type="text"
+          className="pinput"
           name="name"
           id="hname"
           value={info.name}
@@ -36,6 +47,7 @@ const HostForm = ({ info, setInfo }: props) => {
         <label htmlFor="hloc"> Location : </label>
         <input
           type="text"
+          className="pinput"
           name="Location"
           value={info.location}
           id="hloc"
@@ -46,6 +58,7 @@ const HostForm = ({ info, setInfo }: props) => {
         <input
           type="text"
           name="UPI"
+          className="pinput"
           value={info.upi_id}
           id="hupi"
           placeholder="UPI ID"
@@ -55,6 +68,7 @@ const HostForm = ({ info, setInfo }: props) => {
         <input
           type="number"
           name="ph1"
+          className="pinput"
           value={info.ph1}
           id="hph1"
           placeholder="primary phone"
@@ -66,6 +80,7 @@ const HostForm = ({ info, setInfo }: props) => {
           name="ph2"
           value={info.ph2 || ""}
           id="hph2"
+          className="pinput"
           placeholder="Secondary phone"
           onChange={handleChange}
         />
@@ -74,10 +89,34 @@ const HostForm = ({ info, setInfo }: props) => {
           type="number"
           name="ph2"
           value={info.rooms}
+          className="pinput"
           id="hnr"
           placeholder="Number of rooms"
           onChange={handleChange}
         />
+        <label htmlFor="">Pay per</label>
+        <div className="px-10">
+          <div className="inline">
+            <input
+              type="checkbox"
+              name="person"
+              id="hper"
+              checked={info.pay_per.person}
+              onChange={handleChange}
+            />
+            <p>Person</p>
+          </div>
+          <div className="inline">
+            <input
+              type="checkbox"
+              name="room"
+              id="hrom"
+              checked={info.pay_per.room}
+              onChange={handleChange}
+            />
+            <p>Room</p>
+          </div>
+        </div>
       </div>
     </div>
   );

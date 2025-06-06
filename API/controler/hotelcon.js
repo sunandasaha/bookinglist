@@ -31,6 +31,7 @@ const updateHotel = async (req, res) => {
       hot.rooms = data.rooms;
       hot.ph1 = data.ph1;
       hot.ph2 = data.ph2;
+      hot.pay_per = data.pay_per;
       hot.upi_id = data.upi_id;
       await hot.save();
       res.json({ status: "success", hotel: hot });

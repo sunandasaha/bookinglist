@@ -23,6 +23,9 @@ const HotelSchema = new mongoose.Schema({
   ph1: String,
   ph2: String,
   rooms: Number,
+  pay_per: {
+    type: { person: Boolean, room: Boolean },
+  },
 });
 
 const Hotelmodel = mongoose.model("hotels", HotelSchema);

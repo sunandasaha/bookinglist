@@ -16,6 +16,7 @@ export type hostHotel = {
   upi_id: string;
   url?: string;
   ph1: string;
+  pay_per: { person: boolean; room: boolean };
   ph2?: string;
   rooms: number;
 };

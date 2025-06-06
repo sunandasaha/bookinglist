@@ -3,7 +3,7 @@
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import { Context } from "../../_components/ContextProvider";
+import { Context, hostHotel } from "../../_components/ContextProvider";
 import { postReq } from "../../_utils/request";
 
 type info = {
@@ -48,6 +48,13 @@ const Login = () => {
     }
   };
 
+  const addstuff = (dat: hostHotel) => {
+    if (!dat.pay_per) {
+      dat.pay_per = { person: false, room: true };
+    }
+    return dat;
+  };
+
   const responseGoogle = async (authRes: any) => {
     try {
       if (authRes.code) {
@@ -60,7 +67,7 @@ const Login = () => {
             navigate.push("/role");
           } else if (res.user.role === "host") {
             if (res.user.cred) {
-              if (setHosthotel) setHosthotel(res.user.cred);
+              if (setHosthotel) setHosthotel(addstuff(res.user.cred));
               navigate.push("/calendar");
             } else {
               navigate.push("/hotel");
@@ -104,6 +111,7 @@ const Login = () => {
           style={{ border: "none", padding: "0 10px", borderRadius: 0 }}
           type={show ? "text" : "password"}
           id="password"
+          className="pinput"
           onChange={handleChange}
           value={info.password}
         />

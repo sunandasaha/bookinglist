@@ -12,6 +12,7 @@ const def = {
   upi_id: "",
   ph1: "",
   rooms: 5,
+  pay_per: { person: false, room: true },
 };
 
 const Hotel = () => {

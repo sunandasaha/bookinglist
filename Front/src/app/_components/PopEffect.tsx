@@ -18,6 +18,19 @@ const PopEffect = ({
         exit={{ scale: 0 }}
       >
         {children}
+        <p
+          style={{
+            position: "absolute",
+            top: 7,
+            right: 10,
+            zIndex: 1,
+            fontWeight: 500,
+            cursor: "pointer",
+          }}
+          onClick={cb}
+        >
+          x
+        </p>
       </motion.div>
     </div>
   );

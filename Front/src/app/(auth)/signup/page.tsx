@@ -64,6 +64,7 @@ const Signup = () => {
       <h1>Booking List</h1>
       <input
         type="email"
+        className="pinput"
         id="email"
         onChange={handleChange}
         value={info.email}
@@ -75,6 +76,7 @@ const Signup = () => {
           type={show ? "text" : "password"}
           id="password"
           placeholder="Password"
+          className="pinput"
           onChange={handleChange}
         />
         <img
@@ -87,6 +89,7 @@ const Signup = () => {
       </div>
       <input
         type="password"
+        className="pinput"
         id="conpass"
         onChange={handleChange}
         value={info.conpass}
