@@ -19,6 +19,20 @@ export type hostHotel = {
   pay_per: { person: boolean; room: boolean };
   ph2?: string;
   rooms: number;
+  room_cat?: room_cat[];
+};
+
+type room_cat = {
+  _id: string;
+  name: string;
+  price: number;
+  advance: number;
+  images: string[];
+  room_no: string[];
+  capacity: number;
+  Beds: number;
+  price_for_extra_person: number;
+  agent_com: number;
 };
 
 type Ccontext = {
