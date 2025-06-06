@@ -16,7 +16,7 @@ export default function ProfileModal({ profile, onClose }) {
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-[500px] max-w-full relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-black"
+          className="absolute top-4 right-4 text-gray-500 hover:text-black text-red"
           aria-label="Close Profile Modal"
         >
           <X size={22} />
@@ -60,17 +60,6 @@ export default function ProfileModal({ profile, onClose }) {
             }}
           >
             Edit
-          </button>
-          <button
-            className="pbutton"
-            onClick={() => {
-              setUser(null);
-              setHosthotel(null);
-              localStorage.removeItem("tok");
-              navigate.push("/login");
-            }}
-          >
-            Logout
           </button>
         </div>
       </div>

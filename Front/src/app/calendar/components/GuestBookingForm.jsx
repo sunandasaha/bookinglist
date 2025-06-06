@@ -2,8 +2,8 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { X } from "lucide-react";
 
-export default function GuestBookingForm({ selectedBooking, onClose, onSave }) {
-  if (!selectedBooking) return null;
+export default function GuestBookingForm({ booking, onSave, onClose }) {
+  if (!booking) return null;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,7 +18,7 @@ export default function GuestBookingForm({ selectedBooking, onClose, onSave }) {
 
   const [errors, setErrors] = useState({ phone: "" });
   const validatePhone = (number) => {
-    const cleaned = number.replace(/\D/g, "");
+    const cleaned = number.replace(/\D/g, ""); 
     if (cleaned.length !== 10) {
       return "Phone number must contain exactly 10 digits.";
     }
@@ -42,7 +42,7 @@ export default function GuestBookingForm({ selectedBooking, onClose, onSave }) {
     setErrors({ phone: phoneError });
 
     if (phoneError) {
-      return;
+      return; 
     }
 
     onSave(formData);
@@ -58,14 +58,17 @@ export default function GuestBookingForm({ selectedBooking, onClose, onSave }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 flex flex-col items-center">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 flex flex-col items-center"
+        >
           <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
             <p>
-              <strong>Dates:</strong> {format(selectedBooking.from, "MMM dd")} -{" "}
-              {format(selectedBooking.to, "MMM dd")}
+              <strong>Dates:</strong> {format(booking.from, "MMM dd")} -{" "}
+              {format(booking.to, "MMM dd")}
             </p>
             <p>
-              <strong>Rooms:</strong> {selectedBooking.roomNames.join(", ")}
+              <strong>Rooms:</strong> {booking.roomNames.join(", ")}
             </p>
             <p>
               <strong>Booking ID:</strong> Will be generated on confirmation
