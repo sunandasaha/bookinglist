@@ -61,7 +61,7 @@ const ContextProvider = ({
   const [user, setUser] = useState<user>(null);
   const [hosthotel, setHosthotel] = useState<hostHotel | null>(null);
   const [pop, setPop] = useState("");
-
+ 
   return (
     <Context.Provider
       value={{ user, hosthotel, setUser, pop, setPop, setHosthotel }}
