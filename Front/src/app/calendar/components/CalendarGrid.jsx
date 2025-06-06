@@ -199,7 +199,7 @@ useEffect(() => {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div className="inline-block w-full min-w-[600px] sm:min-w-[700px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
+      <div className="inline-block w-full min-w-[800px] sm:min-w-[900px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
 
         {/* Header row */}
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold md:text-sm">
@@ -211,6 +211,24 @@ useEffect(() => {
             </div>
           ))}
         </div>
+        {/* Availability row */}
+        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-200 text-sm font-medium text-gray-800 border-b grid-row">
+          <div className="p-2 md:p-3 border-r whitespace-nowrap">Available Rooms</div>
+          {dates.map((date, dIdx) => {
+            const bookedRoomsCount = rooms.filter((room) =>
+              getBookingForCell(room.id, date)
+            ).length;
+            const available = rooms.length - bookedRoomsCount;1
+            return (
+              <div key={dIdx} 
+              className="p-2 md:p-3 text-center border-r grid-cell"
+              data-room ={-1} data-date ={dIdx}>
+                {available} available
+              </div>
+            );
+          })}
+        </div>
+
 
         {/* Room rows */}
         {rooms.map((room, rIdx) => (
