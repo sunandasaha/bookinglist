@@ -19,16 +19,11 @@ const HostForm = ({ info, setInfo }: props) => {
     if (e.target.id === "hph2") setInfo((p) => ({ ...p, ph2: e.target.value }));
     if (e.target.id === "hnr")
       setInfo((p) => ({ ...p, rooms: Number(e.target.value) }));
-    if (e.target.id === "hper")
-      setInfo((p) => ({
-        ...p,
-        pay_per: { ...p.pay_per, person: e.target.checked },
-      }));
-    if (e.target.id === "hrom")
-      setInfo((p) => ({
-        ...p,
-        pay_per: { ...p.pay_per, room: e.target.checked },
-      }));
+  };
+
+  const handleRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value === "person";
+    setInfo((p) => ({ ...p, pay_per: { person: val, room: !val } }));
   };
 
   return (
@@ -98,23 +93,25 @@ const HostForm = ({ info, setInfo }: props) => {
         <div className="px-10">
           <div className="inline">
             <input
-              type="checkbox"
-              name="person"
-              id="hper"
+              type="radio"
+              name="pp"
+              id="ppp"
               checked={info.pay_per.person}
-              onChange={handleChange}
+              value="person"
+              onChange={handleRChange}
             />
-            <p>Person</p>
+            <label htmlFor="ppp">Person</label>
           </div>
           <div className="inline">
             <input
-              type="checkbox"
-              name="room"
-              id="hrom"
+              type="radio"
+              name="pp"
+              id="ppr"
+              value="room"
               checked={info.pay_per.room}
-              onChange={handleChange}
+              onChange={handleRChange}
             />
-            <p>Room</p>
+            <label htmlFor="ppr">Room</label>
           </div>
         </div>
       </div>
