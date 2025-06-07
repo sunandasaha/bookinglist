@@ -7,6 +7,8 @@ import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
+import { Bell } from "lucide-react";
+
 
 export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
   const { hosthotel,setUser, setHosthotel } = useContext(Context);
@@ -114,19 +116,6 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
               <Home size={18} className="text-purple-600" />
               <span>Rooms & Pricing</span>
             </button>
-
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
-              <Plus size={18} className="text-green-600" />
-              <span>Add Rooms</span>
-            </button>
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
-              <Minus size={18} className="text-red-600" />
-              <span>Remove Rooms</span>
-            </button>
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
-              <DollarSign size={18} className="text-yellow-600" />
-              <span>New Booking</span>
-            </button>
             <button
               onClick={() => {
                 setUser(null);
@@ -209,38 +198,48 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
           </div>
         )}
       </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search
-          onClick={toggleSearch}
-          className="text-gray-700 hover:text-black cursor-pointer"
-          size={24}
-          title="Search Booking ID"
-        />
-
-        {searchOpen && (
-          <form
-            onSubmit={handleSearchSubmit}
-            className="absolute right-0 mt-2 bg-white border rounded-md shadow-lg p-2 flex items-center gap-2 z-50"
-          >
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Enter Booking ID"
-              className="border border-gray-300 rounded px-2 py-1 text-sm text-black"
-              autoFocus
+      <div className="flex items-center gap-4">
+          {/* Search Icon & Form */}
+          <div className="relative">
+            <Search
+              onClick={toggleSearch}
+              className="text-gray-700 hover:text-black cursor-pointer"
+              size={24}
+              title="Search Booking ID"
             />
-            <button
-              type="submit"
-              className="bg-green-500 text-black px-3 py-1 rounded text-sm hover:bg-green-600"
-            >
-              Search
-            </button>
-          </form>
-        )}
-      </div>
+            {searchOpen && (
+              <form
+                onSubmit={handleSearchSubmit}
+                className="absolute right-0 mt-2 bg-white border rounded-md shadow-lg p-2 flex items-center gap-2 z-50"
+              >
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Enter Booking ID"
+                  className="border border-gray-300 rounded px-2 py-1 text-sm text-black"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="bg-green-500 text-black px-3 py-1 rounded text-sm hover:bg-green-600"
+                >
+                  Search
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Bell Notification Icon */}
+          <div className="relative">
+            <Bell
+              className="text-gray-700 hover:text-black cursor-pointer"
+              size={24}
+              title="Notifications"
+            />
+          </div>
+        </div>
+
        {showProfile && (
               <ProfileModal
                 profile={hosthotel}
