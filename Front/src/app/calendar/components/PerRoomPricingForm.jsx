@@ -1,270 +1,239 @@
 "use client";
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
-import { Trash2, Plus, Minus } from "lucide-react";
+import { Trash2, Plus, X,Edit,Save } from "lucide-react";
 
-const PerRoomPricingForm = ({ rooms, onUpdateRooms, roomsUsedInOtherCategories }) => {
+const PerRoomPricingForm = () => {
   const { hosthotel } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
 
-  const [editingIndex, setEditingIndex] = useState(rooms.length > 0 ? 0 : null);
-  const [localRooms, setLocalRooms] = useState(rooms);
-  const [problem, setProblem] = useState("");
+  const [categories, setCategories] = useState([
+    {
+      name: "AC Rooms",
+      roomData: {
+        roomNumbers: [""],
+        capacity: "",
+        rate: "",
+        extraPerson: "",
+        agentCommission: "",
+        agentCommissionType: "%",
+        advance: "",
+        photos: []
+      },
+      isEditing: true
+    },
+    {
+      name: "Normal Rooms",
+      roomData: {
+        roomNumbers: [""],
+        capacity: "",
+        rate: "",
+        extraPerson: "",
+        agentCommission: "",
+        agentCommissionType: "%",
+        advance: "",
+        photos: []
+      },
+      isEditing: true
+    }
+  ]);
 
-  useEffect(() => {
-    setLocalRooms(rooms);
-  }, [rooms]);
+  const getTotalUsedRooms = () => {
+    return categories.reduce((total, cat) => total + cat.roomData.roomNumbers.length, 0);
+  };
 
   const handleChange = (index, field, value) => {
-    const updated = [...localRooms];
-    updated[index] = { ...updated[index], [field]: value };
-    setLocalRooms(updated);
+    const updated = [...categories];
+    updated[index].roomData[field] = value;
+    setCategories(updated);
   };
 
-  const handleRoomNumberChange = (roomIndex, value, groupIndex) => {
-    const updated = [...localRooms];
-    updated[groupIndex].roomNumbers[roomIndex] = value;
-    setLocalRooms(updated);
+  const handleRoomNumberChange = (catIdx, rIdx, value) => {
+    const updated = [...categories];
+    updated[catIdx].roomData.roomNumbers[rIdx] = value;
+    setCategories(updated);
   };
 
-  const addRoomNameField = (groupIndex) => {
-    const totalUsed = roomsUsedInOtherCategories + localRooms.reduce((acc, group) => acc + group.roomNumbers.length, 0);
-    if (totalUsed >= totalRoomsAllowed) {
-      setProblem("You have reached the total number of allowed rooms.");
-      return;
-    }
-
-    setProblem("");
-    const updated = [...localRooms];
-    updated[groupIndex].roomNumbers.push("");
-    setLocalRooms(updated);
+  const addRoomNumber = (catIdx) => {
+    if (getTotalUsedRooms() >= totalRoomsAllowed) return;
+    const updated = [...categories];
+    updated[catIdx].roomData.roomNumbers.push("");
+    setCategories(updated);
   };
 
-  const removeRoomNameField = (groupIndex, roomIndex) => {
-    const updated = [...localRooms];
-    if (updated[groupIndex].roomNumbers.length > 1) {
-      updated[groupIndex].roomNumbers.splice(roomIndex, 1);
-      setLocalRooms(updated);
+  const removeRoomNumber = (catIdx, rIdx) => {
+    const updated = [...categories];
+    if (updated[catIdx].roomData.roomNumbers.length > 1) {
+      updated[catIdx].roomData.roomNumbers.splice(rIdx, 1);
+      setCategories(updated);
     }
   };
 
-  const handleAddPhoto = (index, files) => {
-    const updated = [...localRooms];
-    const currentPhotos = updated[index].photos || [];
-
-    if (currentPhotos.length + files.length > 4) {
-      setProblem("Maximum 4 photos allowed.");
-      return;
-    }
-
-    updated[index].photos = [...currentPhotos, ...Array.from(files).slice(0, 4 - currentPhotos.length)];
-    setLocalRooms(updated);
+  const handleAddPhoto = (catIdx, files) => {
+    const updated = [...categories];
+    const currentPhotos = updated[catIdx].roomData.photos || [];
+    if (currentPhotos.length + files.length > 4) return;
+    updated[catIdx].roomData.photos = [...currentPhotos, ...Array.from(files).slice(0, 4 - currentPhotos.length)];
+    setCategories(updated);
   };
 
-  const removePhoto = (index, photoIndex) => {
-    const updated = [...localRooms];
-    updated[index].photos.splice(photoIndex, 1);
-    setLocalRooms(updated);
+  const removePhoto = (catIdx, photoIdx) => {
+    const updated = [...categories];
+    updated[catIdx].roomData.photos.splice(photoIdx, 1);
+    setCategories(updated);
   };
 
-  const handleSubmit = (index) => {
-    onUpdateRooms(localRooms);
-    setEditingIndex(null);
+  const toggleEdit = (index) => {
+    const updated = [...categories];
+    updated[index].isEditing = !updated[index].isEditing;
+    setCategories(updated);
   };
 
-  const handleEdit = (index) => {
-    setEditingIndex(index);
-    setProblem("");
+  const handleAddCategory = () => {
+    if (getTotalUsedRooms() >= totalRoomsAllowed) return;
+    setCategories([
+      ...categories,
+      {
+        name: "New Category",
+        roomData: {
+          roomNumbers: [""],
+          capacity: "",
+          rate: "",
+          extraPerson: "",
+          agentCommission: "",
+          agentCommissionType: "%",
+          advance: "",
+          photos: []
+        },
+        isEditing: true
+      }
+    ]);
   };
 
-  const handleDelete = (index) => {
-    const updated = [...localRooms];
-    updated.splice(index, 1);
-    setLocalRooms(updated);
-    onUpdateRooms(updated);
-
-    if (editingIndex === index) {
-      setEditingIndex(null);
-    } else if (editingIndex !== null && editingIndex > index) {
-      setEditingIndex((prev) => prev - 1);
-    }
-    setProblem("");
-  };
-
-  const handleAddNewGroup = () => {
-    const newRoomGroup = {
-      roomNumbers: [""],
-      capacity: "",
-      rate: "",
-      extraPerson: "",
-      agentCommission: "",
-      advance: "",
-      photos: [],
-    };
-
-    const updatedRooms = [...localRooms, newRoomGroup];
-    setLocalRooms(updatedRooms);
-    onUpdateRooms(updatedRooms);
-    setEditingIndex(updatedRooms.length - 1);
+  const handleCategoryNameChange = (index, value) => {
+    const updated = [...categories];
+    updated[index].name = value;
+    setCategories(updated);
   };
 
   return (
     <div className="space-y-6">
-      {problem && <p className="text-red-600 mb-2">{problem}</p>}
+      {categories.map((cat, catIdx) => (
+        <div key={catIdx} className="border rounded p-4 space-y-3 shadow bg-gray-50">
+          <div className="flex justify-between items-center">
+  <input
+    value={cat.name}
+    onChange={(e) => handleCategoryNameChange(catIdx, e.target.value)}
+    className="font-semibold text-lg border p-1 rounded w-1/2"
+  />
+            <div className="flex gap-3 items-center">
+              <button onClick={() => toggleEdit(catIdx)} className="text-blue-600">
+                {cat.isEditing ? <Save size={18} /> : <Edit size={18} />}
+              </button>
+              <button
+                onClick={() => {
+                  const updated = [...categories];
+                  updated.splice(catIdx, 1);
+                  setCategories(updated);
+                }}
+                className="text-red-500"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+          </div>
 
-      {localRooms.map((room, index) => {
-        const isEditing = editingIndex === index;
-
-        return (
-          <div key={index} className="border p-4 rounded-md space-y-3 bg-gray-50 shadow relative">
-            {isEditing ? (
-              <>
-                <label className="block font-semibold">Room Names/Numbers</label>
-                {room.roomNumbers.map((rName, rIndex) => (
-                  <div key={rIndex} className="flex items-center space-x-2 mb-2">
+          {cat.isEditing && (
+            <>
+              <div>
+                <label className="font-medium">Room Names</label>
+                {cat.roomData.roomNumbers.map((r, rIdx) => (
+                  <div key={rIdx} className="flex gap-2 mb-2">
                     <input
-                      placeholder={`Room ${rIndex + 1}`}
-                      value={rName}
-                      onChange={(e) => handleRoomNumberChange(rIndex, e.target.value, index)}
+                      value={r}
+                      onChange={(e) => handleRoomNumberChange(catIdx, rIdx, e.target.value)}
                       className="input w-full"
+                      placeholder={`Room ${rIdx + 1}`}
                     />
-                    {rIndex === room.roomNumbers.length - 1 && (
-                      <button
-                        onClick={() => addRoomNameField(index)}
-                        className="text-xl text-blue-600 hover:text-blue-800"
-                        type="button"
-                      >
-                        <Plus />
-                      </button>
+                    {rIdx === cat.roomData.roomNumbers.length - 1 && (
+                      <button onClick={() => addRoomNumber(catIdx)}><Plus /></button>
                     )}
-                    {room.roomNumbers.length > 1 && (
-                      <button
-                        onClick={() => removeRoomNameField(index, rIndex)}
-                        className="text-xl text-red-600 hover:text-red-800"
-                        type="button"
-                      >
-                        <Minus />
-                      </button>
+                    {cat.roomData.roomNumbers.length > 1 && (
+                      <button onClick={() => removeRoomNumber(catIdx, rIdx)}><X /></button>
                     )}
                   </div>
                 ))}
-
-                <label className="block font-semibold">Room Capacity</label>
-                <input
-                  placeholder="Capacity"
-                  value={room.capacity}
-                  onChange={(e) => handleChange(index, "capacity", e.target.value)}
-                  className="input w-full"
-                />
-
-                <label className="block font-semibold">Rate</label>
-                <input
-                  placeholder="Rate"
-                  value={room.rate}
-                  onChange={(e) => handleChange(index, "rate", e.target.value)}
-                  className="input w-full"
-                />
-
-                <label className="block font-semibold">Extra Person Charge</label>
-                <input
-                  placeholder="Extra Person Charge"
-                  value={room.extraPerson}
-                  onChange={(e) => handleChange(index, "extraPerson", e.target.value)}
-                  className="input w-full"
-                />
-
-                <label className="block font-semibold">Agent Commission</label>
+              </div>
+              <input
+                placeholder="Capacity"
+                value={cat.roomData.capacity}
+                onChange={(e) => handleChange(catIdx, "capacity", e.target.value)}
+                className="input w-full"
+              />
+              <input
+                placeholder="Rate"
+                value={cat.roomData.rate}
+                onChange={(e) => handleChange(catIdx, "rate", e.target.value)}
+                className="input w-full"
+              />
+              <input
+                placeholder="Extra Person"
+                value={cat.roomData.extraPerson}
+                onChange={(e) => handleChange(catIdx, "extraPerson", e.target.value)}
+                className="input w-full"
+              />
+              <div className="flex gap-2">
                 <input
                   placeholder="Agent Commission"
-                  value={room.agentCommission}
-                  onChange={(e) => handleChange(index, "agentCommission", e.target.value)}
+                  value={cat.roomData.agentCommission}
+                  onChange={(e) => handleChange(catIdx, "agentCommission", e.target.value)}
                   className="input w-full"
                 />
-
-                <label className="block font-semibold">Advance Amount</label>
-                <input
-                  placeholder="Advance Amount"
-                  value={room.advance}
-                  onChange={(e) => handleChange(index, "advance", e.target.value)}
-                  className="input w-full"
-                />
-
-                <label className="block font-semibold">Photos (max 4)</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => handleAddPhoto(index, e.target.files)}
-                  className="input w-full"
-                  disabled={room.photos?.length >= 4}
-                />
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {room.photos &&
-                    room.photos.map((photo, i) => (
-                      <div key={i} className="relative w-20 h-20">
-                        <img
-                          src={URL.createObjectURL(photo)}
-                          alt={`room-${i}`}
-                          className="w-full h-full object-cover rounded"
-                        />
-                        <button
-                          onClick={() => removePhoto(index, i)}
-                          className="absolute -top-2 -right-2 bg-white text-red-600 rounded-full p-1"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                </div>
-
-                <button
-                  onClick={() => handleSubmit(index)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-md mt-3"
+                <select
+                  value={cat.roomData.agentCommissionType}
+                  onChange={(e) => handleChange(catIdx, "agentCommissionType", e.target.value)}
+                  className="input"
                 >
-                  Submit
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-lg">
-                    Rooms: {room.roomNumbers.join(", ") || `Group ${index + 1}`}
-                  </h3>
-                  <div className="space-x-2">
+                  <option value="%">%</option>
+                  <option value="₹">₹</option>
+                </select>
+              </div>
+              <input
+                placeholder="Advance"
+                value={cat.roomData.advance}
+                onChange={(e) => handleChange(catIdx, "advance", e.target.value)}
+                className="input w-full"
+              />
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+              />
+              <div className="flex gap-2 flex-wrap">
+                {cat.roomData.photos.map((photo, i) => (
+                  <div key={i} className="relative w-20 h-20">
+                    <img
+                      src={URL.createObjectURL(photo)}
+                      className="w-full h-full object-cover rounded"
+                    />
                     <button
-                      onClick={() => handleEdit(index)}
-                      className="text-blue-600 hover:underline"
+                      className="absolute top-0 right-0 text-red-500"
+                      onClick={() => removePhoto(catIdx, i)}
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(index)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Delete
+                      <X />
                     </button>
                   </div>
-                </div>
-                <p>Capacity: {room.capacity || "-"}</p>
-                <p>Rate: ₹{room.rate || "-"}</p>
-                <p>Extra Person Charge: ₹{room.extraPerson || "-"}</p>
-                <p>Agent Commission: {room.agentCommission || "-"}</p>
-                <p>Advance Amount: ₹{room.advance || "-"}</p>
-                <p>
-                  Photos: {room.photos && room.photos.length > 0 ? `${room.photos.length} uploaded` : "No photos"}
-                </p>
-              </>
-            )}
-          </div>
-        );
-      })}
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ))}
 
-      <div className="text-center mt-6">
-        <button
-          onClick={handleAddNewGroup}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Add Room Category
+      <div className="text-center">
+        <button onClick={handleAddCategory} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Add Category
         </button>
       </div>
     </div>
