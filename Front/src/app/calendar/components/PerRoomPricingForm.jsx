@@ -6,6 +6,9 @@ import { Trash2, Plus, X,Edit,Save } from "lucide-react";
 const PerRoomPricingForm = () => {
   const { hosthotel } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
+  console.log("hosthotel:", hosthotel);
+  console.log("pay_per:", hosthotel?.pay_per);
+
 
   const [categories, setCategories] = useState([
     {
