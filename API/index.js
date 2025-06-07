@@ -6,9 +6,10 @@ require("dotenv").config();
 const userroute = require("./routes/userroute");
 const hotelroute = require("./routes/hotelroute");
 const guestRoute = require("./routes/guestroute");
+const categoryroute = require("./routes/categoryroute");
 mongoose.connect(process.env.API_URI);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log("this runs");
 });
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use("/user", userroute);
 app.use("/hotel", hotelroute);
 app.use("/guestbooking", guestRoute);
+app.use("/category", categoryroute);
 
 app.use((err, req, res, next) => {
   console.log(err);

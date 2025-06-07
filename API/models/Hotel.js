@@ -23,6 +23,7 @@ const HotelSchema = new mongoose.Schema({
   ph1: String,
   ph2: String,
   rooms: Number,
+  room_cat: [{ type: mongoose.Schema.Types.ObjectId, ref: "roomcats" }],
   pay_per: {
     type: { person: Boolean, room: Boolean },
   },

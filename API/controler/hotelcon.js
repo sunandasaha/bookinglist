@@ -10,7 +10,7 @@ const createHotel = async (req, res) => {
     if (chk._id) {
       url += randomInt(100).toString();
     }
-    const hot = await Hotelmodel.create({ ...data, url });
+    const hot = await Hotelmodel.create({ ...data, url, room_cat: [] });
     const usr = await Usermodel.findById(req.user._id);
     usr.sid = hot._id;
     await usr.save();
@@ -23,7 +23,7 @@ const createHotel = async (req, res) => {
 
 const updateHotel = async (req, res) => {
   const data = req.body;
-  const hot = await Hotelmodel.findById(data._id);
+  const hot = await Hotelmodel.findById(data._id).populate("room_cat");
   if (hot) {
     try {
       hot.name = data.name;
