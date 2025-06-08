@@ -3,6 +3,9 @@ const Usermodel = require("../models/Users");
 
 const authUser = (req, res, next) => {
   // validating token
+  if (!req.headers.authorization) {
+    res.json({ status: "Unauthorised Access" });
+  }
   jwt.verify(
     req.headers.authorization,
     process.env.ACCESS_TOKEN,

@@ -13,7 +13,7 @@ const AuthNav = () => {
 
   return (
     <div className="auth-navbar">
-      <img src="/logo.png" alt="" />
+      <img src="/svgs/logo.png" alt="" />
       <div className="nav-elcon">
         <p
           onClick={() => {

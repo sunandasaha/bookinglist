@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useEffect } from "react";
 import { Context, hostHotel } from "./_components/ContextProvider";
 import { postReq } from "./_utils/request";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const navigate = useRouter();
@@ -48,8 +49,13 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="con">
-      <img src="/logo.png" style={{ height: 100, width: 100 }} />
+    <div className="h-full w-full grid place-items-center">
+      <motion.img
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1 }}
+        src="/svgs/logo.png"
+        style={{ height: 100, width: 100 }}
+      />
     </div>
   );
 }

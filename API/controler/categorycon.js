@@ -3,7 +3,7 @@ const RoomCatmodel = require("../models/Rooms");
 const Hotelmodel = require("../models/Hotel");
 
 const createRoomCategory = async (req, res) => {
-  const data = req.body;
+  const data = JSON.parse(req.body.details);
   try {
     const hot = await Hotelmodel.findById(req.user.sid);
     if (hot) {
