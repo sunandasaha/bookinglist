@@ -7,6 +7,13 @@ const {
   addImg,
   deleteRoomCategory,
 } = require("../controler/categorycon");
+const {
+  createPerPersonCategory,
+  modifyPerPersonCategory,
+  deleteImgPerPerson,
+  addImgPerPerson,
+  deletePerPersonCategory,
+} = require("../controler/perpersoncon");
 const { authUser, chkHost } = require("../middleware/auth");
 
 const categoryroute = express.Router();
@@ -29,6 +36,25 @@ categoryroute.post(
   uploadImages,
   resizeAndSaveImages,
   addImg
+);
+categoryroute.post(
+  "/perperson",
+  authUser,
+  chkHost,
+  uploadImages,
+  resizeAndSaveImages,
+  createPerPersonCategory
+);
+categoryroute.put("/perperson", authUser, chkHost, modifyPerPersonCategory);
+categoryroute.delete("/perperson/img", authUser, chkHost, deleteImgPerPerson);
+categoryroute.delete("/perperson", authUser, chkHost, deletePerPersonCategory);
+categoryroute.post(
+  "/perperson/img",
+  authUser,
+  chkHost,
+  uploadImages,
+  resizeAndSaveImages,
+  addImgPerPerson
 );
 
 module.exports = categoryroute;

@@ -20,20 +20,36 @@ export type hostHotel = {
   ph2?: string;
   rooms: number;
   room_cat?: room_cat[];
+  per_person_cat?: per_percent_cat[];
 };
 
 type room_cat = {
-  _id: string;
+  _id?: string;
   name: string;
   price: number;
-  advance: number;
+  advance: { amount: number; percent: boolean };
   images: string[];
   room_no: string[];
   capacity: number;
   Beds: number;
   price_for_extra_person: number;
-  agent_com: number;
-  amenities :string[];
+  agent_com: { amount: number; percent: boolean };
+  amenities: string[];
+};
+
+type per_percent_cat = {
+  _id?: string;
+  name: string;
+  roomNumbers: string[];
+  amenities: string[];
+  capacity: number;
+  rate1: number;
+  rate2: number;
+  rate3: number;
+  rate4: number;
+  agentCommission?: { amount: number; percent: boolean };
+  advance?: { amount: number; percent: boolean };
+  images: string[];
 };
 
 type Ccontext = {
@@ -62,7 +78,7 @@ const ContextProvider = ({
   const [user, setUser] = useState<user>(null);
   const [hosthotel, setHosthotel] = useState<hostHotel | null>(null);
   const [pop, setPop] = useState("");
- 
+
   return (
     <Context.Provider
       value={{ user, hosthotel, setUser, pop, setPop, setHosthotel }}

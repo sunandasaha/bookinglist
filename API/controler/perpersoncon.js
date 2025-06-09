@@ -1,19 +1,21 @@
 const fs = require("fs");
-const RoomCatmodel = require("../models/Rooms");
 const Hotelmodel = require("../models/Hotel");
+const PerPersonmodel = require("../models/PerPerson");
 
-const createRoomCategory = async (req, res) => {
+const createPerPersonCategory = async (req, res) => {
   const data = JSON.parse(req.body.details);
   try {
     const hot = await Hotelmodel.findById(req.user.sid);
     if (hot) {
-      const roomcat = await RoomCatmodel.create({
+      const roomcat = await PerPersonmodel.create({
         ...data,
         images: req.savedImages,
       });
-      hot.room_cat = [...hot.room_cat, roomcat._id];
+      hot.per_person_cat = [...hot.per_person_cat, roomcat._id];
       await hot.save();
-      const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+      const ho = await Hotelmodel.findById(req.user.sid).populate(
+        "per_person_cat"
+      );
       res.json({ status: "success", hotel: ho });
     } else {
       res.json({ status: "cannot find the hotel" });
@@ -24,33 +26,39 @@ const createRoomCategory = async (req, res) => {
   }
 };
 
-const modifyRoomCategory = async (req, res) => {
+const modifyPerPersonCategory = async (req, res) => {
   const data = req.body;
-  const cat = await RoomCatmodel.findById(data._id);
+  const cat = await PerPersonmodel.findById(data._id);
   if (cat) {
     cat.name = data.name;
-    cat.price = data.price;
-    cat.room_no = [...data.room_no];
+    cat.rate1 = data.rate1;
+    cat.rate2 = data.rate2;
+    cat.rate3 = data.rate3;
+    cat.rate4 = data.rate4;
+    cat.roomNumbers = [...data.roomNumbers];
     cat.advance = data.advance;
     cat.amenities = data.amenities;
-    cat.agent_com = data.agent_com;
+    cat.agentCommission = data.agentCommission;
     cat.capacity = data.capacity;
-    cat.price_for_extra_person = data.price_for_extra_person;
     await cat.save();
-    const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+    const hot = await Hotelmodel.findById(req.user.sid).populate(
+      "per_person_cat"
+    );
     res.json({ status: "success", hotel: hot });
   } else {
     res.json({ status: "failed" });
   }
 };
 
-const addImg = async (req, res) => {
+const addImgPerPerson = async (req, res) => {
   const data = req.body;
-  const cat = await RoomCatmodel.findById(data._id);
+  const cat = await PerPersonmodel.findById(data._id);
   if (cat) {
     cat.images = [...cat.images, ...req.savedImages];
     await cat.save();
-    const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+    const hot = await Hotelmodel.findById(req.user.sid).populate(
+      "per_person_cat"
+    );
     res.json({ status: "success", hotel: hot });
   } else {
     req.savedImages.forEach((el) => {
@@ -62,9 +70,9 @@ const addImg = async (req, res) => {
   }
 };
 
-const deleteImg = async (req, res) => {
+const deleteImgPerPerson = async (req, res) => {
   const data = req.body;
-  const cat = await RoomCatmodel.findById(data._id);
+  const cat = await PerPersonmodel.findById(data._id);
   if (cat) {
     data.images.forEach((el) => {
       fs.unlink(`../upload/${el}`, (err) => {
@@ -73,37 +81,41 @@ const deleteImg = async (req, res) => {
       cat.images = cat.images.filter((e) => e !== el);
     });
     await cat.save();
-    const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+    const hot = await Hotelmodel.findById(req.user.sid).populate(
+      "per_person_con"
+    );
     res.json({ status: "success", hotel: hot });
   } else {
     res.json({ status: "failed" });
   }
 };
 
-const deleteRoomCategory = async (req, res) => {
+const deletePerPersonCategory = async (req, res) => {
   try {
     const data = req.body;
     const hot = await Hotelmodel.findById(req.user.sid);
     hot.room_cat = hot.room_cat.filter((el) => el !== data._id);
     await hot.save();
-    const cat = await RoomCatmodel.findById(data._id);
+    const cat = await PerPersonmodel.findById(data._id);
     cat.images.forEach((el) => {
       fs.unlink(`../upload/${el}`, (err) => {
         console.log(err);
       });
     });
-    await RoomCatmodel.findByIdAndDelete(data._id);
-    const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-    resizeBy.json({ status: "success", hotel: ho });
+    await PerPersonmodel.findByIdAndDelete(data._id);
+    const ho = await Hotelmodel.findById(req.user.sid).populate(
+      "per_person_con"
+    );
+    res.json({ status: "success", hotel: ho });
   } catch (err) {
     res.json({ status: "failed", err });
   }
 };
 
 module.exports = {
-  createRoomCategory,
-  addImg,
-  deleteImg,
-  modifyRoomCategory,
-  deleteRoomCategory,
+  createPerPersonCategory,
+  modifyPerPersonCategory,
+  addImgPerPerson,
+  deleteImgPerPerson,
+  deletePerPersonCategory,
 };

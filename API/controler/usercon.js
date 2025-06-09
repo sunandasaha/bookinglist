@@ -32,7 +32,9 @@ const getDet = async (role, id) => {
   let cred = undefined;
   if (id) {
     if (role === "host") {
-      cred = await Hotelmodel.findById(id).populate("room_cat");
+      cred = await Hotelmodel.findById(id)
+        .populate("room_cat")
+        .populate("per_person_cat");
     }
   }
   return cred;

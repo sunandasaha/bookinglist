@@ -5,6 +5,7 @@ import TopBar from "./TopBar";
 import CalendarGrid from "./CalendarGrid";
 import { Context } from "../../_components/ContextProvider";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -58,6 +59,7 @@ export default function Dashboard() {
         bookings={filteredBookings}
         searchBookingId={searchBookingId}
       />
+      <Link href={"/test"}>Test</Link>
     </div>
   );
 }
