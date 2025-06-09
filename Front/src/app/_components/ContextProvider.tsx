@@ -33,6 +33,7 @@ type room_cat = {
   Beds: number;
   price_for_extra_person: number;
   agent_com: number;
+  amenities :string[];
 };
 
 type Ccontext = {
