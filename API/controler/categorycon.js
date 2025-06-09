@@ -1,6 +1,7 @@
 const fs = require("fs");
 const RoomCatmodel = require("../models/Rooms");
 const Hotelmodel = require("../models/Hotel");
+const path = require("path");
 
 const createRoomCategory = async (req, res) => {
   const data = JSON.parse(req.body.details);
@@ -67,8 +68,8 @@ const deleteImg = async (req, res) => {
   const cat = await RoomCatmodel.findById(data._id);
   if (cat) {
     data.images.forEach((el) => {
-      fs.unlink(`../upload/${el}`, (err) => {
-        console.log(err);
+      fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {
+        if (err) console.log(err);
       });
       cat.images = cat.images.filter((e) => e !== el);
     });
@@ -88,14 +89,16 @@ const deleteRoomCategory = async (req, res) => {
     await hot.save();
     const cat = await RoomCatmodel.findById(data._id);
     cat.images.forEach((el) => {
-      fs.unlink(`../upload/${el}`, (err) => {
-        console.log(err);
+      fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {
+        if (err) console.log(err);
       });
     });
     await RoomCatmodel.findByIdAndDelete(data._id);
     const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-    resizeBy.json({ status: "success", hotel: ho });
+    res.json({ status: "success", hotel: ho });
   } catch (err) {
+    console.log(err);
+
     res.json({ status: "failed", err });
   }
 };
