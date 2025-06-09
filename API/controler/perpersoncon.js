@@ -1,6 +1,7 @@
 const fs = require("fs");
 const Hotelmodel = require("../models/Hotel");
 const PerPersonmodel = require("../models/PerPerson");
+const path = require("path");
 
 const createPerPersonCategory = async (req, res) => {
   const data = JSON.parse(req.body.details);
@@ -75,8 +76,8 @@ const deleteImgPerPerson = async (req, res) => {
   const cat = await PerPersonmodel.findById(data._id);
   if (cat) {
     data.images.forEach((el) => {
-      fs.unlink(`../upload/${el}`, (err) => {
-        console.log(err);
+      fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {
+        if (err) console.log(err);
       });
       cat.images = cat.images.filter((e) => e !== el);
     });
@@ -98,8 +99,8 @@ const deletePerPersonCategory = async (req, res) => {
     await hot.save();
     const cat = await PerPersonmodel.findById(data._id);
     cat.images.forEach((el) => {
-      fs.unlink(`../upload/${el}`, (err) => {
-        console.log(err);
+      fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {
+        if (err) console.log(err);
       });
     });
     await PerPersonmodel.findByIdAndDelete(data._id);

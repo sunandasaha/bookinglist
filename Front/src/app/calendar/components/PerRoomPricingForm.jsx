@@ -3,12 +3,12 @@
 import React, { useState, useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
-import { site, delReq } from "../../_utils/request";
+import { site, delReq, putReq } from "../../_utils/request";
 
 const facilityOptions = ["Geyser", "TV", "WiFi", "Breakfast", "Food"];
 
 const PerRoomPricingForm = () => {
-  const { hosthotel, user } = useContext(Context);
+  const { hosthotel, user, setHosthotel } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
 
   const [categories, setCategories] = useState(
@@ -147,70 +147,85 @@ const PerRoomPricingForm = () => {
     setCategories(updated);
   };
   const toggleEdit = async (index) => {
-  const updated = [...categories];
-  const cat = updated[index];
+    const updated = [...categories];
+    const cat = updated[index];
 
-  if (cat.isEditing) {
-    if (cat._id) {
-      // TODO: Update logic here — let your team handle it.
-    } else {
-      const formData = new FormData();
-
-      const details = {
-        name: cat.name,
-        capacity: Number(cat.capacity),
-        price: Number(cat.price),
-        price_for_extra_person: Number(cat.price_for_extra_person),
-        agent_com: {
-          amount: Number(cat.agent_com.amount),
-          percent: cat.agent_com.percent,
-        },
-        advance: {
-          amount: Number(cat.advance.amount),
-          percent: cat.advance.percent,
-        },
-        room_no: cat.room_no,
-        amenities: cat.facilities || [],
-      };
-
-      formData.append("details", JSON.stringify(details));
-      cat.images.forEach((img) => formData.append("images", img));
-
-      try {
-        const res = await fetch(site + "category/room", {
-          method: "POST",
-          headers: { authorization: user.token },
-          body: formData,
-        });
-
-        const result = await res.json();
-        console.log(result);
-
-        if (result.success && result.data?._id) {
-          updated[index]._id = result.data._id;
+    if (cat.isEditing) {
+      if (cat._id) {
+        // TODO: Update logic here — let your team handle it.
+        const result = await putReq("category/room", cat, user.token);
+        if (result.success) {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.room_cat);
         }
-      } catch (error) {
-        console.error("Failed to save category:", error);
+      } else {
+        const formData = new FormData();
+
+        const details = {
+          name: cat.name,
+          capacity: Number(cat.capacity),
+          price: Number(cat.price),
+          price_for_extra_person: Number(cat.price_for_extra_person),
+          agent_com: {
+            amount: Number(cat.agent_com.amount),
+            percent: cat.agent_com.percent,
+          },
+          advance: {
+            amount: Number(cat.advance.amount),
+            percent: cat.advance.percent,
+          },
+          room_no: cat.room_no,
+          amenities: cat.facilities || [],
+        };
+
+        formData.append("details", JSON.stringify(details));
+        cat.images.forEach((img) => formData.append("images", img));
+
+        try {
+          const res = await fetch(site + "category/room", {
+            method: "POST",
+            headers: { authorization: user.token },
+            body: formData,
+          });
+
+          const result = await res.json();
+          console.log(result);
+
+          if (result.success && result.data?._id) {
+            updated[index]._id = result.data._id;
+          }
+        } catch (error) {
+          console.error("Failed to save category:", error);
+        }
       }
     }
-  }
 
-  updated[index].isEditing = !cat.isEditing;
-  setCategories(updated);
-};
-
+    updated[index].isEditing = !cat.isEditing;
+    setCategories(updated);
+  };
 
   const handleDeleteCategory = async (catIdx) => {
     const categoryId = categories[catIdx]._id;
     if (categoryId) {
-      const confirmed = window.confirm("Are you sure you want to delete this category?");
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this category?"
+      );
       if (!confirmed) return;
 
       try {
-        const result = await delReq(`category/room/${categoryId}`, {}, user.token);
-        if (!result.success) {
+        const result = await delReq(
+          `category/room`,
+          { _id: categoryId },
+          user.token
+        );
+
+        console.log(result);
+        if (!result.status === "success") {
           alert("Failed to delete category on server.");
           return;
+        } else {
+          //setHosthotel(result.hotel);
+          //setCategories(result.hotel.room_cat);
         }
       } catch (error) {
         alert("Error deleting category.");
@@ -263,7 +278,10 @@ const PerRoomPricingForm = () => {
   return (
     <div className="space-y-6">
       {categories.map((cat, catIdx) => (
-        <div key={catIdx} className="border rounded p-4 space-y-3 shadow bg-gray-50">
+        <div
+          key={catIdx}
+          className="border rounded p-4 space-y-3 shadow bg-gray-50"
+        >
           {/* header */}
           <div className="flex justify-between items-center">
             <input
@@ -311,36 +329,46 @@ const PerRoomPricingForm = () => {
                   <div key={rIdx} className="flex gap-2 mb-2">
                     <input
                       value={r}
-                      onChange={(e) => handleRoomNumberChange(catIdx, rIdx, e.target.value)}
+                      onChange={(e) =>
+                        handleRoomNumberChange(catIdx, rIdx, e.target.value)
+                      }
                       className="input w-full"
                       placeholder={`Room ${rIdx + 1}`}
                     />
                     {rIdx === cat.room_no.length - 1 && (
-                      <button onClick={() => addRoomNumber(catIdx)} type="button">
+                      <button
+                        onClick={() => addRoomNumber(catIdx)}
+                        type="button"
+                      >
                         <Plus />
                       </button>
                     )}
                     {cat.room_no.length > 1 && (
-                      <button onClick={() => removeRoomNumber(catIdx, rIdx)} type="button">
+                      <button
+                        onClick={() => removeRoomNumber(catIdx, rIdx)}
+                        type="button"
+                      >
                         <X />
                       </button>
                     )}
                   </div>
                 ))}
-                </div>
+              </div>
               {problems.roomLimit && (
                 <p className="text-red-500 text-sm">{problems.roomLimit}</p>
               )}
-               <label className="font-medium">Capacity</label>
+              <label className="font-medium">Capacity</label>
               <input
                 placeholder="Capacity"
                 type="number"
                 min={0}
                 value={displayNumber(cat.capacity)}
-                onChange={(e) => handleChange(catIdx, "capacity", e.target.value)}
+                onChange={(e) =>
+                  handleChange(catIdx, "capacity", e.target.value)
+                }
                 className="input w-full"
               />
-               <label className="font-medium">Price</label>
+              <label className="font-medium">Price</label>
               <input
                 placeholder="Price"
                 type="number"
@@ -349,7 +377,7 @@ const PerRoomPricingForm = () => {
                 onChange={(e) => handleChange(catIdx, "price", e.target.value)}
                 className="input w-full"
               />
-               <label className="font-medium">Price for Extra Person</label>
+              <label className="font-medium">Price for Extra Person</label>
               <input
                 placeholder="Price for Extra Person"
                 type="number"
@@ -420,7 +448,9 @@ const PerRoomPricingForm = () => {
                   onChange={(e) =>
                     handleFacilitiesChange(
                       catIdx,
-                      Array.from(e.target.selectedOptions).map((opt) => opt.value)
+                      Array.from(e.target.selectedOptions).map(
+                        (opt) => opt.value
+                      )
                     )
                   }
                   className="input w-full h-28"
@@ -432,14 +462,24 @@ const PerRoomPricingForm = () => {
                   ))}
                 </select>
               </div>
-
-
+              {!cat._id && (
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+                />
+              )}
               {/* Image preview */}
               <div className="flex gap-2 flex-wrap">
                 {cat.images.map((photo, i) => (
                   <div key={i} className="relative w-20 h-20">
                     <img
-                      src={typeof photo === "string" ? photo : URL.createObjectURL(photo)}
+                      src={
+                        cat._id
+                          ? site + "imgs/" + photo
+                          : URL.createObjectURL(photo)
+                      }
                       className="w-full h-full object-cover rounded"
                       alt={`room-img-${i}`}
                     />
