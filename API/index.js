@@ -16,6 +16,7 @@ app.listen(PORT, () => {
 app.use(cors({})); // cors allow origin
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use("/imgs", express.static("./uploads/"));
 
 //routes
 app.use("/user", userroute);
