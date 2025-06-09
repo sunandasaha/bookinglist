@@ -31,6 +31,7 @@ const modifyRoomCategory = async (req, res) => {
     cat.price = data.price;
     cat.room_no = [...data.room_no];
     cat.advance = data.advance;
+    cat.amenities = data.amenities;
     cat.agent_com = data.agent_com;
     cat.capacity = data.capacity;
     cat.price_for_extra_person = data.price_for_extra_person;

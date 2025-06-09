@@ -7,11 +7,12 @@ const RoomCatSchema = new mongoose.Schema({
   },
   price: Number,
   room_no: [String],
+  amenities: [String],
   agent_com: { amount: Number, percent: Boolean },
   images: [String],
   capacity: Number,
   price_for_extra_person: Number,
-  advance: Number,
+  advance: { amount: Number, percent: Boolean },
 });
 
 const RoomCatmodel = mongoose.model("roomcats", RoomCatSchema);
