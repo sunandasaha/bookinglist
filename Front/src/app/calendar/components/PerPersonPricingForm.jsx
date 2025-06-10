@@ -23,7 +23,7 @@ const PerPersonPricingForm = () => {
   const totalRoomsAllowed = hosthotel?.rooms || 0;
 
   const [categories, setCategories] = useState(
-    hosthotel.per_person_cat || [def]
+    hosthotel.per_person_cat?.length > 0 ? hosthotel.per_person_cat : [def]
   );
 
   const getTotalUsedRooms = () =>
@@ -218,6 +218,7 @@ const PerPersonPricingForm = () => {
               <input
                 key={num}
                 placeholder={`Rate for ${num} person${num > 1 ? "s" : ""}`}
+                type="number"
                 value={cat[`rate${num}`]}
                 onChange={(e) =>
                   handleChange(catIdx, `rate${num}`, e.target.value)
@@ -229,6 +230,7 @@ const PerPersonPricingForm = () => {
               <input
                 placeholder="Agent Commission"
                 value={cat.agentCommission.amount}
+                type="number"
                 onChange={(e) => {
                   setCategories((p) => {
                     let copy = [...p];
@@ -265,18 +267,56 @@ const PerPersonPricingForm = () => {
                 <option value="₹">₹</option>
               </select>
             </div>
-            <input
-              placeholder="Advance"
-              value={cat.advance}
-              onChange={(e) => handleChange(catIdx, "advance", e.target.value)}
-              className="input w-full"
-            />
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
-            />
+            <div className="flex gap-2">
+              <input
+                placeholder="Advance"
+                type="number"
+                value={cat.advance.amount}
+                onChange={(e) => {
+                  setCategories((p) => {
+                    let copy = [...p];
+                    copy[catIdx] = {
+                      ...copy[catIdx],
+                      advance: {
+                        ...copy[catIdx].advance,
+                        amount: e.target.value,
+                      },
+                    };
+                    return copy;
+                  });
+                }}
+                className="input w-full"
+              />
+              <select
+                value={cat.advance.percent ? "%" : "₹"}
+                onChange={(e) => {
+                  setCategories((p) => {
+                    let copy = [...p];
+                    copy[catIdx] = {
+                      ...copy[catIdx],
+                      advance: {
+                        ...copy[catIdx].advance,
+                        percent: e.target.value === "%",
+                      },
+                    };
+                    return copy;
+                  });
+                }}
+                className="input"
+              >
+                <option value="%">%</option>
+                <option value="₹">₹</option>
+              </select>
+            </div>
+
+            {!cat._id && (
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+              />
+            )}
             <div className="flex gap-2 flex-wrap">
               {cat.images.map((photo, i) => (
                 <div key={i} className="relative w-20 h-20">
