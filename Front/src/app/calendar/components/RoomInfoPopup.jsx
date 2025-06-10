@@ -2,8 +2,9 @@
 
 import { useContext, useMemo } from "react";
 import { Context } from "../../_components/ContextProvider";
+import { site } from "../../_utils/request";
 
-export default function RoomInfoPopup({roomName}) {
+export default function RoomInfoPopup({ roomName }) {
   const { hosthotel } = useContext(Context);
 
   const roomData = useMemo(() => {
@@ -64,7 +65,7 @@ export default function RoomInfoPopup({roomName}) {
         {roomData.images.map((img, idx) => (
           <img
             key={idx}
-            src={img}
+            src={site + "imgs/" + img}
             alt={`Room image ${idx + 1}`}
             className="w-32 h-24 rounded-lg object-cover"
           />
@@ -73,7 +74,9 @@ export default function RoomInfoPopup({roomName}) {
 
       {/* Details */}
       <div className="text-sm text-gray-700">
-        <div><strong>Capacity:</strong> {roomData.capacity} persons</div>
+        <div>
+          <strong>Capacity:</strong> {roomData.capacity} persons
+        </div>
         {roomData.advance && (
           <div>
             <strong>Advance:</strong> {roomData.advance.amount}{" "}
@@ -88,7 +91,9 @@ export default function RoomInfoPopup({roomName}) {
         )}
 
         {roomData.price.rate && (
-          <div><strong>Rate:</strong> ₹{roomData.price.rate}</div>
+          <div>
+            <strong>Rate:</strong> ₹{roomData.price.rate}
+          </div>
         )}
         {roomData.price.one && (
           <div>
@@ -103,7 +108,9 @@ export default function RoomInfoPopup({roomName}) {
         )}
 
         {roomData.extraPerson && (
-          <div><strong>Extra Person:</strong> ₹{roomData.extraPerson}</div>
+          <div>
+            <strong>Extra Person:</strong> ₹{roomData.extraPerson}
+          </div>
         )}
 
         {roomData.amenities?.length > 0 && (

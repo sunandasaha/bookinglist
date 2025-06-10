@@ -59,7 +59,7 @@ export default function Dashboard() {
         bookings={filteredBookings}
         searchBookingId={searchBookingId}
       />
-      <Link href={"/test"}>Test</Link>
+      {/* <Link href={"/test"}>Test</Link> */}
     </div>
   );
 }
