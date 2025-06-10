@@ -84,9 +84,10 @@ const deleteImg = async (req, res) => {
 const deleteRoomCategory = async (req, res) => {
   try {
     const data = req.body;
-    const hot = await Hotelmodel.findById(req.user.sid);
-    hot.room_cat = hot.room_cat.filter((el) => el !== data._id);
-    await hot.save();
+    const hot = await Hotelmodel.updateOne(
+      { _id: req.user.sid },
+      { $pull: { room_cat: data._id } }
+    );
     const cat = await RoomCatmodel.findById(data._id);
     cat.images.forEach((el) => {
       fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {

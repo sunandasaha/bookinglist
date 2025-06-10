@@ -4,8 +4,7 @@ import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
 import { Context } from "../../_components/ContextProvider";
-import useCalendarRoomData from "./useCalendarRoomData";
-
+import RoomInfoPopup from "./RoomInfoPopup";
 export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -13,39 +12,63 @@ export default function CalendarGrid({ startDate }) {
   const [endCell, setEndCell] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [popupRoomIndex, setPopupRoomIndex] = useState(null);
-
-  const { room, error } = useCalendarRoomData(); // Your existing room data hook
-
+  const [selectedRoomName, setSelectedRoomName] = useState(null);
   const { hosthotel } = useContext(Context);
   const containerRef = useRef(null);
+  const rooms = useMemo(() => {
+    if (!hosthotel) return [];
 
-  // Extract per person rooms array if available
-  const perPersonRooms = useMemo(() => {
-    if (!hosthotel?.per_person_cat || !hosthotel.per_person_cat.room_nos) return [];
-    return hosthotel.per_person_cat.room_nos;
+    const expectedCount = hosthotel.rooms || 0;
+
+    // === Per Person Pricing ===
+    if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
+      const filledRooms = hosthotel.per_person_cat.flatMap((cat, catIdx) =>
+        cat.roomNumbers.map((name, i) => ({
+          id: `${catIdx}-${i}`,
+          name,
+          price: {
+            one: cat.rate1,
+            two: cat.rate2,
+            three: cat.rate3,
+            four: cat.rate4,
+          }
+        }))
+      );
+
+      const missingCount = expectedCount - filledRooms.length;
+      const emptyRooms = Array.from({ length: missingCount }, (_, i) => ({
+        id: `empty-${i + 1}`,
+        name: '',
+        empty: true,
+      }));
+
+      return [...filledRooms, ...emptyRooms];
+    }
+
+    // === Per Room Pricing ===
+    else if (hosthotel.pay_per?.room && hosthotel.room_cat) {
+      const filledRooms = hosthotel.room_cat.flatMap((cat, catIdx) =>
+        cat.room_no.map((name, i) => ({
+          id: `${catIdx}-${i}`,
+          name,
+          price: { rate: cat.price },
+        }))
+      );
+
+      const missingCount = expectedCount - filledRooms.length;
+      const emptyRooms = Array.from({ length: missingCount }, (_, i) => ({
+        id: `empty-${i + 1}`,
+        name: '',
+        empty: true,
+      }));
+
+      return [...filledRooms, ...emptyRooms];
+    }
+
+    return [];
   }, [hosthotel]);
 
-  // Show error if number of room_nos doesn't match hosthotel.rooms
-  const roomCountMismatch = hosthotel?.rooms !== perPersonRooms.length;
-
-  // Rooms to display: use perPersonRooms if length matches, else fallback to numbered rooms
-  const rooms = useMemo(() => {
-    if (roomCountMismatch) {
-      // fallback rooms with generic names to keep grid intact
-      return Array.from({ length: hosthotel?.rooms || 0 }, (_, i) => ({
-        id: i + 1,
-        name: `Room ${i + 1}`,
-      }));
-    }
-    // else show actual room names from perPersonRooms
-    return perPersonRooms.map((name, i) => ({
-      id: i + 1,
-      name,
-    }));
-  }, [hosthotel?.rooms, perPersonRooms, roomCountMismatch]);
-
-  useEffect(() => {
+   useEffect(() => {
     if (!startDate) return;
     const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
     setDates(next7Days);
@@ -220,40 +243,6 @@ export default function CalendarGrid({ startDate }) {
       grid.removeEventListener("touchend", handleTouchEnd);
     };
   }, [startDate, containerRef, isDragging]);
-
-  // Popup card close handler
-  const closePopup = () => setPopupRoomIndex(null);
-
-  // Simple image slider for popup card
-  const [popupImageIndex, setPopupImageIndex] = useState(0);
-
-  const popupRoomImages = useMemo(() => {
-    if (
-      popupRoomIndex === null ||
-      !hosthotel?.per_person_cat ||
-      !hosthotel.per_person_cat.photos
-    )
-      return [];
-
-    // Assuming photos is an array of arrays per room:
-    const photosList = hosthotel.per_person_cat.photos[popupRoomIndex];
-    return photosList || [];
-  }, [popupRoomIndex, hosthotel]);
-
-  const nextPopupImage = () => {
-    setPopupImageIndex((i) =>
-      popupRoomImages.length === 0 ? 0 : (i + 1) % popupRoomImages.length
-    );
-  };
-
-  const prevPopupImage = () => {
-    setPopupImageIndex((i) =>
-      popupRoomImages.length === 0
-        ? 0
-        : (i - 1 + popupRoomImages.length) % popupRoomImages.length
-    );
-  };
-
   return (
     <div
       className="w-full overflow-x-auto bg-white relative"
@@ -261,12 +250,6 @@ export default function CalendarGrid({ startDate }) {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {/* Show error if mismatch */}
-      {roomCountMismatch && (
-        <div className="p-4 mb-2 text-red-700 bg-red-100 border border-red-300 rounded-md text-center font-semibold">
-          Error: Number of rooms in per_person_cat ({perPersonRooms.length}) does not match registered room count ({hosthotel?.rooms}).
-        </div>
-      )}
 
       <div className="inline-block w-full min-w-[800px] sm:min-w-[900px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
         {/* Header row */}
@@ -303,21 +286,37 @@ export default function CalendarGrid({ startDate }) {
 
         {/* Room rows */}
         {rooms.map((room, rIdx) => {
-          const roomName = room.name;
           return (
             <div
               key={room.id}
               className="grid grid-cols-[120px_repeat(7,1fr)] text-sm border-t grid-row"
             >
               <div
-                className="p-2 md:p-3 font-medium bg-white text-gray-800 border-r cursor-pointer hover:text-blue-700"
-                onClick={() => {
-                  setPopupRoomIndex(rIdx);
-                  setPopupImageIndex(0);
-                }}
+                className={clsx(
+                  "p-2 md:p-3 font-medium border-r cursor-pointer",
+                  room.empty
+                    ? "bg-white-100 text-gray-400 cursor-default"
+                    : "bg-white text-gray-800 hover:text-blue-700"
+                )}
+                 onClick={() => !room.empty && setSelectedRoomName(room.name)}
               >
-                {roomName}
+                <div>{room.name || `Room ${room.id}`}</div>
+                {!room.empty && (
+                  <div className="text-sm font-normal text-gray-500">
+                    {room.price?.one
+                      ? `₹${room.price.one} / 1 person`
+                      : room.price?.rate
+                      ? `₹${room.price.rate}`
+                      : ""}
+                  </div>
+                )}
+                {room.empty && (
+                  <div className="text-xs italic text-gray-400 mt-1">
+                    Not added
+                  </div>
+                )}
               </div>
+
 
               {dates.map((date, dIdx) => {
                 const booking = getBookingForCell(room.id, date);
@@ -376,82 +375,20 @@ export default function CalendarGrid({ startDate }) {
           onClose={() => setSelectedBooking(null)}
         />
       )}
+      {selectedRoomName && (
+  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div className="relative">
+      <button
+        onClick={() => setSelectedRoomName(null)}
+        className="absolute top-1 right-1 text-red-500 font-bold text-xl"
+      >
+        ×
+      </button>
+      <RoomInfoPopup roomName={selectedRoomName} />
+    </div>
+  </div>
+)}
 
-      {/* Popup card for room info */}
-      {popupRoomIndex !== null && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={closePopup}
-        >
-          <div
-            className="bg-white rounded-lg shadow-lg max-w-lg w-full p-4 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close button */}
-            <button
-              onClick={closePopup}
-              className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
-              aria-label="Close popup"
-            >
-              ✕
-            </button>
-
-            <h3 className="text-xl font-semibold mb-4">
-              Room: {rooms[popupRoomIndex]?.name}
-            </h3>
-
-            {/* Image slider */}
-            {popupRoomImages.length > 0 ? (
-              <div className="relative">
-                <img
-                  src={popupRoomImages[popupImageIndex]}
-                  alt={`Room ${rooms[popupRoomIndex]?.name} Image ${popupImageIndex + 1}`}
-                  className="w-full h-48 object-cover rounded-md"
-                />
-                {popupRoomImages.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevPopupImage}
-                      className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100"
-                      aria-label="Previous image"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      onClick={nextPopupImage}
-                      className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100"
-                      aria-label="Next image"
-                    >
-                      ›
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-12">
-                No images available.
-              </div>
-            )}
-
-            {/* Room info section - you can expand with more details here */}
-            <div className="mt-4">
-              <p>
-                {/* Example room info */}
-                Capacity:{" "}
-                {hosthotel?.per_person_cat?.capacity?.[popupRoomIndex] || "N/A"}
-              </p>
-              <p>
-                Agent Commission:{" "}
-                {hosthotel?.per_person_cat?.agent_commission?.[popupRoomIndex] || "N/A"}
-              </p>
-              <p>
-                Advance:{" "}
-                {hosthotel?.per_person_cat?.advance?.[popupRoomIndex] || "N/A"}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

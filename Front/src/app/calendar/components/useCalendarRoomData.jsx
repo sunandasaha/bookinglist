@@ -1,58 +1,62 @@
 "use client";
-
-import { useContext, useState } from "react";
+import { useContext, useMemo } from "react";
 import { Context } from "../../_components/ContextProvider";
 
-const useCalendarRoomData = () => {
+export default function useCalendarRoomData() {
   const { hosthotel } = useContext(Context);
-  const [selectedRoom, setSelectedRoom] = useState(null);
 
-  if (!hosthotel) {
-    return { error: "No hotel data", rooms: [], selectedRoom, setSelectedRoom };
-  }
+  const rooms = useMemo(() => {
+    if (!hosthotel) return [];
 
-  const isPerPerson = hosthotel.pay_per.person;
-  const isPerRoom = hosthotel.pay_per.room;
+    const expectedCount = hosthotel.rooms || 0;
 
-  const rawCats = isPerPerson
-    ? hosthotel.per_person_cat || []
-    : isPerRoom
-    ? hosthotel.room_cat || []
-    : [];
+    // === Per Person Pricing ===
+    if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
+      const filledRooms = hosthotel.per_person_cat.flatMap((cat, catIdx) =>
+        cat.roomNumbers.map((name, i) => ({
+          id: `${catIdx}-${i}`,
+          name,
+          price: {
+            one: cat.rate1,
+            two: cat.rate2,
+            three: cat.rate3,
+            four: cat.rate4,
+          }
+        }))
+      );
 
-  const allRoomNumbers = rawCats.flatMap((cat) =>
-    isPerPerson ? cat.roomNumbers : cat.room_no
-  );
+      const missingCount = expectedCount - filledRooms.length;
+      const emptyRooms = Array.from({ length: missingCount }, (_, i) => ({
+        id: `empty-${i + 1}`,
+        name: '',
+        empty: true,
+      }));
 
-  const expectedRoomCount = hosthotel.rooms || 0;
-  const missingCount = expectedRoomCount - allRoomNumbers.length;
+      return [...filledRooms, ...emptyRooms];
+    }
 
-  const missingRooms = Array.from({ length: missingCount }, (_, i) => ({
-    name: `Room ${allRoomNumbers.length + i + 1}`,
-    isMissing: true,
-  }));
+    // === Per Room Pricing ===
+    else if (hosthotel.pay_per?.room && hosthotel.room_cat) {
+      const filledRooms = hosthotel.room_cat.flatMap((cat, catIdx) =>
+        cat.room_no.map((name, i) => ({
+          id: `${catIdx}-${i}`,
+          name,
+          price: { rate: cat.price },
+        }))
+      );
 
-  const processedRooms = rawCats.flatMap((cat) =>
-    (isPerPerson ? cat.roomNumbers : cat.room_no).map((roomNo) => ({
-      name: roomNo,
-      isMissing: false,
-      images: cat.images,
-      amenities: cat.amenities,
-      capacity: cat.capacity,
-      rates: isPerPerson
-        ? [cat.rate1, cat.rate2, cat.rate3, cat.rate4]
-        : [cat.price],
-      category: cat.name,
-      advance: isPerPerson ? cat.advance : cat.advance,
-      agentCommission: isPerPerson ? cat.agentCommission : cat.agent_com,
-    }))
-  );
+      const missingCount = expectedCount - filledRooms.length;
+      const emptyRooms = Array.from({ length: missingCount }, (_, i) => ({
+        id: `empty-${i + 1}`,
+        name: '',
+        empty: true,
+      }));
 
-  const rooms = [...processedRooms, ...missingRooms];
+      return [...filledRooms, ...emptyRooms];
+    }
 
-  const error = allRoomNumbers.length !== expectedRoomCount ? "Room count mismatch" : null;
+    return [];
+  }, [hosthotel]);
 
-  return { rooms, error, selectedRoom, setSelectedRoom };
-};
-
-export default useCalendarRoomData;
+  return rooms;
+}

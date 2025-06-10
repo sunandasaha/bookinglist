@@ -31,7 +31,6 @@ type room_cat = {
   images: string[];
   room_no: string[];
   capacity: number;
-  Beds: number;
   price_for_extra_person: number;
   agent_com: { amount: number; percent: boolean };
   amenities: string[];
