@@ -3,6 +3,7 @@
 import { AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import PopEffect from "../_components/PopEffect";
+import Image from "next/image";
 
 const AuthNav = () => {
   const [pop, setPop] = useState({ tc: false, ab: false });
@@ -13,7 +14,7 @@ const AuthNav = () => {
 
   return (
     <div className="auth-navbar">
-      <img src="/svgs/logo.png" alt="" />
+      <Image src="/svgs/logo.png" alt="" />
       <div className="nav-elcon">
         <p
           onClick={() => {

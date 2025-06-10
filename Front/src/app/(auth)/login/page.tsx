@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { Context, hostHotel } from "../../_components/ContextProvider";
 import { postReq } from "../../_utils/request";
+import Image from "next/image";
 
 type info = {
   email: string;
@@ -115,17 +116,18 @@ const Login = () => {
           onChange={handleChange}
           value={info.password}
         />
-        <img
+        <Image
           style={{ height: 20, width: 20 }}
           src={show ? "/svgs/eye-s.svg" : "/svgs/eye.svg"}
           onClick={() => {
             setShow((p) => !p);
           }}
+          alt=""
         />
       </div>
       <p style={{ color: "red" }}>{prob}</p>
       <p className="pl">
-        Don't have an account?{" "}
+        Don&apos;t have an account&lsquo;{" "}
         <span
           className="prm-p"
           onClick={() => {
