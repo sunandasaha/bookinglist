@@ -224,19 +224,19 @@ const PerRoomPricingForm = () => {
           alert("Failed to delete category on server.");
           return;
         } else {
-          //setHosthotel(result.hotel);
-          //setCategories(result.hotel.room_cat);
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.room_cat);
         }
       } catch (error) {
         alert("Error deleting category.");
         console.error(error);
         return;
       }
+    } else {
+      const updated = [...categories];
+      updated.splice(catIdx, 1);
+      setCategories(updated);
     }
-
-    const updated = [...categories];
-    updated.splice(catIdx, 1);
-    setCategories(updated);
   };
 
   const handleAddCategory = () => {

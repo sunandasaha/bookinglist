@@ -83,7 +83,7 @@ const deleteImgPerPerson = async (req, res) => {
     });
     await cat.save();
     const hot = await Hotelmodel.findById(req.user.sid).populate(
-      "per_person_con"
+      "per_person_cat"
     );
     res.json({ status: "success", hotel: hot });
   } else {
@@ -94,9 +94,10 @@ const deleteImgPerPerson = async (req, res) => {
 const deletePerPersonCategory = async (req, res) => {
   try {
     const data = req.body;
-    const hot = await Hotelmodel.findById(req.user.sid);
-    hot.room_cat = hot.room_cat.filter((el) => el !== data._id);
-    await hot.save();
+    const hot = await Hotelmodel.updateOne(
+      { _id: req.user.sid },
+      { $pull: { per_person_cat: data._id } }
+    );
     const cat = await PerPersonmodel.findById(data._id);
     cat.images.forEach((el) => {
       fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {
@@ -105,10 +106,12 @@ const deletePerPersonCategory = async (req, res) => {
     });
     await PerPersonmodel.findByIdAndDelete(data._id);
     const ho = await Hotelmodel.findById(req.user.sid).populate(
-      "per_person_con"
+      "per_person_cat"
     );
     res.json({ status: "success", hotel: ho });
   } catch (err) {
+    console.log(err);
+
     res.json({ status: "failed", err });
   }
 };

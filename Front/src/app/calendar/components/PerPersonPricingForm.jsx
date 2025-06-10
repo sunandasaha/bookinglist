@@ -2,7 +2,7 @@
 import React, { useState, useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
-import { putReq, site } from "../../_utils/request";
+import { putReq, site, delReq } from "../../_utils/request";
 
 const def = {
   name: "New Category",
@@ -96,7 +96,7 @@ const PerPersonPricingForm = () => {
         const result = await res.json();
         console.log(result);
 
-        if (result.success) {
+        if (result.status === "success") {
           setHosthotel(result.hotel);
           setCategories(result.hotel.per_person_cat);
         }
@@ -115,6 +115,41 @@ const PerPersonPricingForm = () => {
     const updated = [...categories];
     updated[index].name = value;
     setCategories(updated);
+  };
+
+  const handleDeleteCategory = async (catIdx) => {
+    const categoryId = categories[catIdx]._id;
+    if (categoryId) {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this category?"
+      );
+      if (!confirmed) return;
+
+      try {
+        const result = await delReq(
+          `category/perperson`,
+          { _id: categoryId },
+          user.token
+        );
+
+        console.log(result);
+        if (result.status === "success") {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.per_person_cat);
+        } else {
+          alert("Failed to delete category on server.");
+          return;
+        }
+      } catch (error) {
+        alert("Error deleting category.");
+        console.error(error);
+        return;
+      }
+    } else {
+      const updated = [...categories];
+      updated.splice(catIdx, 1);
+      setCategories(updated);
+    }
   };
 
   return (
@@ -139,9 +174,7 @@ const PerPersonPricingForm = () => {
               </button>
               <button
                 onClick={() => {
-                  const updated = [...categories];
-                  updated.splice(catIdx, 1);
-                  setCategories(updated);
+                  handleDeleteCategory(catIdx);
                 }}
                 className="text-red-500"
               >
