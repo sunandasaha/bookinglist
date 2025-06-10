@@ -4,26 +4,34 @@ import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
 import { putReq, site, delReq } from "../../_utils/request";
 
-const def = {
-  name: "New Category",
-  roomNumbers: [""],
-  capacity: 0,
-  rate1: 0,
-  rate2: 0,
-  rate3: 0,
-  rate4: 0,
-  agentCommission: { amount: 0, percent: true },
-  advance: { amount: 0, percent: true },
-  images: [],
-  amenities: [],
-};
+const facilityOptions = ["Geyser", "TV", "WiFi", "Breakfast", "Food", "Room service", "Balcony"];
 
 const PerPersonPricingForm = () => {
   const { hosthotel, setHosthotel, user } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
+  const [problems, setProblems] = useState({});
+  const [loadingIndex, setLoadingIndex] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const [categories, setCategories] = useState(
-    hosthotel.per_person_cat?.length > 0 ? hosthotel.per_person_cat : [def]
+    hosthotel.per_person_cat?.length > 0
+      ? hosthotel.per_person_cat.map(cat => ({ ...cat, isEditing: false }))
+      : [
+          {
+            name: "",
+            roomNumbers: [""],
+            capacity: 0,
+            rate1: 0,
+            rate2: 0,
+            rate3: 0,
+            rate4: 0,
+            agentCommission: { amount: 0, percent: true },
+            advance: { amount: 0, percent: true },
+            images: [],
+            amenities: [],
+            isEditing: true,
+          },
+        ]
   );
 
   const getTotalUsedRooms = () =>
@@ -31,93 +39,134 @@ const PerPersonPricingForm = () => {
 
   const handleChange = (index, field, value) => {
     const updated = [...categories];
-    updated[index][field] = value;
-    setCategories(updated);
-  };
-
-  const handleRoomNumberChange = (catIdx, rIdx, value) => {
-    const updated = [...categories];
-    updated[catIdx].roomNumbers[rIdx] = value;
-    setCategories(updated);
-  };
-
-  const addRoomNumber = (catIdx) => {
-    if (getTotalUsedRooms() >= totalRoomsAllowed) return;
-    const updated = [...categories];
-    updated[catIdx].roomNumbers.push("");
-    setCategories(updated);
-  };
-
-  const removeRoomNumber = (catIdx, rIdx) => {
-    const updated = [...categories];
-    if (updated[catIdx].roomNumbers.length > 1) {
-      updated[catIdx].roomNumbers.splice(rIdx, 1);
-      setCategories(updated);
+    if (["capacity", "rate1", "rate2", "rate3", "rate4"].includes(field)) {
+      updated[index][field] = value === "" ? 0 : Number(value);
+    } 
+    else if (field === "agentCommission.amount") {
+      updated[index].agentCommission.amount = value === "" ? 0 : Number(value);
+    } 
+    else if (field === "advance.amount") {
+      updated[index].advance.amount = value === "" ? 0 : Number(value);
+    } 
+    else if (field === "agentCommission.percent") {
+      updated[index].agentCommission.percent = value === "%";
+    } 
+    else if (field === "advance.percent") {
+      updated[index].advance.percent = value === "%";
+    } 
+    else {
+      updated[index][field] = value;
     }
-  };
-
-  const handleAddPhoto = (catIdx, files) => {
-    const updated = [...categories];
-    const currentPhotos = updated[catIdx].images || [];
-    if (currentPhotos.length + files.length > 4) return;
-    updated[catIdx].images = [
-      ...currentPhotos,
-      ...Array.from(files).slice(0, 4 - currentPhotos.length),
-    ];
+    
     setCategories(updated);
   };
 
-  const removePhoto = (catIdx, photoIdx) => {
+  const handleFacilitiesChange = (index, selectedOptions) => {
     const updated = [...categories];
-    updated[catIdx].images.splice(photoIdx, 1);
+    updated[index].amenities = selectedOptions;
     setCategories(updated);
   };
 
   const toggleEdit = async (index) => {
-    const cat = categories[index];
-    if (cat?._id) {
-      const result = await putReq("category/perperson", cat, user.token);
-      if (result.success) {
-        setHosthotel(result.hotel);
-        setCategories(result.hotel.per_person_cat);
-      }
-    } else {
-      const fd = new FormData();
-      fd.append("details", JSON.stringify({ ...cat, images: [] }));
-      cat.images.forEach((el) => fd.append("images", el));
+    const updated = [...categories];
+    const cat = updated[index];
 
-      try {
+    if (!cat.isEditing) {
+      updated[index].isEditing = true;
+      setCategories(updated);
+      return;
+    }
+    setLoadingIndex(index);
+    try {
+      if (cat._id) {
+        const result = await putReq("category/perperson", cat, user.token);
+        if (result.success) {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.per_person_cat.map(c => ({ ...c, isEditing: false })));
+        }
+      } else {
+        const fd = new FormData();
+        fd.append("details", JSON.stringify({ ...cat, images: [] }));
+        cat.images.forEach(f => fd.append("images", f));
+
         const res = await fetch(site + "category/perperson", {
           method: "POST",
           headers: { authorization: user.token },
           body: fd,
         });
-
         const result = await res.json();
-        console.log(result);
 
         if (result.status === "success") {
           setHosthotel(result.hotel);
-          setCategories(result.hotel.per_person_cat);
+          setCategories(result.hotel.per_person_cat.map(c => ({ ...c, isEditing: false })));
         }
-      } catch (error) {
-        console.error("Failed to save category:", error);
       }
+    } catch (err) {
+      console.error("Failed to save category:", err);
+      setErrorMsg("Failed to save. Please try again.");
+    } finally {
+      setLoadingIndex(null);
     }
   };
-
-  const handleAddCategory = () => {
-    if (getTotalUsedRooms() >= totalRoomsAllowed) return;
-    setCategories([...categories, def]);
-  };
-
-  const handleCategoryNameChange = (index, value) => {
+   const handleRoomNumberChange = (catIdx, rIdx, value) => {
+      const updated = [...categories];
+      updated[catIdx].roomNumbers[rIdx] = value;
+      setCategories(updated);
+    };
+  
+    const addRoomNumber = (catIdx) => {
+      if (getTotalUsedRooms() >= totalRoomsAllowed) {
+        setProblems((prev) => ({
+          ...prev,
+          roomLimit: `You can only add ${totalRoomsAllowed} rooms across all categories.`,
+        }));
+        return;
+      }
+      setProblems((prev) => {
+        const copy = { ...prev };
+        delete copy.roomLimit;
+        return copy;
+      });
+      const updated = [...categories];
+      updated[catIdx].roomNumbers.push("");
+      setCategories(updated);
+    };
+  
+    const removeRoomNumber = (catIdx, rIdx) => {
+      const updated = [...categories];
+      if (updated[catIdx].roomNumbers.length > 1) {
+        updated[catIdx].roomNumbers.splice(rIdx, 1);
+        setCategories(updated);
+      }
+    };
+  
+    const handleAddPhoto = (catIdx, files) => {
+      const updated = [...categories];
+      const currentPhotos = updated[catIdx].images || [];
+      if (currentPhotos.length + files.length > 4) {
+        setProblems((prev) => ({
+          ...prev,
+          [`cat-${catIdx}-images`]: "Only 4 images allowed per category.",
+        }));
+        return;
+      }
+      setProblems((prev) => {
+        const copy = { ...prev };
+        delete copy[`cat-${catIdx}-images`];
+        return copy;
+      });
+      updated[catIdx].images = [
+        ...currentPhotos,
+        ...Array.from(files).slice(0, 4 - currentPhotos.length),
+      ];
+      setCategories(updated);
+    };
+    const removePhoto = (catIdx, photoIdx) => {
     const updated = [...categories];
-    updated[index].name = value;
+    updated[catIdx].images.splice(photoIdx, 1);
     setCategories(updated);
   };
-
-  const handleDeleteCategory = async (catIdx) => {
+     const handleDeleteCategory = async (catIdx) => {
     const categoryId = categories[catIdx]._id;
     if (categoryId) {
       const confirmed = window.confirm(
@@ -151,39 +200,92 @@ const PerPersonPricingForm = () => {
       setCategories(updated);
     }
   };
+  
+    const handleAddCategory = () => {
+      if (getTotalUsedRooms() >= totalRoomsAllowed) {
+        setProblems((prev) => ({
+          ...prev,
+          roomLimit: `You can only add ${totalRoomsAllowed} rooms across all categories.`,
+        }));
+        return;
+      }
+      setProblems((prev) => {
+        const copy = { ...prev };
+        delete copy.roomLimit;
+        return copy;
+      });
+      setCategories([
+        ...categories,
+        {
+          name: "",
+            roomNumbers: [""],
+            capacity: 0,
+            rate1: 0,
+            rate2: 0,
+            rate3: 0,
+            rate4: 0,
+            agentCommission: { amount: 0, percent: true },
+            advance: { amount: 0, percent: true },
+            images: [],
+            amenities: [],
+            isEditing: true,
+        },
+      ]);
+    };
+  
+    const handleCategoryNameChange = (index, value) => {
+      const updated = [...categories];
+      updated[index].name = value;
+      setCategories(updated);
+    };
 
   return (
     <div className="space-y-6">
       {categories.map((cat, catIdx) => (
-        <div
-          key={catIdx}
-          className="border rounded p-4 space-y-3 shadow bg-gray-50"
-        >
+        <div key={catIdx} className="border rounded-xl p-4 space-y-4 shadow bg-white">
+          {/* Header */}
           <div className="flex justify-between items-center">
             <input
               value={cat.name}
-              onChange={(e) => handleCategoryNameChange(catIdx, e.target.value)}
-              className="font-semibold text-lg border p-1 rounded w-1/2"
+              placeholder="Category name"
+              onChange={(e) => handleChange(catIdx, "name", e.target.value)}
+              className="font-semibold text-lg border p-2 rounded w-1/2"
+              disabled={!cat.isEditing}
             />
             <div className="flex gap-3 items-center">
               <button
                 onClick={() => toggleEdit(catIdx)}
                 className="text-blue-600"
+                disabled={loadingIndex === catIdx}
+                title={cat.isEditing ? "Save" : "Edit"}
               >
-                <Save size={18} />
+                {loadingIndex === catIdx ? (
+                  <span className="animate-spin">⏳</span>
+                ) : cat.isEditing ? (
+                  <Save size={18} />
+                ) : (
+                  <Edit size={18} />
+                )}
               </button>
               <button
-                onClick={() => {
-                  handleDeleteCategory(catIdx);
-                }}
+                onClick={() => handleDeleteCategory(catIdx)}
                 className="text-red-500"
+                disabled={loadingIndex === catIdx}
+                title="Delete"
               >
                 <Trash2 size={18} />
               </button>
             </div>
           </div>
-          <>
-            <div>
+
+          {errorMsg && cat.isEditing && (
+            <p className="text-red-600 font-medium">{errorMsg}</p>
+          )}
+
+          {cat.isEditing && (
+            <>
+              {/* Room Numbers */}
+              <div>
               <label className="font-medium">Room Names</label>
               {cat.roomNumbers.map((r, rIdx) => (
                 <div key={rIdx} className="flex gap-2 mb-2">
@@ -208,146 +310,156 @@ const PerPersonPricingForm = () => {
                 </div>
               ))}
             </div>
-            <input
-              placeholder="Capacity"
-              value={cat.capacity}
-              onChange={(e) => handleChange(catIdx, "capacity", e.target.value)}
-              className="input w-full"
-            />
-            {[1, 2, 3, 4].map((num) => (
-              <input
-                key={num}
-                placeholder={`Rate for ${num} person${num > 1 ? "s" : ""}`}
-                type="number"
-                value={cat[`rate${num}`]}
-                onChange={(e) =>
-                  handleChange(catIdx, `rate${num}`, e.target.value)
-                }
-                className="input w-full"
-              />
-            ))}
-            <div className="flex gap-2">
-              <input
-                placeholder="Agent Commission"
-                value={cat.agentCommission.amount}
-                type="number"
-                onChange={(e) => {
-                  setCategories((p) => {
-                    let copy = [...p];
-                    copy[catIdx] = {
-                      ...copy[catIdx],
-                      agentCommission: {
-                        ...copy[catIdx].agentCommission,
-                        amount: e.target.value,
-                      },
-                    };
-                    return copy;
-                  });
-                }}
-                className="input w-full"
-              />
-              <select
-                value={cat.agentCommission.percent ? "%" : "₹"}
-                onChange={(e) => {
-                  setCategories((p) => {
-                    let copy = [...p];
-                    copy[catIdx] = {
-                      ...copy[catIdx],
-                      agentCommission: {
-                        ...copy[catIdx].agentCommission,
-                        percent: e.target.value === "%",
-                      },
-                    };
-                    return copy;
-                  });
-                }}
-                className="input"
-              >
-                <option value="%">%</option>
-                <option value="₹">₹</option>
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <input
-                placeholder="Advance"
-                type="number"
-                value={cat.advance.amount}
-                onChange={(e) => {
-                  setCategories((p) => {
-                    let copy = [...p];
-                    copy[catIdx] = {
-                      ...copy[catIdx],
-                      advance: {
-                        ...copy[catIdx].advance,
-                        amount: e.target.value,
-                      },
-                    };
-                    return copy;
-                  });
-                }}
-                className="input w-full"
-              />
-              <select
-                value={cat.advance.percent ? "%" : "₹"}
-                onChange={(e) => {
-                  setCategories((p) => {
-                    let copy = [...p];
-                    copy[catIdx] = {
-                      ...copy[catIdx],
-                      advance: {
-                        ...copy[catIdx].advance,
-                        percent: e.target.value === "%",
-                      },
-                    };
-                    return copy;
-                  });
-                }}
-                className="input"
-              >
-                <option value="%">%</option>
-                <option value="₹">₹</option>
-              </select>
-            </div>
 
-            {!cat._id && (
+              {/* Capacity */}
+              <label className="font-medium">Capacity</label>
               <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+                placeholder="Capacity"
+                value={cat.capacity}
+                onChange={(e) => handleChange(catIdx, "capacity", e.target.value)}
+                className="border rounded p-2 w-full"
+                type="number"
+                min="0"
               />
-            )}
-            <div className="flex gap-2 flex-wrap">
-              {cat.images.map((photo, i) => (
-                <div key={i} className="relative w-20 h-20">
-                  <img
-                    src={
-                      cat._id
-                        ? site + "imgs/" + photo
-                        : URL.createObjectURL(photo)
-                    }
-                    className="w-full h-full object-cover rounded"
+
+              {/* Rates with Labels */}
+              <div className="space-y-2">
+                <label className="font-medium">Rates (Per Person)</label>
+                {[1, 2, 3, 4].map((num) => (
+                  <div key={num}>
+                    <label className="text-sm text-gray-600">
+                      {num} Person{num > 1 ? "s" : ""}
+                    </label>
+                    <input
+                      placeholder={`Rate for ${num} person${num > 1 ? "s" : ""}`}
+                      type="number"
+                      min="0"
+                      value={cat[`rate${num}`]}
+                      onChange={(e) => handleChange(catIdx, `rate${num}`, e.target.value)}
+                      className="border rounded p-2 w-full"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Agent Commission */}
+              <div className="space-y-2">
+                <label className="font-medium">Agent Commission</label>
+                <div className="flex gap-2">
+                  <input
+                    placeholder="Amount"
+                    value={cat.agentCommission.amount}
+                    type="number"
+                    min="0"
+                    onChange={(e) => handleChange(catIdx, "agentCommission.amount", e.target.value)}
+                    className="border rounded p-2 w-full"
                   />
-                  <button
+                  <select
+                    value={cat.agentCommission.percent ? "%" : "₹"}
+                    onChange={(e) => handleChange(catIdx, "agentCommission.percent", e.target.value)}
+                    className="border rounded p-2"
+                  >
+                    <option value="%">%</option>
+                    <option value="₹">₹</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Advance */}
+              <div className="space-y-2">
+                <label className="font-medium">Advance</label>
+                <div className="flex gap-2">
+                  <input
+                    placeholder="Amount"
+                    type="number"
+                    min="0"
+                    value={cat.advance.amount}
+                    onChange={(e) => handleChange(catIdx, "advance.amount", e.target.value)}
+                    className="border rounded p-2 w-full"
+                  />
+                  <select
+                    value={cat.advance.percent ? "%" : "₹"}
+                    onChange={(e) => handleChange(catIdx, "advance.percent", e.target.value)}
+                    className="border rounded p-2"
+                  >
+                    <option value="%">%</option>
+                    <option value="₹">₹</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Amenities */}
+              <div>
+                <label className="font-medium">Amenities</label>
+                <select
+                  multiple
+                  value={cat.amenities}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+                    handleFacilitiesChange(catIdx, selected);
+                  }}
+                  className="border rounded p-2 w-full h-28"
+                >
+                  {facilityOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Image Upload */}
+              {!cat._id && (
+                <div>
+                  <label className="font-medium">Upload Images (Max 4)</label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+                    className="mt-1"
+                  />
+                </div>
+              )}
+
+              {/* Image Preview */}
+              {cat.images.length > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  {cat.images.map((photo, i) => (
+                    <div key={i} className="relative w-20 h-20">
+                      <img
+                        src={cat._id ? site + "imgs/" + photo : URL.createObjectURL(photo)}
+                        className="w-full h-full object-cover rounded"
+                        alt={`Room ${i + 1}`}
+                      />
+                      <button
                     className="absolute top-0 right-0 text-red-500"
                     onClick={() => removePhoto(catIdx, i)}
                   >
                     <X />
                   </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </>
+              )}
+            </>
+          )}
         </div>
       ))}
 
+      {/* Add Category Button */}
       <div className="text-center">
         <button
           onClick={handleAddCategory}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          type="button"
+          disabled={getTotalUsedRooms() >= totalRoomsAllowed}
         >
           Add Category
         </button>
+        {problems.roomLimit && (
+          <p className="text-red-500 text-sm mt-2">{problems.roomLimit}</p>
+        )}
       </div>
     </div>
   );

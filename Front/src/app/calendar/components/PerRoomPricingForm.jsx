@@ -5,7 +5,7 @@ import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
 import { site, delReq, putReq } from "../../_utils/request";
 
-const facilityOptions = ["Geyser", "TV", "WiFi", "Breakfast", "Food"];
+const facilityOptions = ["Geyser", "TV", "WiFi", "Breakfast", "Food","Room service","Balcony"];
 
 const PerRoomPricingForm = () => {
   const { hosthotel, user, setHosthotel } = useContext(Context);
@@ -152,7 +152,6 @@ const PerRoomPricingForm = () => {
 
     if (cat.isEditing) {
       if (cat._id) {
-        // TODO: Update logic here — let your team handle it.
         const result = await putReq("category/room", cat, user.token);
         if (result.success) {
           setHosthotel(result.hotel);

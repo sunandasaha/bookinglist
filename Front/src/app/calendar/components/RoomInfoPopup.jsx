@@ -3,6 +3,11 @@
 import { useContext, useMemo } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { site } from "../../_utils/request";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 export default function RoomInfoPopup({ roomName }) {
   const { hosthotel } = useContext(Context);
@@ -10,7 +15,6 @@ export default function RoomInfoPopup({ roomName }) {
   const roomData = useMemo(() => {
     if (!hosthotel) return null;
 
-    // --- Per Person Pricing ---
     if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
       for (const cat of hosthotel.per_person_cat) {
         if (cat.roomNumbers.includes(roomName)) {
@@ -30,10 +34,7 @@ export default function RoomInfoPopup({ roomName }) {
           };
         }
       }
-    }
-
-    // --- Per Room Pricing ---
-    else if (hosthotel.pay_per?.room && hosthotel.room_cat) {
+    } else if (hosthotel.pay_per?.room && hosthotel.room_cat) {
       for (const cat of hosthotel.room_cat) {
         if (cat.room_no.includes(roomName)) {
           return {
@@ -56,71 +57,119 @@ export default function RoomInfoPopup({ roomName }) {
   if (!roomData) return <div className="p-4">Room details not found.</div>;
 
   return (
-    <div className="p-4 w-full max-w-md bg-white rounded-xl shadow-lg space-y-4">
-      <div className="text-lg font-semibold">{roomName}</div>
-      <div className="text-sm text-gray-600">Category: {roomData.category}</div>
-
-      {/* Images Slider */}
-      <div className="flex overflow-x-auto space-x-2">
-        {roomData.images.map((img, idx) => (
-          <img
-            key={idx}
-            src={site + "imgs/" + img}
-            alt={`Room image ${idx + 1}`}
-            className="w-32 h-24 rounded-lg object-cover"
-          />
-        ))}
+    <div className="p-3 w-full max-w-[95vw] mx-auto bg-white rounded-xl shadow-lg space-y-3">
+      <div className="text-lg font-bold text-gray-800 truncate">{roomName}</div>
+      <div className="text-xs text-gray-500">
+        Category: <span className="font-medium">{roomData.category}</span>
       </div>
 
-      {/* Details */}
-      <div className="text-sm text-gray-700">
-        <div>
-          <strong>Capacity:</strong> {roomData.capacity} persons
+      {/* Swiper Carousel with Navigation Arrows */}
+      <div className="relative rounded-lg overflow-hidden">
+        <Swiper
+          modules={[Navigation, Pagination]}
+          spaceBetween={10}
+          slidesPerView={1}
+          navigation={{
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          }}
+          pagination={{ 
+            clickable: true,
+            dynamicBullets: true
+          }}
+          className="w-full h-40"
+        >
+          {roomData.images.map((img, idx) => (
+            <SwiperSlide key={idx}>
+              <img
+                src={site + "imgs/" + img}
+                alt={`Room image ${idx + 1}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        
+        {/* Custom Navigation Arrows */}
+        <div className="swiper-button-prev absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-800">
+            <path fillRule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z" clipRule="evenodd" />
+          </svg>
         </div>
+        <div className="swiper-button-next absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-800">
+            <path fillRule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z" clipRule="evenodd" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Room Details */}
+      <div className="text-xs text-gray-700 space-y-1.5">
+        <div className="flex justify-between">
+          <span><strong>Capacity:</strong></span>
+          <span>{roomData.capacity} persons</span>
+        </div>
+
         {roomData.advance && (
-          <div>
-            <strong>Advance:</strong> {roomData.advance.amount}{" "}
-            {roomData.advance.percent ? "%" : "Rs"}
+          <div className="flex justify-between">
+            <span><strong>Advance:</strong></span>
+            <span>{roomData.advance.amount}
+            {roomData.advance.percent ? "%" : " Rs"}</span>
           </div>
         )}
+
         {roomData.commission && (
-          <div>
-            <strong>Agent Commission:</strong> {roomData.commission.amount}{" "}
-            {roomData.commission.percent ? "%" : "Rs"}
+          <div className="flex justify-between">
+            <span><strong>Agent Commission:</strong></span>
+            <span>{roomData.commission.amount}
+            {roomData.commission.percent ? "%" : " Rs"}</span>
           </div>
         )}
 
         {roomData.price.rate && (
-          <div>
-            <strong>Rate:</strong> ₹{roomData.price.rate}
+          <div className="flex justify-between">
+            <span><strong>Rate:</strong></span>
+            <span>₹{roomData.price.rate}</span>
           </div>
         )}
+
         {roomData.price.one && (
           <div>
-            <strong>Rates (Per Person):</strong>
-            <ul className="ml-4 list-disc">
-              <li>1 person: ₹{roomData.price.one}</li>
-              <li>2 persons: ₹{roomData.price.two}</li>
-              <li>3 persons: ₹{roomData.price.three}</li>
-              <li>4 persons: ₹{roomData.price.four}</li>
-            </ul>
+            <div className="font-bold mb-1">Rates (Per Person):</div>
+            <div className="grid grid-cols-2 gap-1 text-xs">
+              <div>1 person:</div>
+              <div className="text-right">₹{roomData.price.one}</div>
+              <div>2 persons:</div>
+              <div className="text-right">₹{roomData.price.two}</div>
+              <div>3 persons:</div>
+              <div className="text-right">₹{roomData.price.three}</div>
+              <div>4 persons:</div>
+              <div className="text-right">₹{roomData.price.four}</div>
+            </div>
           </div>
         )}
 
         {roomData.extraPerson && (
-          <div>
-            <strong>Extra Person:</strong> ₹{roomData.extraPerson}
+          <div className="flex justify-between">
+            <span><strong>Extra Person:</strong></span>
+            <span>₹{roomData.extraPerson}</span>
           </div>
         )}
 
         {roomData.amenities?.length > 0 && (
           <div>
-            <strong>Amenities:</strong>
-            <ul className="ml-4 list-disc">
+            <div className="font-bold mb-1">Amenities:</div>
+            <div className="flex flex-wrap gap-1.5">
               {roomData.amenities.map((a, i) => (
-                <li key={i}>{a}</li>
+                <span 
+                  key={i} 
+                  className="bg-gray-100 px-2 py-0.5 rounded-full text-xs"
+                >
+                  {a}
+                </span>
               ))}
-            </ul>
+            </div>
           </div>
         )}
       </div>
