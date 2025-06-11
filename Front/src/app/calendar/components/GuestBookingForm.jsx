@@ -13,14 +13,20 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     email: "",
     adults: 1,
     children: 0,
+    age_0_5: 0,
+    age_6_10: 0,
     message: `Hi, your booking is confirmed at our hotel. Your Booking ID will be generated after confirmation.`,
   });
 
-  const [errors, setErrors] = useState({ phone: "" });
+  const [errors, setErrors] = useState({ phone: "", whatsapp: "" });
+  const [submitted, setSubmitted] = useState(false);
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [bookingId, setBookingId] = useState("");
+
   const validatePhone = (number) => {
-    const cleaned = number.replace(/\D/g, ""); 
+    const cleaned = number.replace(/\D/g, "");
     if (cleaned.length !== 10) {
-      return "Phone number must contain exactly 10 digits.";
+      return "Number must contain exactly 10 digits.";
     }
     return "";
   };
@@ -29,142 +35,158 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    if (name === "phone") {
-      const phoneError = validatePhone(value);
-      setErrors((prev) => ({ ...prev, phone: phoneError }));
+    if (name === "phone" || name === "whatsapp") {
+      const errorMsg = validatePhone(value);
+      setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const phoneError = validatePhone(formData.phone);
-    setErrors({ phone: phoneError });
+    const whatsappError = validatePhone(formData.whatsapp);
+    setErrors({ phone: phoneError, whatsapp: whatsappError });
 
-    if (phoneError) {
-      return; 
+    if (!phoneError && !whatsappError) {
+      setSubmitted(true);
     }
+  };
 
-    onSave(formData);
+  const handlePayment = () => {
+    const genId = `BKG-${Date.now().toString().slice(-5)}`;
+    setBookingId(genId);
+    setBookingConfirmed(true);
+    alert(`🎉 Booking Confirmed!\nYour Booking ID is:${genId}`);
+
+    onSave({ ...formData, bookingId: genId });
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
       <div className="bg-white rounded-lg p-6 w-full max-w-sm max-h-[85vh] overflow-auto mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-green-600">Guest Booking</h3>
+          <h3 className="text-xl font-bold text-green-600">
+            {bookingConfirmed ? "Booking Confirmed" : "Guest Booking"}
+          </h3>
           <button onClick={() => onClose(null)} aria-label="Close modal">
             <X size={24} style={{ color: "red" }} />
           </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 flex flex-col items-center"
-        >
-          <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
-            <p>
-              <strong>Dates:</strong> {format(booking.from, "MMM dd")} -{" "}
-              {format(booking.to, "MMM dd")}
-            </p>
-            <p>
-              <strong>Rooms:</strong> {booking.roomNames.join(", ")}
-            </p>
-            <p>
-              <strong>Booking ID:</strong> Will be generated on confirmation
-            </p>
-          </div>
+        {!submitted && (
+          <form onSubmit={handleSubmit} className="space-y-6 flex flex-col items-center">
+            <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
+              <p><strong>Dates:</strong> {format(booking.from, "MMM dd")} - {format(booking.to, "MMM dd")}</p>
+              <p><strong>Rooms:</strong> {booking.roomNames.join(", ")}</p>
+            </div>
 
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="👤Guest Name"
-            required
-            className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
+            <input type="text" name="name" value={formData.name} onChange={handleChange}
+              placeholder="👤Guest Name" required
+              className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+            />
 
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="Address"
-            className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
+            <input type="text" name="address" value={formData.address} onChange={handleChange}
+              placeholder="🏠Address" required
+              className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+            />
 
-          <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder=" 📞Phone Number"
+            <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+              <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
+                placeholder=" 📞Phone Number" required
+                className={`w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 ${errors.phone ? "border-red-500 ring-red-500" : "focus:ring-blue-500"}`}
+              />
+              <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange}
+                placeholder="💬WhatsApp Number" required
+                className={`w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 ${errors.whatsapp ? "border-red-500 ring-red-500" : "focus:ring-blue-500"}`}
+              />
+            </div>
+
+            {(errors.phone || errors.whatsapp) && (
+              <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
+                {errors.phone && <p>📞 {errors.phone}</p>}
+                {errors.whatsapp && <p>💬 {errors.whatsapp}</p>}
+              </div>
+            )}
+
+            <input type="email" name="email" value={formData.email} onChange={handleChange}
+              placeholder=" 📧Email" required
+              className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+            />
+
+            <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+              <div>
+                <label className="text-sm text-gray-600 ml-1">👨 Adults</label>
+                <input type="number" name="adults" value={formData.adults} onChange={handleChange}
+                  placeholder="Adults" required
+                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600 ml-1">👶 Children</label>
+                <input type="number" name="children" value={formData.children} onChange={handleChange}
+                  placeholder="Children" required
+                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+              <div>
+                <label className="text-sm text-gray-600 ml-1">🧒 Age 0–5</label>
+                <input type="number" name="age_0_5" value={formData.age_0_5} onChange={handleChange}
+                  placeholder="0–5 yrs" required
+                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600 ml-1">👦 Age 6–10</label>
+                <input type="number" name="age_6_10" value={formData.age_6_10} onChange={handleChange}
+                  placeholder="6–10 yrs" required
+                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <textarea name="message" rows={3} value={formData.message} onChange={handleChange}
               required
-              className={`w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 ${
-                errors.phone ? "border-red-500 ring-red-500" : "focus:ring-blue-500"
-              }`}
+              className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
             />
 
-            <input
-              type="tel"
-              name="whatsapp"
-              value={formData.whatsapp}
-              onChange={handleChange}
-              placeholder="💬WhatsApp Number"
-              className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <button type="submit"
+              className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              Submit
+            </button>
+          </form>
+        )}
+        {submitted && !bookingConfirmed && (
+            <div className="space-y-4 text-left text-black">
+              <p><strong>Name:</strong> {formData.name}</p>
+              <p><strong>Phone:</strong> {formData.phone}</p>
+              <p><strong>Adults:</strong> {formData.adults} | <strong>Children:</strong> {formData.children}</p>
+              <p><strong>0–5 yrs:</strong> {formData.age_0_5} | <strong>6–10 yrs:</strong> {formData.age_6_10}</p>
+              <p><strong>Dates:</strong> {format(booking.from, "MMM dd")} - {format(booking.to, "MMM dd")}</p>
+              <p><strong>Rooms:</strong> {booking.roomNames.join(", ")}</p>
+              <p><strong>Message:</strong> {formData.message}</p>
 
-          {errors.phone && (
-            <p className="text-red-600 text-sm mt-1 max-w-xs w-full">{errors.phone}</p>
+              <button
+                onClick={handlePayment}
+                className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                💸 Proceed to Payment
+              </button>
+
+            </div>
           )}
 
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder=" 📧Email"
-            className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
+          {bookingConfirmed && (
+            <div className="text-center space-y-3 text-black">
+              <p className="text-green-600 text-lg font-semibold">🎉 Booking Confirmed!</p>
+              <p><strong>Booking ID:</strong> {bookingId}</p>
+              <p><strong>Name:</strong> {formData.name}</p>
+            </div>
+          )}
 
-          <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
-            <input
-              type="number"
-              name="adults"
-              value={formData.adults}
-              onChange={handleChange}
-              placeholder="Adults"
-              required
-              className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="number"
-              name="children"
-              value={formData.children}
-              onChange={handleChange}
-              placeholder="Children"
-              className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <textarea
-            name="message"
-            rows={3}
-            value={formData.message}
-            onChange={handleChange}
-            className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
-
-          <button
-            type="submit"
-            className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            Confirm Booking
-          </button>
-        </form>
       </div>
     </div>
   );

@@ -13,6 +13,8 @@ export default function CalendarGrid({ startDate }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
+  const [viewBooking, setViewBooking] = useState(null);
+
   const { hosthotel } = useContext(Context);
   const containerRef = useRef(null);
   const rooms = useMemo(() => {
@@ -245,16 +247,16 @@ export default function CalendarGrid({ startDate }) {
   }, [startDate, containerRef, isDragging]);
   return (
     <div
-      className="w-full overflow-x-auto bg-white relative"
+      className="relative overflow-x-auto w-full bg-white"
       ref={containerRef}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
 
-      <div className="inline-block w-full min-w-[800px] sm:min-w-[900px] md:min-w-[900px] border rounded-xl shadow-xl select-none">
+      <div className="inline-block min-w-[900px] border rounded-xl shadow-xl select-none">
         {/* Header row */}
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold md:text-sm">
-          <div className="p-2 md:p-3 border-r">Room / Date</div>
+          <div className="p-2 md:p-3 border-r bg-blue-600 sticky left-0 z-10">Room / Date</div>
           {dates.map((date, i) => (
             <div key={i} className="p-2 md:p-3 text-center border-r">
               <div>{format(date, "EEE")}</div>
@@ -265,7 +267,7 @@ export default function CalendarGrid({ startDate }) {
 
         {/* Availability row */}
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-200 text-sm font-medium text-gray-800 border-b grid-row">
-          <div className="p-2 md:p-3 border-r whitespace-nowrap">Available Rooms</div>
+          <div className="p-2 md:p-3 border-r whitespace-nowrap bg-green-200 sticky left-0 z-10">Available Rooms</div>
           {dates.map((date, dIdx) => {
             const bookedRoomsCount = rooms.filter((room) =>
               getBookingForCell(room.id, date)
@@ -293,7 +295,7 @@ export default function CalendarGrid({ startDate }) {
             >
               <div
                 className={clsx(
-                  "p-2 md:p-3 font-medium border-r cursor-pointer",
+                  "p-2 md:p-3 font-medium border-r cursor-pointer bg-white sticky left-0 z-10",
                   room.empty
                     ? "bg-white-100 text-gray-400 cursor-default"
                     : "bg-white text-gray-800 hover:text-blue-700"
@@ -333,10 +335,21 @@ export default function CalendarGrid({ startDate }) {
                     )}
                     onMouseDown={() => handleMouseDown(rIdx, dIdx)}
                     onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+                    onClick={() => {
+                                   if (booking) setViewBooking(booking); // <-- add this
+                     }}
                     data-room={rIdx}
                     data-date={dIdx}
                   >
-                    {!booking && selected ? "Selected" : null}
+                   {booking ? (
+                      <div className="text-[10px] text-white text-center leading-tight">
+                        {booking.name}
+                        <br />
+                        <span className="text-[8px]">ID: {booking.bookingId}</span>
+                      </div>
+                    ) : selected ? (
+                      "Selected"
+                    ) : null}
                   </div>
                 );
               })}
@@ -345,8 +358,11 @@ export default function CalendarGrid({ startDate }) {
         })}
 
         {/* Floating Book button */}
-        {selectedCells.length > 0 && bookBtnPosition && !selectedBooking && (
-          <button
+        {selectedCells.length > 0 &&
+        bookBtnPosition &&
+        !selectedBooking &&
+        selectedCells.every(([r, d]) => !getBookingForCell(rooms[r]?.id, dates[d])) && (
+        <button
             style={{
               position: "absolute",
               top: bookBtnPosition.top + bookBtnPosition.height - 30,
@@ -388,6 +404,34 @@ export default function CalendarGrid({ startDate }) {
     </div>
   </div>
 )}
+{viewBooking && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-lg shadow-xl max-w-xs w-full relative">
+      <h2 className="text-xl font-bold text-center mb-3 text-green-700">
+        Booking Details
+      </h2>
+      <div className="text-sm text-gray-800">
+        <p><strong>Name:</strong> {viewBooking.name}</p> 
+        <p><strong>Phone:</strong> {viewBooking.phone}</p>
+        <p><strong>WhatsApp:</strong> {viewBooking.whatsapp}</p>
+        <p><strong>Booking ID:</strong> {viewBooking.bookingId}</p>
+        <p><strong>Status:</strong> {viewBooking.status}</p>
+        <p><strong>Room: </strong> {rooms.find((r) => r.id === viewBooking.roomId)?.name || "Unknown"}</p>
+        <p><strong>From:</strong> {format(new Date(viewBooking.from), "dd MMM yyyy")}</p>
+        <p><strong>To:</strong> {format(new Date(viewBooking.to), "dd MMM yyyy")}</p>
+      </div>
+      <div className="mt-4 text-center">
+        <button
+          onClick={() => setViewBooking(null)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
     </div>
   );
