@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { postReq } from "../../_utils/request";
+import Image from "next/image";
 
 type info = {
   email: string;
@@ -79,12 +80,13 @@ const Signup = () => {
           className="pinput"
           onChange={handleChange}
         />
-        <img
+        <Image
           style={{ height: 20, width: 20 }}
           src={show ? "/svgs/eye-s.svg" : "/svgs/eye.svg"}
           onClick={() => {
             setShow((p) => !p);
           }}
+          alt=""
         />
       </div>
       <input
@@ -97,7 +99,7 @@ const Signup = () => {
       />
       <p style={{ color: "red" }}>{prob}</p>
       <p className="pl">
-        Already have an account?{" "}
+        Already have an account&lsquo;{" "}
         <span
           className="prm-p"
           onClick={() => {
