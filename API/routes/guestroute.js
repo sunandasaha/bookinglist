@@ -1,11 +1,14 @@
 const express = require("express");
-const { createBooking, getBookings, updateBooking } = require("../controler/guestcon");
+const { createBooking, getBookings, updateBooking, deleteBooking } = require("../controler/guestcon");
+
 const { authUser, chkHost } = require("../middleware/auth");
 
-const router = express.Router();
+const guestroute = express.Router();
 
-router.post("/", authUser, chkHost, createBooking);
-router.get("/", authUser, chkHost, getBookings);
-router.put("/:id", authUser, chkHost, updateBooking);
+guestroute.post("/", authUser, chkHost, createBooking);
+guestroute.get("/", authUser, chkHost, getBookings);
+guestroute.put("/:id", authUser, chkHost, updateBooking);
+guestroute.delete("/:id", authUser, chkHost, deleteBooking);
 
-module.exports = router;
+
+module.exports = guestroute;

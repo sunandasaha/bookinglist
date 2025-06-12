@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { X } from "lucide-react";
+import { delReq, putReq,site } from "../../_utils/request";
+import { useContext } from "react";
+import { Context } from "../../_components/ContextProvider";
+
+
+
 
 export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
+  const { user } = useContext(Context);
+    const token = user?.token;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -51,15 +59,47 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setSubmitted(true);
     }
   };
-
-  const handlePayment = () => {
-    const genId = `BKG-${Date.now().toString().slice(-5)}`;
-    setBookingId(genId);
-    setBookingConfirmed(true);
-    alert(`🎉 Booking Confirmed!\nYour Booking ID is:${genId}`);
-
-    onSave({ ...formData, bookingId: genId });
+  const handlePayment = async () => {
+  const bookingPayload = {
+    ...formData,
+    fromDate: booking.from,
+    toDate: booking.to,
+    rooms: booking.roomNames,
+    adults: Number(formData.adults),
+    children: Number(formData.children),
+    age_0_5: Number(formData.age_0_5),
+    age_6_10: Number(formData.age_6_10),
   };
+
+  try {
+    const res = await fetch(site + "guestbooking", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: user.token,
+      },
+
+      body: JSON.stringify(bookingPayload),
+    });
+
+    const result = await res.json();
+    console.log(result);
+
+    if (result.success && result.booking?.b_ID) {
+      const newId = result.booking.b_ID;
+      setBookingId(newId);
+      setBookingConfirmed(true);
+      alert(`🎉 Booking Confirmed!\nYour Booking ID is: ${newId}`);
+      onSave(result.booking);
+    } else {
+      alert("❌ Failed to save booking: " + (result.message || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("Booking error:", err);
+    alert("❌ Error saving booking. Please try again.");
+  }
+};
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
@@ -129,7 +169,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
               <div>
                 <label className="text-sm text-gray-600 ml-1">🧒 Age 0–5</label>
@@ -163,12 +202,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
             <div className="space-y-4 text-left text-black">
               <p><strong>Name:</strong> {formData.name}</p>
               <p><strong>Phone:</strong> {formData.phone}</p>
+              <p><strong>whatsapp:</strong> {formData.whatsapp}</p>
               <p><strong>Adults:</strong> {formData.adults} | <strong>Children:</strong> {formData.children}</p>
               <p><strong>0–5 yrs:</strong> {formData.age_0_5} | <strong>6–10 yrs:</strong> {formData.age_6_10}</p>
               <p><strong>Dates:</strong> {format(booking.from, "MMM dd")} - {format(booking.to, "MMM dd")}</p>
               <p><strong>Rooms:</strong> {booking.roomNames.join(", ")}</p>
               <p><strong>Message:</strong> {formData.message}</p>
-
               <button
                 onClick={handlePayment}
                 className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"

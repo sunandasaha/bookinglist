@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
 import { Bell } from "lucide-react";
+import Image from "next/image";
 
 
 export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
@@ -75,7 +76,7 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
           title="Menu"
         />
         <img
-          src="svgs/logo.png"
+          src="/svgs/logo.png"
           alt="BookingList"
           className="h-10 w-auto object-contain"
         />
