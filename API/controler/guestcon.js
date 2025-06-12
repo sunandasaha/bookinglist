@@ -4,82 +4,16 @@ const HotelModel = require("../models/Hotel");
 
 const createBooking = async (req, res) => {
   try {
-    const hotelId = req.body;
-    if (!hotelId) {
-      return res
-        .status(400)
-        .json({ status: "failed", message: "Host has no hotel assigned." });
-    }
-
     const data = req.body;
+    if (!data.hotelId) {
+      return res.status(400).json({ status: "failed", message: "Missing hotel ID" });
+    }
+
     const bookingid = "BK" + Date.now().toString().slice(-6);
-
-    const hotel = await HotelModel.findById(hotelId);
-    if (!hotel) {
-      return res
-        .status(404)
-        .json({ status: "failed", message: "Hotel not found" });
-    }
-
-    const start = new Date(data.fromDate);
-    const end = new Date(data.toDate);
-    const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1;
-
-    let total = 0;
-    let advance = 0;
-
-    if (hotel.pay_per.room) {
-      // ROOM-BASED PRICING
-      const roomData = hotel.per_room_cat.flatMap(cat =>
-        cat.roomNumbers.map(room => ({
-          name: room,
-          price: cat.rate,
-          advancePercent: cat.advance || 0,
-        }))
-      );
-
-      data.rooms.forEach((room) => {
-        const match = roomData.find(r => r.name === room);
-        if (match) {
-          total += match.price * nights;
-          advance += (match.price * nights * match.advancePercent) / 100;
-        }
-      });
-
-    } else if (hotel.pay_per.person) {
-      // PERSON-BASED PRICING
-      const roomData = hotel.per_person_cat.flatMap(cat =>
-        cat.roomNumbers.map(room => ({
-          name: room,
-          rate1: cat.rate1,
-          rate2: cat.rate2,
-          rate3: cat.rate3,
-          rate4: cat.rate4,
-          advancePercent: cat.advance || 0,
-        }))
-      );
-
-      data.rooms.forEach((room) => {
-        const match = roomData.find(r => r.name === room);
-        if (match) {
-          const persons = Number(data.adults) + Number(data.children);
-          let rate = match.rate1;
-          if (persons === 2) rate = match.rate2;
-          else if (persons === 3) rate = match.rate3;
-          else if (persons >= 4) rate = match.rate4;
-
-          total += rate * nights;
-          advance += (rate * nights * match.advancePercent) / 100;
-        }
-      });
-    }
 
     const newBooking = await GuestModel.create({
       ...data,
-      hotelId,
       b_ID: bookingid,
-      totalPrice: Math.round(total),
-      advanceAmount: Math.round(advance),
     });
 
     res.json({ status: "success", booking: newBooking });
@@ -88,6 +22,7 @@ const createBooking = async (req, res) => {
     res.status(500).json({ status: "failed", error: error.message });
   }
 };
+
 const updateBooking = async (req, res) => {
   try {
     const user = await UserModel.findById(req.user._id);

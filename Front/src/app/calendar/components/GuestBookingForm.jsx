@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { X } from "lucide-react";
-import { delReq, putReq,site } from "../../_utils/request";
+import { postReq} from "../../_utils/request";
 import { useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
 
@@ -10,8 +10,9 @@ import { Context } from "../../_components/ContextProvider";
 
 export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
-  const { user } = useContext(Context);
+  const { user, hosthotel } = useContext(Context);
     const token = user?.token;
+    const hotelId = hosthotel?._id;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -59,9 +60,10 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setSubmitted(true);
     }
   };
-  const handlePayment = async () => {
+ const handlePayment = async () => {
   const bookingPayload = {
     ...formData,
+     hotelId,
     fromDate: booking.from,
     toDate: booking.to,
     rooms: booking.roomNames,
@@ -72,20 +74,13 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   };
 
   try {
-    const res = await fetch(site + "guestbooking", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: user.token,
-      },
-
-      body: JSON.stringify(bookingPayload),
-    });
-
-    const result = await res.json();
+    const result = await postReq("guestbooking", bookingPayload, user.token);
     console.log(result);
+    console.log("hotelId check:", hotelId);
+    console.log("hosthotel check:", hosthotel);
 
-    if (result.success && result.booking?.b_ID) {
+
+    if (result.status === "success" && result.booking?.b_ID) {
       const newId = result.booking.b_ID;
       setBookingId(newId);
       setBookingConfirmed(true);
@@ -99,7 +94,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     alert("❌ Error saving booking. Please try again.");
   }
 };
-
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
