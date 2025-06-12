@@ -81,7 +81,8 @@ const Signup = () => {
           onChange={handleChange}
         />
         <Image
-          style={{ height: 20, width: 20 }}
+          height={20}
+          width={20}
           src={show ? "/svgs/eye-s.svg" : "/svgs/eye.svg"}
           onClick={() => {
             setShow((p) => !p);

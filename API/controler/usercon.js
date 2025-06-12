@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const { createHmac } = require("crypto");
 const Usermodel = require("../models/Users");
 const Hotelmodel = require("../models/Hotel");
+const Agentmodel = require("../models/Agent");
 
 const retry = new Map();
 
@@ -35,6 +36,8 @@ const getDet = async (role, id) => {
       cred = await Hotelmodel.findById(id)
         .populate("room_cat")
         .populate("per_person_cat");
+    } else if (role === "agent") {
+      cred = await Agentmodel.findById(id);
     }
   }
   return cred;

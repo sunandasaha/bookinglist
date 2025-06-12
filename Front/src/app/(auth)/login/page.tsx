@@ -18,7 +18,7 @@ const Login = () => {
   const [prob, setProb] = useState("");
   const [info, setInfo] = useState<info>({ email: "", password: "" });
   const navigate = useRouter();
-  const { setUser, setHosthotel } = useContext(Context);
+  const { setUser, setHosthotel, setAgent } = useContext(Context);
 
   const login = async () => {
     const reg =
@@ -38,6 +38,13 @@ const Login = () => {
             navigate.push("/calendar");
           } else {
             navigate.push("/hotel");
+          }
+        } else if (res.user.role === "agent") {
+          if (res.user.cred) {
+            if (setAgent) setAgent(res.user.cred);
+            navigate.push("/agent/dashboard");
+          } else {
+            navigate.push("/agent");
           }
         }
       } else {
@@ -72,6 +79,13 @@ const Login = () => {
               navigate.push("/calendar");
             } else {
               navigate.push("/hotel");
+            }
+          } else if (res.user.role === "agent") {
+            if (res.user.cred) {
+              if (setAgent) setAgent(res.user.cred);
+              navigate.push("/agent/dashboard");
+            } else {
+              navigate.push("/agent");
             }
           }
         }
@@ -117,7 +131,8 @@ const Login = () => {
           value={info.password}
         />
         <Image
-          style={{ height: 20, width: 20 }}
+          height={20}
+          width={20}
           src={show ? "/svgs/eye-s.svg" : "/svgs/eye.svg"}
           onClick={() => {
             setShow((p) => !p);

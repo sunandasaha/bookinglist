@@ -36,6 +36,18 @@ type room_cat = {
   amenities: string[];
 };
 
+export type agent = {
+  _id?: string;
+  name: string;
+  location: string;
+  agency: string;
+  ph1: string;
+  ph2?: string;
+  hotel_per: string[];
+  visiting_card?: string;
+  upi_id?: string;
+};
+
 type per_percent_cat = {
   _id?: string;
   name: string;
@@ -54,9 +66,11 @@ type per_percent_cat = {
 type Ccontext = {
   user: user;
   hosthotel: hostHotel | null;
+  agent: agent | null;
   setUser: React.Dispatch<React.SetStateAction<user>> | null;
   setPop: React.Dispatch<React.SetStateAction<string>> | null;
   setHosthotel: React.Dispatch<React.SetStateAction<hostHotel | null>> | null;
+  setAgent: React.Dispatch<React.SetStateAction<agent | null>> | null;
   pop: string;
 };
 
@@ -67,6 +81,8 @@ export const Context = createContext<Ccontext>({
   setHosthotel: null,
   pop: "",
   setPop: null,
+  agent: null,
+  setAgent: null,
 });
 
 const ContextProvider = ({
@@ -75,12 +91,22 @@ const ContextProvider = ({
   children: JSX.Element | React.ReactNode;
 }) => {
   const [user, setUser] = useState<user>(null);
+  const [agent, setAgent] = useState<agent | null>(null);
   const [hosthotel, setHosthotel] = useState<hostHotel | null>(null);
   const [pop, setPop] = useState("");
 
   return (
     <Context.Provider
-      value={{ user, hosthotel, setUser, pop, setPop, setHosthotel }}
+      value={{
+        user,
+        hosthotel,
+        setUser,
+        pop,
+        setPop,
+        setHosthotel,
+        agent,
+        setAgent,
+      }}
     >
       <GoogleOAuthProvider clientId="85449916853-ilvmr3fr74rmit72esdsbvoptgvbr1m3.apps.googleusercontent.com">
         {children}

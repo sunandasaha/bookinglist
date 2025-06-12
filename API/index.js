@@ -7,6 +7,7 @@ const userroute = require("./routes/userroute");
 const hotelroute = require("./routes/hotelroute");
 const guestRoute = require("./routes/guestroute");
 const categoryroute = require("./routes/categoryroute");
+const agentroute = require("./routes/agentroute");
 mongoose.connect(process.env.API_URI);
 
 const PORT = process.env.PORT || 8080;
@@ -21,6 +22,7 @@ app.use("/imgs", express.static("./uploads/"));
 //routes
 app.use("/user", userroute);
 app.use("/hotel", hotelroute);
+app.use("/agent", agentroute);
 app.use("/guestbooking", guestRoute);
 app.use("/category", categoryroute);
 

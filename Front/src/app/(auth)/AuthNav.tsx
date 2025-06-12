@@ -14,7 +14,7 @@ const AuthNav = () => {
 
   return (
     <div className="auth-navbar">
-      <Image src="/svgs/logo.png" alt="" />
+      <Image src="/svgs/logo.png" alt="" width={30} height={30} />
       <div className="nav-elcon">
         <p
           onClick={() => {

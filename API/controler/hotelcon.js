@@ -6,7 +6,7 @@ const createHotel = async (req, res) => {
   const data = req.body;
   try {
     let url = data.name.toLowerCase().replace(" ", "_");
-    const chk = Hotelmodel.findOne({ url: url });
+    const chk = await Hotelmodel.findOne({ url: url });
     if (chk._id) {
       url += randomInt(100).toString();
     }

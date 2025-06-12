@@ -1,13 +1,13 @@
 "use client";
 
-import { hostHotel } from "../_components/ContextProvider";
+import { agent } from "../_components/ContextProvider";
 
 type props = {
-  info: hostHotel;
-  setInfo: React.Dispatch<React.SetStateAction<hostHotel>>;
+  info: agent;
+  setInfo: React.Dispatch<React.SetStateAction<agent>>;
 };
 
-const HostForm = ({ info, setInfo }: props) => {
+const AgentForm = ({ info, setInfo }: props) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.id === "hname")
       setInfo((p) => ({ ...p, name: e.target.value }));
@@ -17,13 +17,8 @@ const HostForm = ({ info, setInfo }: props) => {
       setInfo((p) => ({ ...p, upi_id: e.target.value }));
     if (e.target.id === "hph1") setInfo((p) => ({ ...p, ph1: e.target.value }));
     if (e.target.id === "hph2") setInfo((p) => ({ ...p, ph2: e.target.value }));
-    if (e.target.id === "hnr")
-      setInfo((p) => ({ ...p, rooms: Number(e.target.value) }));
-  };
-
-  const handleRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value === "person";
-    setInfo((p) => ({ ...p, pay_per: { person: val, room: !val } }));
+    if (e.target.id === "hagency")
+      setInfo((p) => ({ ...p, agency: e.target.value }));
   };
 
   return (
@@ -37,6 +32,16 @@ const HostForm = ({ info, setInfo }: props) => {
           id="hname"
           value={info.name}
           placeholder="Name"
+          onChange={handleChange}
+        />
+        <label htmlFor="hnr">Agency name :</label>
+        <input
+          type="text"
+          name=""
+          value={info.agency}
+          className="pinput"
+          id="hagency"
+          placeholder="Agency name"
           onChange={handleChange}
         />
         <label htmlFor="hloc"> Location : </label>
@@ -79,44 +84,9 @@ const HostForm = ({ info, setInfo }: props) => {
           placeholder="Secondary phone"
           onChange={handleChange}
         />
-        <label htmlFor="hnr">Number of rooms :</label>
-        <input
-          type="number"
-          name="hnr"
-          value={info.rooms}
-          className="pinput"
-          id="hnr"
-          placeholder="Number of rooms"
-          onChange={handleChange}
-        />
-        <label htmlFor="">Pay per</label>
-        <div className="px-10">
-          <div className="inline">
-            <input
-              type="radio"
-              name="pp"
-              id="ppp"
-              checked={info.pay_per.person}
-              value="person"
-              onChange={handleRChange}
-            />
-            <label htmlFor="ppp">Person</label>
-          </div>
-          <div className="inline">
-            <input
-              type="radio"
-              name="pp"
-              id="ppr"
-              value="room"
-              checked={info.pay_per.room}
-              onChange={handleRChange}
-            />
-            <label htmlFor="ppr">Room</label>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-export default HostForm;
+export default AgentForm;
