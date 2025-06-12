@@ -6,6 +6,11 @@ const GuestSchema = new mongoose.Schema({
     ref: "hotels",
     required: true,
   },
+  agent_Id: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "agents", 
+},
+
   b_ID: {
     type: String,
     required: true,
@@ -19,10 +24,7 @@ const GuestSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  phone: {
-    type: Number,
-    required: true,
-  },
+  phone: Number,
   whatsapp: {
     type: Number,
     required: true,

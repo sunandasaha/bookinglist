@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { X } from "lucide-react";
-import { postReq} from "../../_utils/request";
-import { useContext } from "react";
+import { postReq, getReq} from "../../_utils/request";
+import { useContext,useMemo } from "react";
 import { Context } from "../../_components/ContextProvider";
+
 
 
 
@@ -11,6 +12,8 @@ import { Context } from "../../_components/ContextProvider";
 export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
   const { user, hosthotel } = useContext(Context);
+  const [isEditing, setIsEditing] = useState(false);
+
     const token = user?.token;
     const hotelId = hosthotel?._id;
 
@@ -58,8 +61,49 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
 
     if (!phoneError && !whatsappError) {
       setSubmitted(true);
+      setIsEditing(false);
     }
   };
+const { totalPrice, advanceAmount } = useMemo(() => {
+  if (!hosthotel || !booking?.roomNames?.length) return { totalPrice: 0, advanceAmount: 0 };
+
+  const selected = booking.roomNames;
+  let total = 0;
+  let advance = 0;
+
+  if (hosthotel.pay_per.room && hosthotel.room_cat) {
+    for (const cat of hosthotel.room_cat) {
+      for (const room of cat.room_no) {
+        if (selected.includes(room)) {
+          total += cat.price;
+          advance += cat.advance.percent
+            ? (cat.advance.amount / 100) * cat.price
+            : cat.advance.amount;
+        }
+      }
+    }
+  }
+
+  if (hosthotel.pay_per.person && hosthotel.per_person_cat) {
+    for (const cat of hosthotel.per_person_cat) {
+      for (const room of cat.roomNumbers) {
+        if (selected.includes(room)) {
+          const rate = cat.rate1;
+          total += rate;
+          advance += cat.advance?.percent
+            ? (cat.advance.amount / 100) * rate
+            : (cat.advance?.amount || 0);
+        }
+      }
+    }
+  }
+
+  return {
+    totalPrice: total,
+    advanceAmount: advance,
+  };
+}, [hosthotel, booking]);
+
  const handlePayment = async () => {
   const bookingPayload = {
     ...formData,
@@ -71,13 +115,14 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     children: Number(formData.children),
     age_0_5: Number(formData.age_0_5),
     age_6_10: Number(formData.age_6_10),
+    totalPrice,
+    advanceAmount,
   };
 
   try {
     const result = await postReq("guestbooking", bookingPayload, user.token);
     console.log(result);
-    console.log("hotelId check:", hotelId);
-    console.log("hosthotel check:", hosthotel);
+
 
 
     if (result.status === "success" && result.booking?.b_ID) {
@@ -107,7 +152,8 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           </button>
         </div>
 
-        {!submitted && (
+        {(!submitted || isEditing) && (
+ 
           <form onSubmit={handleSubmit} className="space-y-6 flex flex-col items-center">
             <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
               <p><strong>Dates:</strong> {format(booking.from, "MMM dd")} - {format(booking.to, "MMM dd")}</p>
@@ -192,7 +238,8 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
             </button>
           </form>
         )}
-        {submitted && !bookingConfirmed && (
+        {submitted && !bookingConfirmed && !isEditing &&(
+            
             <div className="space-y-4 text-left text-black">
               <p><strong>Name:</strong> {formData.name}</p>
               <p><strong>Phone:</strong> {formData.phone}</p>
@@ -202,24 +249,23 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               <p><strong>Dates:</strong> {format(booking.from, "MMM dd")} - {format(booking.to, "MMM dd")}</p>
               <p><strong>Rooms:</strong> {booking.roomNames.join(", ")}</p>
               <p><strong>Message:</strong> {formData.message}</p>
+              <p><strong>Total Price:</strong> ₹{totalPrice.toFixed(2)}</p>
+              <p><strong>Advance to Pay:</strong> ₹{advanceAmount.toFixed(2)}</p>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="w-full max-w-xs bg-yellow-500 text-white py-3 rounded-lg font-semibold hover:bg-yellow-600 transition"
+              >
+                ✏️ Edit Details
+              </button>
+
               <button
                 onClick={handlePayment}
                 className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
               >
                 💸 Proceed to Payment
               </button>
-
             </div>
           )}
-
-          {bookingConfirmed && (
-            <div className="text-center space-y-3 text-black">
-              <p className="text-green-600 text-lg font-semibold">🎉 Booking Confirmed!</p>
-              <p><strong>Booking ID:</strong> {bookingId}</p>
-              <p><strong>Name:</strong> {formData.name}</p>
-            </div>
-          )}
-
       </div>
     </div>
   );

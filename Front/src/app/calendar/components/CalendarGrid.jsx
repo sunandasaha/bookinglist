@@ -5,6 +5,7 @@ import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
 import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
+import { getReq } from "../../_utils/request";
 export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -15,8 +16,24 @@ export default function CalendarGrid({ startDate }) {
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [viewBooking, setViewBooking] = useState(null);
 
-  const { hosthotel } = useContext(Context);
+  const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
+  useEffect(() => {
+  const fetchBookings = async () => {
+    try {
+      const data = await getReq("guestbooking", user.token);
+      if (data.success) {
+        setBookings(data.bookings);
+      } else {
+        console.error("Failed to fetch bookings:", data.message);
+      }
+    } catch (err) {
+      console.error("Error fetching bookings", err);
+    }
+  };
+
+  fetchBookings();
+}, []);
   const rooms = useMemo(() => {
     if (!hosthotel) return [];
 
@@ -181,15 +198,11 @@ export default function CalendarGrid({ startDate }) {
   }, [selectedCells]);
 
   const handleBookingSave = (formData) => {
-    const bookingId = `B-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-
     const newBookings = selectedBooking.roomIds.map((roomId) => ({
       roomId,
       from: selectedBooking.from,
       to: selectedBooking.to,
       ...formData,
-      status: "Booked",
-      bookingId,
     }));
 
     setBookings((prev) => [...prev, ...newBookings]);

@@ -11,10 +11,10 @@ const createBooking = async (req, res) => {
 
     const bookingid = "BK" + Date.now().toString().slice(-6);
 
-    const newBooking = await GuestModel.create({
+    const newBooking = await GuestModel.create({ 
       ...data,
       b_ID: bookingid,
-    });
+    }); 
 
     res.json({ status: "success", booking: newBooking });
   } catch (error) {
@@ -22,65 +22,20 @@ const createBooking = async (req, res) => {
     res.status(500).json({ status: "failed", error: error.message });
   }
 };
-
-const updateBooking = async (req, res) => {
+const getSingleBooking = async (req, res) => {
   try {
-    const user = await UserModel.findById(req.user._id);
-    const hotelId = user.sid;
+    const booking = await GuestModel.findById(req.params.id);
 
-    if (!hotelId) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Host has no hotel assigned.",
-      });
-    }
-
-    const bookingId = req.params.id;
-    const updatedData = req.body;
-    const booking = await GuestModel.findOne({ _id: bookingId, hotelId });
     if (!booking) {
-      return res.status(404).json({
-        status: "failed",
-        message: "Booking not found or not authorized.",
-      });
+      return res.status(404).json({ status: "failed", message: "Booking not found" });
     }
-    const allowedFields = [
-      "name", "email", "phone", "whatsapp", "address",
-      "adults", "children", "age_0_5", "age_6_10"
-    ];
-
-    allowedFields.forEach((field) => {
-      if (updatedData[field] !== undefined) {
-        booking[field] = updatedData[field];
-      }
-    });
-
-    await booking.save();
 
     res.json({ status: "success", booking });
   } catch (error) {
-    console.error("Update Booking Error:", error);
-    res.status(500).json({ status: "failed", error: error.message });
+    res.status(500).json({ status: "failed", message: error.message });
   }
 };
 
-const getBookings = async (req, res) => {
-  try {
-    const user = await UserModel.findById(req.user._id);
-    const hotelId = user.sid;
-
-    if (!hotelId) {
-      return res.status(400).json({ status: "failed", message: "Host has no hotel assigned." });
-    }
-
-    const bookings = await GuestModel.find({ hotelId }).sort({ createdAt: -1 });
-
-    res.json({ status: "success", bookings });
-  } catch (error) {
-    console.error("Get Booking error:", error);
-    res.status(500).json({ status: "failed", error: error.message });
-  }
-};
 const deleteBooking = async (req, res) => {
   try {
     const hotelId = req.user.sid;
@@ -99,8 +54,7 @@ const deleteBooking = async (req, res) => {
 };
 module.exports = {
   createBooking,
-  updateBooking,
-  getBookings,
+  getSingleBookings,
   deleteBooking,
 };
 
