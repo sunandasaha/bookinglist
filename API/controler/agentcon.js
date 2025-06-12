@@ -7,7 +7,6 @@ const createAgent = async (req, res) => {
   try {
     const hot = await Agentmodel.create({
       ...data,
-      hotel_per: [],
       visiting_card: req.savedImages.length > 0 ? req.savedImages[0] : "",
     });
     const usr = await Usermodel.findById(req.user._id);

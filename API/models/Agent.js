@@ -21,7 +21,6 @@ const AgentSchema = new mongoose.Schema({
   },
   upi_id: String,
   ph2: String,
-  hotel_per: [{ type: mongoose.Schema.Types.ObjectId, ref: "hotels" }],
   visiting_card: String,
 });
 
