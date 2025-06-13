@@ -54,7 +54,7 @@ const deleteBooking = async (req, res) => {
 };
 module.exports = {
   createBooking,
-  getSingleBookings,
+  getSingleBooking,
   deleteBooking,
 };
 

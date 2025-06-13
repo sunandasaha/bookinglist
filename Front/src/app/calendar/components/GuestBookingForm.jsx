@@ -4,11 +4,6 @@ import { X } from "lucide-react";
 import { postReq, getReq} from "../../_utils/request";
 import { useContext,useMemo } from "react";
 import { Context } from "../../_components/ContextProvider";
-
-
-
-
-
 export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
   const { user, hosthotel } = useContext(Context);
