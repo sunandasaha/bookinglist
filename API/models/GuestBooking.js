@@ -11,7 +11,12 @@ const GuestSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "agents",
     },
-    ub_ids: [String],
+    ub_ids: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "upcoming_booking",
+      },
+    ],
     status: { type: Number, required: true },
     _id: {
       type: String,
@@ -70,5 +75,5 @@ const GuestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const GuestModel = mongoose.model("GuestBooking", GuestSchema);
+const GuestModel = mongoose.model("Bookings", GuestSchema);
 module.exports = GuestModel;

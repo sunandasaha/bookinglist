@@ -48,7 +48,7 @@ const createBooking = async (req, res) => {
       const newBooking = await GuestModel.create({
         ...data,
         _id: bookingid,
-        ub_id: temp,
+        ub_ids: temp,
         status: 0,
       });
 
