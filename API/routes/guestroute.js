@@ -14,5 +14,6 @@ guestroute.post("/", authUser, chkHost, createBooking);
 guestroute.get("/booking/:id", getSingleBooking);
 guestroute.delete("/:id", authUser, chkHost, deleteBooking);
 guestroute.get("/bookings", getBookings);
+guestroute.get("/bookingshost", authUser, chkHost, getBookings);
 
 module.exports = guestroute;

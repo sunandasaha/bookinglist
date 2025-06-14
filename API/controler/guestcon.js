@@ -49,10 +49,18 @@ const createBooking = async (req, res) => {
         ...data,
         _id: bookingid,
         ub_ids: temp,
-        status: 0,
+        status: req.user ? 1 : 0,
       });
 
-      res.json({ status: "success", booking: newBooking });
+      const book = await UpBookModel.find({
+        hotelId: data.hotelId,
+        fromDate: { $lte: data.toDate },
+        toDate: { $gte: data.fromDate },
+      }).select(
+        req.user ? "fromDate toDate room booking_id" : "fromDate toDate room"
+      );
+
+      res.json({ status: "success", booking: newBooking, bookings: book });
     }
   } catch (error) {
     console.error("Create Booking error:", error);
