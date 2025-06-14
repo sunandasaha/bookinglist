@@ -19,6 +19,7 @@ export default function CalendarGrid({ startDate }) {
 
   const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
+
   const getBookings = async () => {
     try {
       const res = await fetch(site + "guestbooking/bookingshost", {
@@ -30,36 +31,22 @@ export default function CalendarGrid({ startDate }) {
         },
       });
 
-    const data = await res.json();
-    const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
-    console.log("Frontend dates:", dates[0], dates[dates.length-1]);
+      const data = await res.json();
+      const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
 
-    setBookings(
-      bookingsData.map(b => ({
-        ...b,
-        b_ID: b.booking_id,
-        from: new Date(b.fromDate),
-        to: new Date(b.toDate),
-      }))
-    );
-  } catch (err) {
-    console.error("Failed to fetch bookings:", err);
-    setBookings([]);
-  }
-};
-const handleCellClick = (rIdx, dIdx) => {
-  const roomName = rooms[rIdx]?.name;
-  const date = dates[dIdx];
-  const booking = getBookingForCell(roomName, date);
-
-  if (booking) {
-    alert(`This room is already booked from ${format(booking.from, 'PP')} to ${format(booking.to, 'PP')}`);
-    return;
-  }
-  
-  handleMouseDown(rIdx, dIdx);
-};
-
+      setBookings(
+        bookingsData.map((b) => ({
+          ...b,
+          b_ID: b.booking_id,
+          from: new Date(b.fromDate),
+          to: new Date(b.toDate),
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch bookings:", err);
+      setBookings([]);
+    }
+  };
 
   const rooms = useMemo(() => {
     if (!hosthotel) return [];
@@ -88,9 +75,7 @@ const handleCellClick = (rIdx, dIdx) => {
 
   useEffect(() => {
     if (startDate) {
-      const next7Days = Array.from({ length: 7 }, (_, i) =>
-        addDays(startDate, i)
-      );
+      const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
       setDates(next7Days);
     }
   }, [startDate]);
@@ -103,14 +88,11 @@ const handleCellClick = (rIdx, dIdx) => {
     return bookings.find(
       (b) =>
         b.room === roomName &&
-        isWithinInterval(date, {
-          start: b.from,
-          end: b.to,
-        })
+        isWithinInterval(date, { start: b.from, end: b.to })
     );
   };
 
-  const getSelectedCells = () => {
+  const selectedCells = useMemo(() => {
     if (!startCell || !endCell) return [];
     const [r1, d1] = startCell;
     const [r2, d2] = endCell;
@@ -118,23 +100,25 @@ const handleCellClick = (rIdx, dIdx) => {
       rMax = Math.max(r1, r2);
     const dMin = Math.min(d1, d2),
       dMax = Math.max(d1, d2);
-      let hasBookings = false;
-      const cells = [];
-      for (let r = rMin; r <= rMax; r++) {
-    for (let d = dMin; d <= dMax; d++) {
-      cells.push([r, d]);
-      const roomName = rooms[r]?.name;
-      const date = dates[d];
-      if (getBookingForCell(roomName, date)) {
-        hasBookings = true;
+
+    let hasBookings = false;
+    const cells = [];
+
+    for (let r = rMin; r <= rMax; r++) {
+      for (let d = dMin; d <= dMax; d++) {
+        cells.push([r, d]);
+        const roomName = rooms[r]?.name;
+        const date = dates[d];
+        if (getBookingForCell(roomName, date)) {
+          hasBookings = true;
+        }
       }
     }
-  }
-   setHasBookedCellsInSelection(hasBookings);
-  return cells;
-};
-    
-  const selectedCells = getSelectedCells();
+
+    setHasBookedCellsInSelection(hasBookings);
+    return cells;
+  }, [startCell, endCell, bookings, rooms, dates]);
+
   const isSelected = (r, d) =>
     selectedCells.some(([x, y]) => x === r && y === d);
 
@@ -196,7 +180,7 @@ const handleCellClick = (rIdx, dIdx) => {
     setSelectedBooking(null);
     setStartCell(null);
     setEndCell(null);
-    await getBookings();
+    await getBookings(); // refresh bookings after saving
   };
 
   return (
@@ -208,9 +192,7 @@ const handleCellClick = (rIdx, dIdx) => {
     >
       <div className="inline-block min-w-[900px] border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
-          <div className="p-2 border-r sticky left-0 bg-blue-600">
-            Room / Date
-          </div>
+          <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
           {dates.map((date, i) => (
             <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
@@ -235,6 +217,7 @@ const handleCellClick = (rIdx, dIdx) => {
                   : `₹${room.price?.rate}`}
               </div>
             </div>
+
             {dates.map((date, dIdx) => {
               const booking = getBookingForCell(room.name, date);
               const selected = isSelected(rIdx, dIdx);
@@ -262,7 +245,10 @@ const handleCellClick = (rIdx, dIdx) => {
                     <div className="text-center">
                       <div className="font-medium">Booked</div>
                       <div className="text-[10px]">ID: {booking.booking_id}</div>
-                    </div>) : selected ? ("Selected" ) : null}
+                    </div>
+                  ) : selected ? (
+                    "Selected"
+                  ) : null}
                 </div>
               );
             })}
@@ -282,10 +268,10 @@ const handleCellClick = (rIdx, dIdx) => {
               borderRadius: "6px",
               boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
               whiteSpace: "nowrap",
-              opacity: hasBookedCellsInSelection  ? 0.5 : 1,
-              cursor: hasBookedCellsInSelection  ? 'not-allowed' : 'pointer'
+              opacity: hasBookedCellsInSelection ? 0.5 : 1,
+              cursor: hasBookedCellsInSelection ? "not-allowed" : "pointer",
             }}
-             onClick={hasBookedCellsInSelection ? null : handleBookClick}
+            onClick={hasBookedCellsInSelection ? null : handleBookClick}
             disabled={hasBookedCellsInSelection}
           >
             Book
