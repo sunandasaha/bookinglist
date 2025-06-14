@@ -18,6 +18,7 @@ const GuestSchema = new mongoose.Schema(
       },
     ],
     status: { type: Number, required: true },
+    amountPaid: Number,
     _id: {
       type: String,
     },
