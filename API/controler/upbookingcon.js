@@ -10,8 +10,8 @@ const getBookings = async (req, res) => {
         message: "Missing hotel ID",
       });
     } else {
-      const startDate = req.headers.date
-        ? new Date(req.headers.date)
+      const startDate = req.headers.sdate
+        ? new Date(req.headers.sdate)
         : new Date();
       const endDate = new Date(new Date().setDate(startDate.getDate() + 7));
       const hotelId = req.headers.hotelid;

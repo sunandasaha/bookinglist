@@ -19,53 +19,54 @@ export default function CalendarGrid({ startDate }) {
   const { hosthotel } = useContext(Context);
   const containerRef = useRef(null);
   const getBookings = async () => {
-  try {
-    const res = await fetch(site + "guestbooking/bookings", {
-      headers: {
-        hotelid: hosthotel._id,
-        date: startDate.toISOString(), 
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const res = await fetch(site + "guestbooking/bookings", {
+        headers: {
+          hotelid: hosthotel._id,
+          sdate: startDate.toString() || "2025-06-20",
+          "Content-Type": "application/json",
+        },
+      });
 
-    const data = await res.json();
-    const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
-    console.log("Frontend dates:", dates[0], dates[dates.length-1]);
+      const data = await res.json();
+      console.log(data);
 
-    setBookings(
-      bookingsData.map(b => ({
-        ...b,
-        b_ID: b.booking_id,
-        from: new Date(b.fromDate),
-        to: new Date(b.toDate),
-      }))
-    );
-  } catch (err) {
-    console.error("Failed to fetch bookings:", err);
-    setBookings([]);
-  }
-};
+      const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
+      console.log("Frontend dates:", dates[0], dates[dates.length - 1]);
 
+      setBookings(
+        bookingsData.map((b) => ({
+          ...b,
+          b_ID: b.booking_id,
+          from: new Date(b.fromDate),
+          to: new Date(b.toDate),
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch bookings:", err);
+      setBookings([]);
+    }
+  };
 
   const rooms = useMemo(() => {
     if (!hosthotel) return [];
     if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
-      return hosthotel.per_person_cat.flatMap(cat =>
-        cat.roomNumbers.map(name => ({
+      return hosthotel.per_person_cat.flatMap((cat) =>
+        cat.roomNumbers.map((name) => ({
           name,
           category: cat.name,
           price: { one: cat.rate1 },
-          capacity: cat.capacity
+          capacity: cat.capacity,
         }))
       );
     }
     if (hosthotel.pay_per?.room && hosthotel.room_cat) {
-      return hosthotel.room_cat.flatMap(cat =>
-        cat.room_no.map(name => ({
+      return hosthotel.room_cat.flatMap((cat) =>
+        cat.room_no.map((name) => ({
           name,
           category: cat.name,
           price: { rate: cat.price },
-          capacity: cat.capacity
+          capacity: cat.capacity,
         }))
       );
     }
@@ -74,7 +75,9 @@ export default function CalendarGrid({ startDate }) {
 
   useEffect(() => {
     if (startDate) {
-      const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
+      const next7Days = Array.from({ length: 7 }, (_, i) =>
+        addDays(startDate, i)
+      );
       setDates(next7Days);
     }
   }, [startDate]);
@@ -82,23 +85,26 @@ export default function CalendarGrid({ startDate }) {
   useEffect(() => {
     if (hosthotel?._id && startDate) getBookings();
   }, [hosthotel, startDate]);
-  const getBookingForCell = (roomName, date) => {
-  return bookings.find(b =>
-    b.room === roomName &&
-    isWithinInterval(date, {
-      start: b.from,
-      end: b.to
-    })
-  );
-};
 
+  const getBookingForCell = (roomName, date) => {
+    return bookings.find(
+      (b) =>
+        b.room === roomName &&
+        isWithinInterval(date, {
+          start: b.from,
+          end: b.to,
+        })
+    );
+  };
 
   const getSelectedCells = () => {
     if (!startCell || !endCell) return [];
     const [r1, d1] = startCell;
     const [r2, d2] = endCell;
-    const rMin = Math.min(r1, r2), rMax = Math.max(r1, r2);
-    const dMin = Math.min(d1, d2), dMax = Math.max(d1, d2);
+    const rMin = Math.min(r1, r2),
+      rMax = Math.max(r1, r2);
+    const dMin = Math.min(d1, d2),
+      dMax = Math.max(d1, d2);
     const cells = [];
     for (let r = rMin; r <= rMax; r++) {
       for (let d = dMin; d <= dMax; d++) cells.push([r, d]);
@@ -107,7 +113,8 @@ export default function CalendarGrid({ startDate }) {
   };
 
   const selectedCells = getSelectedCells();
-  const isSelected = (r, d) => selectedCells.some(([x, y]) => x === r && y === d);
+  const isSelected = (r, d) =>
+    selectedCells.some(([x, y]) => x === r && y === d);
 
   const handleMouseDown = (r, d) => {
     if (isSelected(r, d)) {
@@ -136,7 +143,7 @@ export default function CalendarGrid({ startDate }) {
     setSelectedBooking({
       from,
       to,
-      roomNames: uniqueRooms.map(i => rooms[i].name)
+      roomNames: uniqueRooms.map((i) => rooms[i].name),
     });
   };
 
@@ -159,17 +166,16 @@ export default function CalendarGrid({ startDate }) {
       top: startBox.top - gridBox.top + containerRef.current.scrollTop,
       left: startBox.left - gridBox.left + containerRef.current.scrollLeft,
       width: endBox.right - startBox.left,
-      height: endBox.bottom - startBox.top
+      height: endBox.bottom - startBox.top,
     };
   }, [selectedCells]);
 
   const handleBookingSave = async () => {
-  setSelectedBooking(null);
-  setStartCell(null);
-  setEndCell(null);
-  await getBookings(); 
-};
-
+    setSelectedBooking(null);
+    setStartCell(null);
+    setEndCell(null);
+    await getBookings();
+  };
 
   return (
     <div
@@ -180,7 +186,9 @@ export default function CalendarGrid({ startDate }) {
     >
       <div className="inline-block min-w-[900px] border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
-          <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
+          <div className="p-2 border-r sticky left-0 bg-blue-600">
+            Room / Date
+          </div>
           {dates.map((date, i) => (
             <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
@@ -190,14 +198,19 @@ export default function CalendarGrid({ startDate }) {
         </div>
 
         {rooms.map((room, rIdx) => (
-          <div key={room.name} className="grid grid-cols-[120px_repeat(7,1fr)] border-t grid-row">
+          <div
+            key={room.name}
+            className="grid grid-cols-[120px_repeat(7,1fr)] border-t grid-row"
+          >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
               onClick={() => setSelectedRoomName(room.name)}
             >
               <div>{room.name}</div>
               <div className="text-xs text-gray-500">
-                {room.price?.one ? `₹${room.price.one}/person` : `₹${room.price?.rate}`}
+                {room.price?.one
+                  ? `₹${room.price.one}/person`
+                  : `₹${room.price?.rate}`}
               </div>
             </div>
             {dates.map((date, dIdx) => {
