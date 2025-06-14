@@ -15,6 +15,7 @@ export default function CalendarGrid({ startDate }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
+  const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
 
   const { hosthotel } = useContext(Context);
   const containerRef = useRef(null);
@@ -28,25 +29,36 @@ export default function CalendarGrid({ startDate }) {
         },
       });
 
-      const data = await res.json();
-      console.log(data);
+    const data = await res.json();
+    const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
+    console.log("Frontend dates:", dates[0], dates[dates.length-1]);
 
-      const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
-      console.log("Frontend dates:", dates[0], dates[dates.length - 1]);
+    setBookings(
+      bookingsData.map(b => ({
+        ...b,
+        b_ID: b.booking_id,
+        from: new Date(b.fromDate),
+        to: new Date(b.toDate),
+      }))
+    );
+  } catch (err) {
+    console.error("Failed to fetch bookings:", err);
+    setBookings([]);
+  }
+};
+const handleCellClick = (rIdx, dIdx) => {
+  const roomName = rooms[rIdx]?.name;
+  const date = dates[dIdx];
+  const booking = getBookingForCell(roomName, date);
 
-      setBookings(
-        bookingsData.map((b) => ({
-          ...b,
-          b_ID: b.booking_id,
-          from: new Date(b.fromDate),
-          to: new Date(b.toDate),
-        }))
-      );
-    } catch (err) {
-      console.error("Failed to fetch bookings:", err);
-      setBookings([]);
-    }
-  };
+  if (booking) {
+    alert(`This room is already booked from ${format(booking.from, 'PP')} to ${format(booking.to, 'PP')}`);
+    return;
+  }
+  
+  handleMouseDown(rIdx, dIdx);
+};
+
 
   const rooms = useMemo(() => {
     if (!hosthotel) return [];
@@ -105,13 +117,22 @@ export default function CalendarGrid({ startDate }) {
       rMax = Math.max(r1, r2);
     const dMin = Math.min(d1, d2),
       dMax = Math.max(d1, d2);
-    const cells = [];
-    for (let r = rMin; r <= rMax; r++) {
-      for (let d = dMin; d <= dMax; d++) cells.push([r, d]);
+      let hasBookings = false;
+      const cells = [];
+      for (let r = rMin; r <= rMax; r++) {
+    for (let d = dMin; d <= dMax; d++) {
+      cells.push([r, d]);
+      const roomName = rooms[r]?.name;
+      const date = dates[d];
+      if (getBookingForCell(roomName, date)) {
+        hasBookings = true;
+      }
     }
-    return cells;
-  };
-
+  }
+   setHasBookedCellsInSelection(hasBookings);
+  return cells;
+};
+    
   const selectedCells = getSelectedCells();
   const isSelected = (r, d) =>
     selectedCells.some(([x, y]) => x === r && y === d);
@@ -222,15 +243,25 @@ export default function CalendarGrid({ startDate }) {
                   className={clsx(
                     "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
-                    booking && "bg-green-500 text-white",
+                    booking && "bg-green-500 text-white cursor-not-allowed",
                     !booking && !selected && "hover:bg-blue-100"
                   )}
-                  onMouseDown={() => handleMouseDown(rIdx, dIdx)}
+                  onClick={() => {
+                    if (booking) {
+                      alert(`Room already booked (ID: ${booking.booking_id})`);
+                    } else {
+                      handleMouseDown(rIdx, dIdx);
+                    }
+                  }}
                   onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
                   data-room={rIdx}
                   data-date={dIdx}
                 >
-                  {booking ? booking.b_ID : selected ? "Selected" : null}
+                  {booking ? (
+                    <div className="text-center">
+                      <div className="font-medium">Booked</div>
+                      <div className="text-[10px]">ID: {booking.booking_id}</div>
+                    </div>) : selected ? ("Selected" ) : null}
                 </div>
               );
             })}
@@ -249,10 +280,12 @@ export default function CalendarGrid({ startDate }) {
               padding: "6px 12px",
               borderRadius: "6px",
               boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-              cursor: "pointer",
               whiteSpace: "nowrap",
+              opacity: hasBookedCellsInSelection  ? 0.5 : 1,
+              cursor: hasBookedCellsInSelection  ? 'not-allowed' : 'pointer'
             }}
-            onClick={handleBookClick}
+             onClick={hasBookedCellsInSelection ? null : handleBookClick}
+            disabled={hasBookedCellsInSelection}
           >
             Book
           </button>
