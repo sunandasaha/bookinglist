@@ -17,14 +17,15 @@ export default function CalendarGrid({ startDate }) {
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
 
-  const { hosthotel } = useContext(Context);
+  const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
   const getBookings = async () => {
     try {
-      const res = await fetch(site + "guestbooking/bookings", {
+      const res = await fetch(site + "guestbooking/bookingshost", {
         headers: {
           hotelid: hosthotel._id,
           sdate: startDate.toString() || "2025-06-20",
+          authorization: user.token,
           "Content-Type": "application/json",
         },
       });
