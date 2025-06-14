@@ -3,8 +3,10 @@ import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
+import { site } from "../../_utils/request";
 import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
+
 export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -13,238 +15,162 @@ export default function CalendarGrid({ startDate }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
-  const [viewBooking, setViewBooking] = useState(null);
 
   const { hosthotel } = useContext(Context);
   const containerRef = useRef(null);
+  const getBookings = async () => {
+  try {
+    const res = await fetch(site + "guestbooking/bookings", {
+      headers: {
+        hotelid: hosthotel._id,
+        date: startDate.toISOString(), 
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+    const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
+    console.log("Frontend dates:", dates[0], dates[dates.length-1]);
+
+    setBookings(
+      bookingsData.map(b => ({
+        ...b,
+        b_ID: b.booking_id,
+        from: new Date(b.fromDate),
+        to: new Date(b.toDate),
+      }))
+    );
+  } catch (err) {
+    console.error("Failed to fetch bookings:", err);
+    setBookings([]);
+  }
+};
+
+
   const rooms = useMemo(() => {
     if (!hosthotel) return [];
-
-    const expectedCount = hosthotel.rooms || 0;
-
-    // === Per Person Pricing ===
     if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
-      const filledRooms = hosthotel.per_person_cat.flatMap((cat, catIdx) =>
-        cat.roomNumbers.map((name, i) => ({
-          id: `${catIdx}-${i}`,
+      return hosthotel.per_person_cat.flatMap(cat =>
+        cat.roomNumbers.map(name => ({
           name,
-          price: {
-            one: cat.rate1,
-            two: cat.rate2,
-            three: cat.rate3,
-            four: cat.rate4,
-          }
+          category: cat.name,
+          price: { one: cat.rate1 },
+          capacity: cat.capacity
         }))
       );
-
-      const missingCount = expectedCount - filledRooms.length;
-      const emptyRooms = Array.from({ length: missingCount }, (_, i) => ({
-        id: `empty-${i + 1}`,
-        name: '',
-        empty: true,
-      }));
-
-      return [...filledRooms, ...emptyRooms];
     }
-
-    // === Per Room Pricing ===
-    else if (hosthotel.pay_per?.room && hosthotel.room_cat) {
-      const filledRooms = hosthotel.room_cat.flatMap((cat, catIdx) =>
-        cat.room_no.map((name, i) => ({
-          id: `${catIdx}-${i}`,
+    if (hosthotel.pay_per?.room && hosthotel.room_cat) {
+      return hosthotel.room_cat.flatMap(cat =>
+        cat.room_no.map(name => ({
           name,
+          category: cat.name,
           price: { rate: cat.price },
+          capacity: cat.capacity
         }))
       );
-
-      const missingCount = expectedCount - filledRooms.length;
-      const emptyRooms = Array.from({ length: missingCount }, (_, i) => ({
-        id: `empty-${i + 1}`,
-        name: '',
-        empty: true,
-      }));
-
-      return [...filledRooms, ...emptyRooms];
     }
-
     return [];
   }, [hosthotel]);
 
-   useEffect(() => {
-    if (!startDate) return;
-    const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
-    setDates(next7Days);
+  useEffect(() => {
+    if (startDate) {
+      const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
+      setDates(next7Days);
+    }
   }, [startDate]);
 
-  const getBookingForCell = (roomId, date) => {
-    return bookings.find(
-      (b) =>
-        b.roomId === roomId &&
-        isWithinInterval(date, {
-          start: new Date(b.from),
-          end: new Date(b.to),
-        })
-    );
-  };
+  useEffect(() => {
+    if (hosthotel?._id && startDate) getBookings();
+  }, [hosthotel, startDate]);
+  const getBookingForCell = (roomName, date) => {
+  return bookings.find(b =>
+    b.room === roomName &&
+    isWithinInterval(date, {
+      start: b.from,
+      end: b.to
+    })
+  );
+};
+
 
   const getSelectedCells = () => {
     if (!startCell || !endCell) return [];
-
-    const [startRoomIdx, startDateIdx] = startCell;
-    const [endRoomIdx, endDateIdx] = endCell;
-
-    const minRoomIdx = Math.min(startRoomIdx, endRoomIdx);
-    const maxRoomIdx = Math.max(startRoomIdx, endRoomIdx);
-    const minDateIdx = Math.min(startDateIdx, endDateIdx);
-    const maxDateIdx = Math.max(startDateIdx, endDateIdx);
-
-    const selected = [];
-    for (let r = minRoomIdx; r <= maxRoomIdx; r++) {
-      for (let d = minDateIdx; d <= maxDateIdx; d++) {
-        selected.push([r, d]);
-      }
+    const [r1, d1] = startCell;
+    const [r2, d2] = endCell;
+    const rMin = Math.min(r1, r2), rMax = Math.max(r1, r2);
+    const dMin = Math.min(d1, d2), dMax = Math.max(d1, d2);
+    const cells = [];
+    for (let r = rMin; r <= rMax; r++) {
+      for (let d = dMin; d <= dMax; d++) cells.push([r, d]);
     }
-    return selected;
+    return cells;
   };
 
   const selectedCells = getSelectedCells();
-  const isSelected = (roomIdx, dateIdx) =>
-    selectedCells.some(([r, c]) => r === roomIdx && c === dateIdx);
+  const isSelected = (r, d) => selectedCells.some(([x, y]) => x === r && y === d);
 
-  const handleMouseDown = (rIdx, dIdx) => {
-    if (isSelected(rIdx, dIdx)) {
+  const handleMouseDown = (r, d) => {
+    if (isSelected(r, d)) {
       setStartCell(null);
       setEndCell(null);
       setIsDragging(false);
-      return;
+    } else {
+      setStartCell([r, d]);
+      setEndCell([r, d]);
+      setIsDragging(true);
     }
-    setStartCell([rIdx, dIdx]);
-    setEndCell([rIdx, dIdx]);
-    setIsDragging(true);
   };
 
-  const handleMouseEnter = (rIdx, dIdx) => {
-    if (isDragging) setEndCell([rIdx, dIdx]);
+  const handleMouseEnter = (r, d) => {
+    if (isDragging) setEndCell([r, d]);
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  const handleMouseUp = () => setIsDragging(false);
 
   const handleBookClick = () => {
     if (selectedCells.length === 0) return;
-
-    const uniqueRoomIndices = [...new Set(selectedCells.map(([r]) => r))];
-    const dateIndices = selectedCells.map(([_, c]) => c);
-
+    const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
+    const dateIndices = selectedCells.map(([_, d]) => d);
     const from = dates[Math.min(...dateIndices)];
     const to = dates[Math.max(...dateIndices)];
-
     setSelectedBooking({
       from,
       to,
-      roomIds: uniqueRoomIndices.map((i) => rooms[i].id),
-      roomNames: uniqueRoomIndices.map((i) => rooms[i].name),
+      roomNames: uniqueRooms.map(i => rooms[i].name)
     });
   };
 
   const bookBtnPosition = useMemo(() => {
-    if (selectedCells.length === 0 || !containerRef.current) return null;
-
+    if (!containerRef.current || selectedCells.length === 0) return null;
+    const gridRows = containerRef.current.querySelectorAll(".grid-row");
     const rows = selectedCells.map(([r]) => r);
     const cols = selectedCells.map(([_, c]) => c);
-
     const minRow = Math.min(...rows);
     const maxRow = Math.max(...rows);
     const minCol = Math.min(...cols);
     const maxCol = Math.max(...cols);
-
-    const gridRows = containerRef.current.querySelectorAll(".grid-row");
-    if (!gridRows[minRow]) return null;
-
-    const firstCell = gridRows[minRow].querySelectorAll(".grid-cell")[minCol];
-    const lastCell = gridRows[maxRow].querySelectorAll(".grid-cell")[maxCol];
-
+    const firstCell = gridRows[minRow]?.querySelectorAll(".grid-cell")[minCol];
+    const lastCell = gridRows[maxRow]?.querySelectorAll(".grid-cell")[maxCol];
     if (!firstCell || !lastCell) return null;
-
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const firstRect = firstCell.getBoundingClientRect();
-    const lastRect = lastCell.getBoundingClientRect();
-    const scrollTop = containerRef.current.scrollTop;
-    const scrollLeft = containerRef.current.scrollLeft;
-    const top = firstRect.top - containerRect.top + scrollTop;
-    const left = firstRect.left - containerRect.left + scrollLeft;
-    const width = lastRect.right - firstRect.left;
-    const height = lastRect.bottom - firstRect.top;
-
-    return { top, left, width, height };
+    const gridBox = containerRef.current.getBoundingClientRect();
+    const startBox = firstCell.getBoundingClientRect();
+    const endBox = lastCell.getBoundingClientRect();
+    return {
+      top: startBox.top - gridBox.top + containerRef.current.scrollTop,
+      left: startBox.left - gridBox.left + containerRef.current.scrollLeft,
+      width: endBox.right - startBox.left,
+      height: endBox.bottom - startBox.top
+    };
   }, [selectedCells]);
 
-  const handleBookingSave = (formData) => {
-    const bookingId = `B-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+  const handleBookingSave = async () => {
+  setSelectedBooking(null);
+  setStartCell(null);
+  setEndCell(null);
+  await getBookings(); 
+};
 
-    const newBookings = selectedBooking.roomIds.map((roomId) => ({
-      roomId,
-      from: selectedBooking.from,
-      to: selectedBooking.to,
-      ...formData,
-      status: "Booked",
-      bookingId,
-    }));
 
-    setBookings((prev) => [...prev, ...newBookings]);
-    setSelectedBooking(null);
-    setStartCell(null);
-    setEndCell(null);
-  };
-
-  // Touch handlers (same as your code)
-  useEffect(() => {
-    if (!startDate) return;
-    const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
-    setDates(next7Days);
-    const grid = containerRef.current;
-    if (!grid) return;
-
-    const getCellData = (el) => {
-      const cell = el?.closest(".grid-cell");
-      if (!cell) return null;
-      const rIdx = parseInt(cell.dataset.room);
-      const dIdx = parseInt(cell.dataset.date);
-      if (isNaN(rIdx) || isNaN(dIdx)) return null;
-      return [rIdx, dIdx];
-    };
-
-    const handleTouchStart = (e) => {
-      const data = getCellData(e.target);
-      if (!data) return;
-      setStartCell(data);
-      setEndCell(data);
-      setIsDragging(true);
-    };
-
-    const handleTouchMove = (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      const data = getCellData(el);
-      if (data && isDragging) setEndCell(data);
-    };
-
-    const handleTouchEnd = () => {
-      setIsDragging(false);
-    };
-
-    grid.addEventListener("touchstart", handleTouchStart, { passive: true });
-    grid.addEventListener("touchmove", handleTouchMove);
-    grid.addEventListener("touchend", handleTouchEnd);
-
-    return () => {
-      grid.removeEventListener("touchstart", handleTouchStart);
-      grid.removeEventListener("touchmove", handleTouchMove);
-      grid.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [startDate, containerRef, isDragging]);
   return (
     <div
       className="relative overflow-x-auto w-full bg-white"
@@ -252,117 +178,54 @@ export default function CalendarGrid({ startDate }) {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-
       <div className="inline-block min-w-[900px] border rounded-xl shadow-xl select-none">
-        {/* Header row */}
-        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold md:text-sm">
-          <div className="p-2 md:p-3 border-r bg-blue-600 sticky left-0 z-10">Room / Date</div>
+        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
+          <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
           {dates.map((date, i) => (
-            <div key={i} className="p-2 md:p-3 text-center border-r">
+            <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
               <div>{format(date, "dd MMM")}</div>
             </div>
           ))}
         </div>
 
-        {/* Availability row */}
-        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-200 text-sm font-medium text-gray-800 border-b grid-row">
-          <div className="p-2 md:p-3 border-r whitespace-nowrap bg-green-200 sticky left-0 z-10">Available Rooms</div>
-          {dates.map((date, dIdx) => {
-            const bookedRoomsCount = rooms.filter((room) =>
-              getBookingForCell(room.id, date)
-            ).length;
-            const available = rooms.length - bookedRoomsCount;
-            return (
-              <div
-                key={dIdx}
-                className="p-2 md:p-3 text-center border-r grid-cell"
-                data-room={-1}
-                data-date={dIdx}
-              >
-                {available} available
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Room rows */}
-        {rooms.map((room, rIdx) => {
-          return (
+        {rooms.map((room, rIdx) => (
+          <div key={room.name} className="grid grid-cols-[120px_repeat(7,1fr)] border-t grid-row">
             <div
-              key={room.id}
-              className="grid grid-cols-[120px_repeat(7,1fr)] text-sm border-t grid-row"
+              className="p-2 border-r bg-white sticky left-0 cursor-pointer"
+              onClick={() => setSelectedRoomName(room.name)}
             >
-              <div
-                className={clsx(
-                  "p-2 md:p-3 font-medium border-r cursor-pointer bg-white sticky left-0 z-10",
-                  room.empty
-                    ? "bg-white-100 text-gray-400 cursor-default"
-                    : "bg-white text-gray-800 hover:text-blue-700"
-                )}
-                 onClick={() => !room.empty && setSelectedRoomName(room.name)}
-              >
-                <div>{room.name || `Room ${room.id}`}</div>
-                {!room.empty && (
-                  <div className="text-sm font-normal text-gray-500">
-                    {room.price?.one
-                      ? `₹${room.price.one} / 1 person`
-                      : room.price?.rate
-                      ? `₹${room.price.rate}`
-                      : ""}
-                  </div>
-                )}
-                {room.empty && (
-                  <div className="text-xs italic text-gray-400 mt-1">
-                    Not added
-                  </div>
-                )}
+              <div>{room.name}</div>
+              <div className="text-xs text-gray-500">
+                {room.price?.one ? `₹${room.price.one}/person` : `₹${room.price?.rate}`}
               </div>
-
-
-              {dates.map((date, dIdx) => {
-                const booking = getBookingForCell(room.id, date);
-                const selected = isSelected(rIdx, dIdx);
-
-                return (
-                  <div
-                    key={dIdx}
-                    className={clsx(
-                      "border-r border-b p-2 flex items-center justify-center cursor-pointer select-none grid-cell",
-                      selected && "bg-blue-300",
-                      booking && "bg-green-400 text-white",
-                      !booking && !selected && "hover:bg-blue-100"
-                    )}
-                    onMouseDown={() => handleMouseDown(rIdx, dIdx)}
-                    onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
-                    onClick={() => {
-                                   if (booking) setViewBooking(booking); // <-- add this
-                     }}
-                    data-room={rIdx}
-                    data-date={dIdx}
-                  >
-                   {booking ? (
-                      <div className="text-[10px] text-white text-center leading-tight">
-                        {booking.name}
-                        <br />
-                        <span className="text-[8px]">ID: {booking.bookingId}</span>
-                      </div>
-                    ) : selected ? (
-                      "Selected"
-                    ) : null}
-                  </div>
-                );
-              })}
             </div>
-          );
-        })}
+            {dates.map((date, dIdx) => {
+              const booking = getBookingForCell(room.name, date);
+              const selected = isSelected(rIdx, dIdx);
+              return (
+                <div
+                  key={dIdx}
+                  className={clsx(
+                    "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
+                    selected && "bg-blue-300",
+                    booking && "bg-green-500 text-white",
+                    !booking && !selected && "hover:bg-blue-100"
+                  )}
+                  onMouseDown={() => handleMouseDown(rIdx, dIdx)}
+                  onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+                  data-room={rIdx}
+                  data-date={dIdx}
+                >
+                  {booking ? booking.b_ID : selected ? "Selected" : null}
+                </div>
+              );
+            })}
+          </div>
+        ))}
 
-        {/* Floating Book button */}
-        {selectedCells.length > 0 &&
-        bookBtnPosition &&
-        !selectedBooking &&
-        selectedCells.every(([r, d]) => !getBookingForCell(rooms[r]?.id, dates[d])) && (
-        <button
+        {selectedCells.length > 0 && bookBtnPosition && !selectedBooking && (
+          <button
             style={{
               position: "absolute",
               top: bookBtnPosition.top + bookBtnPosition.height - 30,
@@ -383,7 +246,6 @@ export default function CalendarGrid({ startDate }) {
         )}
       </div>
 
-      {/* Booking form modal */}
       {selectedBooking && (
         <GuestBookingForm
           booking={selectedBooking}
@@ -391,48 +253,20 @@ export default function CalendarGrid({ startDate }) {
           onClose={() => setSelectedBooking(null)}
         />
       )}
+
       {selectedRoomName && (
-  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-    <div className="relative">
-      <button
-        onClick={() => setSelectedRoomName(null)}
-        className="absolute top-1 right-1 text-red-500 font-bold text-xl"
-      >
-        ×
-      </button>
-      <RoomInfoPopup roomName={selectedRoomName} />
-    </div>
-  </div>
-)}
-{viewBooking && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded-lg shadow-xl max-w-xs w-full relative">
-      <h2 className="text-xl font-bold text-center mb-3 text-green-700">
-        Booking Details
-      </h2>
-      <div className="text-sm text-gray-800">
-        <p><strong>Name:</strong> {viewBooking.name}</p> 
-        <p><strong>Phone:</strong> {viewBooking.phone}</p>
-        <p><strong>WhatsApp:</strong> {viewBooking.whatsapp}</p>
-        <p><strong>Booking ID:</strong> {viewBooking.bookingId}</p>
-        <p><strong>Status:</strong> {viewBooking.status}</p>
-        <p><strong>Room: </strong> {rooms.find((r) => r.id === viewBooking.roomId)?.name || "Unknown"}</p>
-        <p><strong>From:</strong> {format(new Date(viewBooking.from), "dd MMM yyyy")}</p>
-        <p><strong>To:</strong> {format(new Date(viewBooking.to), "dd MMM yyyy")}</p>
-      </div>
-      <div className="mt-4 text-center">
-        <button
-          onClick={() => setViewBooking(null)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="relative">
+            <button
+              onClick={() => setSelectedRoomName(null)}
+              className="absolute top-1 right-1 text-red-500 font-bold text-xl"
+            >
+              ×
+            </button>
+            <RoomInfoPopup roomName={selectedRoomName} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

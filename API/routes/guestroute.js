@@ -1,7 +1,7 @@
 const express = require("express");
 const {
   createBooking,
-  getSingleBooking,
+  getBookingDetails,
   deleteBooking,
 } = require("../controler/guestcon");
 
@@ -11,9 +11,8 @@ const { getBookings } = require("../controler/upbookingcon");
 const guestroute = express.Router();
 
 guestroute.post("/", authUser, chkHost, createBooking);
-guestroute.get("/booking/:id", getSingleBooking);
 guestroute.delete("/:id", authUser, chkHost, deleteBooking);
 guestroute.get("/bookings", getBookings);
 guestroute.get("/bookingshost", authUser, chkHost, getBookings);
-
+guestroute.get('/bookings/:bookingId', getBookingDetails);
 module.exports = guestroute;
