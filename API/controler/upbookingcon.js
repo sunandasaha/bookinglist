@@ -1,3 +1,4 @@
+const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
 
 const getBookings = async (req, res) => {
@@ -30,4 +31,57 @@ const getBookings = async (req, res) => {
   }
 };
 
-module.exports = { getBookings };
+const updateBooking = async (req, res) => {
+  const data = req.body;
+  if (!data._id || data.res) {
+    res.json({ success: false, status: "no id or responce" });
+  } else {
+    try {
+      const book = await GuestModel.findById(data._id);
+      if (!book) {
+        res.json({ success: false, status: "failed" });
+      } else {
+        if (data.res) {
+          book.status = 1;
+          await book.save();
+        } else {
+          for (let i = 0; i < book.ub_ids.length; i++) {
+            await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
+          }
+          book.ub_ids = [];
+          book.status = 2;
+          book.save();
+        }
+        res.json({ success: true, status: "success" });
+      }
+    } catch (error) {
+      res.json({ success: false, status: "failed" });
+    }
+  }
+};
+
+const cancelBooking = async (req, res) => {
+  const id = req.params.id || req.body.id;
+  if (!id) {
+    res.json({ success: false, status: "no id" });
+  } else {
+    try {
+      const book = await GuestModel.findById(id);
+      if (!book) {
+        res.json({ success: false, status: "nfailed" });
+      } else {
+        for (let i = 0; i < book.ub_ids.length; i++) {
+          await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
+        }
+        book.ub_ids = [];
+        book.status = 3;
+        book.save();
+      }
+      res.json({ success: true, status: "success" });
+    } catch (error) {
+      res.json({ success: false, status: "failed" });
+    }
+  }
+};
+
+module.exports = { getBookings, updateBooking, cancelBooking };

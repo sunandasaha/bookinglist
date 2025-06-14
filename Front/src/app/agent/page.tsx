@@ -57,11 +57,10 @@ const Hotel = () => {
       {info._id ? (
         <>
           {info.visiting_card && (
-            <Image
+            <img
+              style={{ height: 100, width: 150 }}
               src={site + "imgs/" + info.visiting_card}
               alt=""
-              height={50}
-              width={70}
             />
           )}
         </>
