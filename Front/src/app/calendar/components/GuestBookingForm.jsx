@@ -43,7 +43,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    if (name === "whatsapp") {
+    if (name === "phone" || name === "whatsapp") {
       const errorMsg = validatePhone(value);
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
@@ -60,35 +60,27 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     }
   };
   const { totalPrice, advanceAmount } = useMemo(() => {
-    if (
-      !hosthotel ||
-      !booking?.roomNames?.length ||
-      !booking.from ||
-      !booking.to
-    ) {
-      return { totalPrice: 0, advanceAmount: 0 };
-    }
+  if (!hosthotel || !booking?.roomNames?.length || !booking.from || !booking.to) {
+    return { totalPrice: 0, advanceAmount: 0 };
+  }
 
-    const selectedRooms = booking.roomNames;
-    const nights =
-      Math.ceil(
-        (new Date(booking.to).setHours(0, 0, 0, 0) -
-          new Date(booking.from).setHours(0, 0, 0, 0)) /
-          (1000 * 60 * 60 * 24)
-      ) + 1;
+  const selectedRooms = booking.roomNames;
+  const nights = ((new Date(booking.to).setHours(0, 0, 0, 0) - new Date(booking.from).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) + 1;
 
-    const adults = Number(formData.adults) || 0;
-    const age_0_5 = Number(formData.age_0_5) || 0;
-    const age_6_10 = Number(formData.age_6_10) || 0;
-    const children = Number(formData.children) || 0;
-    if (age_0_5 + age_6_10 !== children) {
-      return { totalPrice: 0, advanceAmount: 0 };
-    }
+  const adults = Number(formData.adults) || 0;
+  const age_0_5 = Number(formData.age_0_5) || 0;
+  const age_6_10 = Number(formData.age_6_10) || 0;
+  const children = Number(formData.children) || 0;
 
-    const selectedCats =
-      hosthotel.room_cat?.filter((cat) =>
-        cat.room_no?.some((room) => selectedRooms.includes(room))
-      ) || [];
+  if (age_0_5 + age_6_10 !== children) {
+    return { totalPrice: 0, advanceAmount: 0 };
+  }
+
+  //  PER ROOM PRICING
+  if (hosthotel?.pay_per?.room) {
+    const selectedCats = hosthotel.room_cat?.filter(cat =>
+      cat.room_no?.some(room => selectedRooms.includes(room))
+    ) || [];
 
     if (selectedCats.length === 0) {
       return { totalPrice: 0, advanceAmount: 0 };
@@ -99,19 +91,17 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     let totalCapacity = 0;
     const allPerAdultRates = [];
     const allExtraPrices = [];
+
     for (const cat of selectedCats) {
-      const roomCount = cat.room_no.filter((r) =>
-        selectedRooms.includes(r)
-      ).length;
+      const roomCount = cat.room_no.filter(r => selectedRooms.includes(r)).length;
       if (roomCount === 0) continue;
 
       const capacity = cat.capacity || 0;
       const rate = cat.price || 0;
       const extra = cat.price_for_extra_person || 0;
-      const advance = cat.advance;
+
       totalCapacity += capacity * roomCount;
       totalBase += rate * roomCount * nights;
-
       allPerAdultRates.push(rate / capacity);
       allExtraPrices.push(extra);
 
@@ -119,29 +109,100 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         ? (cat.advance.amount / 100) * cat.price * nights * roomCount
         : (cat.advance.amount || 0) * nights * roomCount;
     }
+
     const extraAdults = Math.max(0, adults - totalCapacity);
-    const minExtraPrice =
-      allExtraPrices.length > 0 ? Math.min(...allExtraPrices) : 0;
+    const minExtraPrice = allExtraPrices.length > 0 ? Math.min(...allExtraPrices) : 0;
     const extraCharges = extraAdults * minExtraPrice * nights;
-    const minPerAdultRate =
-      allPerAdultRates.length > 0 ? Math.min(...allPerAdultRates) : 0;
+
+    const minPerAdultRate = allPerAdultRates.length > 0 ? Math.min(...allPerAdultRates) : 0;
     const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
 
     const total = totalBase + extraCharges + childCharge;
-
     return {
       totalPrice: parseFloat(total.toFixed(2)),
       advanceAmount: parseFloat(totalAdvance.toFixed(2)),
     };
-  }, [
-    hosthotel,
-    booking,
-    formData.adults,
-    formData.children,
-    formData.age_0_5,
-    formData.age_6_10,
-  ]);
-  const handlePayment = async () => {
+  }
+  // PER PERSON PRICING LOGIC 
+  if (hosthotel?.pay_per?.person) {
+  const selectedCats = hosthotel.per_person_cat?.filter(cat =>
+    cat.roomNumbers?.some(room => selectedRooms.includes(room))
+  ) || [];
+
+  if (selectedCats.length === 0) {
+    return { totalPrice: 0, advanceAmount: 0 }; 
+  }
+  let totalBase = 0;
+  let totalAdvance = 0;
+  const allRate1s = [];
+  let remainingAdults = adults;
+  const roomPlan = [];
+  for (const cat of selectedCats) {
+    const matchedRooms = cat.roomNumbers.filter(r => selectedRooms.includes(r));
+    const roomCount = matchedRooms.length;
+    const capacity = cat.capacity || 0;
+    allRate1s.push(cat.rate1 || 0);
+
+    for (let i = 0; i < roomCount && remainingAdults > 0; i++) {
+      const assign = Math.min(remainingAdults, capacity);
+      remainingAdults -= assign;
+      let rate = 0;
+      if (assign === 1) rate = cat.rate1 || 0;
+      else if (assign === 2) rate = cat.rate2 || 0;
+      else if (assign === 3) rate = cat.rate3 || 0;
+      else if (assign >= 4) rate = cat.rate4 || 0;
+
+      totalBase += rate * nights;
+      if (assign <= capacity) {
+        if (cat.advance?.percent) {
+          totalAdvance += (cat.advance.amount / 100) * rate * nights;
+        } else {
+          totalAdvance += (cat.advance?.amount || 0) * nights;
+        }
+      }
+
+      roomPlan.push({ cat, assigned: assign, extra: 0 });
+    }
+  }
+  if (remainingAdults > 0) {
+    for (const plan of roomPlan) {
+      const cat = plan.cat;
+      const baseCap = cat.capacity || 0;
+      const extremeCap = baseCap < 4 ? baseCap + 1 : baseCap;
+      const canAdd = extremeCap - plan.assigned;
+
+      if (canAdd > 0 && remainingAdults > 0) {
+        const extra = Math.min(remainingAdults, canAdd);
+        remainingAdults -= extra;
+        totalBase += extra * (cat.rate1 || 0) * nights;
+        plan.extra += extra;
+      }
+      if (remainingAdults === 0) break;
+    }
+  }
+  if (remainingAdults > 0) {
+    const maxAdults = roomPlan.reduce((sum, r) => {
+      const cap = r.cat.capacity || 0;
+      const max = cap < 4 ? cap + 1 : cap;
+      return sum + max;
+    }, 0);
+    return {
+      error: `Only ${adults - remainingAdults} adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
+      totalPrice: 0,
+      advanceAmount: 0
+    };
+  }
+  const minRate1 = allRate1s.length > 0 ? Math.min(...allRate1s) : 0;
+  const childCharge = age_6_10 * 0.5 * minRate1 * nights;
+
+  return {
+    totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
+    advanceAmount: parseFloat(totalAdvance.toFixed(2))
+  };
+}return { totalPrice: 0, advanceAmount: 0 };
+}, [hosthotel, booking, formData.adults, formData.children, formData.age_0_5, formData.age_6_10]);
+
+const handlePayment = async () => {
     const bookingPayload = {
       ...formData,
       hotelId,
@@ -398,7 +459,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           </div>
         )}
       </div>
-         
     </div>
   );
 }
