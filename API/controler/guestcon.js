@@ -47,7 +47,8 @@ const createBooking = async (req, res) => {
         ...data,
         _id: bookingid,
         ub_ids: temp,
-        status: req.user ? 1 : 0,
+        status: req.user?.role === "host" ? 1 : 0,
+        agent_Id: req.user?.role === "agent" ? req.user._id : null,
       });
 
       const book = await UpBookModel.find({
