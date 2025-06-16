@@ -105,15 +105,16 @@ export default function CalendarGrid({ startDate }) {
   useEffect(() => {
     if (hosthotel?._id && startDate) getBookings();
   }, [hosthotel, startDate]);
-
-  const getBookingForCell = (roomName, date) => {
-    return bookings.find(
-      (b) =>
-        b.room === roomName &&
-        isWithinInterval(date, { start: b.from, end: b.to })
-    );
+   const getBookingForCell = (roomName, date) => {
+    return bookings.find((b) => {
+      if (b.room !== roomName) return false;
+      const cellDate = new Date(date).setHours(0, 0, 0, 0);
+      const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
+      const toDate = new Date(b.to).setHours(23, 59, 59, 999);
+      
+      return cellDate >= fromDate && cellDate <= toDate;
+    });
   };
-
   const selectedCells = useMemo(() => {
     if (!startCell || !endCell) return [];
     const [r1, d1] = startCell;
@@ -204,9 +205,6 @@ export default function CalendarGrid({ startDate }) {
     setEndCell(null);
     await getBookings(); 
   };
-  console.log("hosthotel", hosthotel);
-console.log("rooms", rooms);
-
 
   return (
     <div
@@ -215,7 +213,7 @@ console.log("rooms", rooms);
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div className="inline-block min-w-[900px] border rounded-xl shadow-xl select-none">
+      <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
           <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
           {dates.map((date, i) => (
@@ -252,7 +250,7 @@ console.log("rooms", rooms);
                   className={clsx(
                     "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
-                    booking && "bg-green-500 text-white",
+                    booking && "bg-green-500 text-white ",
                     !booking && !selected && "hover:bg-blue-100"
                   )}
                   onClick={() => {
@@ -342,7 +340,7 @@ console.log("rooms", rooms);
           <div><strong  className = "text-blue-500">To:</strong> {format(new Date(fetchedBooking.toDate), "dd MMM yyyy")}</div>
           <div><strong  className = "text-blue-500">Adults:</strong> {fetchedBooking.adults}, <strong  className = "text-blue-500">Children:</strong> {fetchedBooking.children}</div>
           <div><strong  className = "text-blue-500">Total:</strong> ₹{fetchedBooking.totalPrice}</div>
-          <div><strong  className = "text-blue-500">Advance:</strong> ₹{fetchedBooking.advanceAmount}</div>
+          <div><strong className = "text-blue-500">Advance:</strong> ₹{fetchedBooking.advanceAmount}</div>
         </div>
       </div>
     )}

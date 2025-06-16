@@ -257,8 +257,8 @@ const handlePayment = async () => {
           >
             <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
               <p>
-                <strong>Dates:</strong> {format(booking.from, "MMM dd")} -{" "}
-                {format(booking.to, "MMM dd")}
+                <strong>From:</strong> {format(booking.from, "MMM dd")} -{" "}
+                <strong>To:</strong> {format(booking.to, "MMM dd")}
               </p>
               <p>
                 <strong>Rooms:</strong> {booking.roomNames.join(", ")}
@@ -425,8 +425,9 @@ const handlePayment = async () => {
               <strong>6–10 yrs:</strong> {formData.age_6_10}
             </p>
             <p>
-              <strong>Dates:</strong> {format(booking.from, "MMM dd")} -{" "}
-              {format(booking.to, "MMM dd")}
+              <strong>From</strong> {format(booking.from, "MMM dd")}  - {" "}
+              <strong>To</strong> {format(booking.from, "MMM dd")} 
+             
             </p>
             <p>
               <strong>Rooms:</strong> {booking.roomNames.join(", ")}
