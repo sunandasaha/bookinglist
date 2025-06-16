@@ -55,6 +55,7 @@ const createBooking = async (req, res) => {
         hotelId: data.hotelId,
         fromDate: { $lte: data.toDate },
         toDate: { $gte: data.fromDate },
+        confirmed: req.user.role === "host" ? true : false,
       }).select(
         req.user ? "fromDate toDate room booking_id" : "fromDate toDate room"
       );

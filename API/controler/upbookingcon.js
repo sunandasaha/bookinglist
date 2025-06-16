@@ -21,7 +21,9 @@ const getBookings = async (req, res) => {
         fromDate: { $lte: endDate },
         toDate: { $gte: startDate },
       }).select(
-        req.user ? "fromDate toDate room booking_id" : "fromDate toDate room"
+        req.user
+          ? "fromDate toDate room confirmed booking_id"
+          : "fromDate toDate room"
       );
       res.json({ status: "success", bookings: chk, success: true });
     }
@@ -42,6 +44,11 @@ const updateBooking = async (req, res) => {
         res.json({ success: false, status: "failed" });
       } else {
         if (data.res) {
+          for (let i = 0; i < book.ub_ids.length; i++) {
+            await UpBookModel.findByIdAndUpdate(book.ub_ids[i], {
+              confirmed: true,
+            });
+          }
           book.status = 1;
           await book.save();
         } else {

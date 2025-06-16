@@ -23,6 +23,7 @@ const GuestSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    confirmed: Boolean,
   },
   { timestamps: true }
 );
