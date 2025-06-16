@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { hostHotel } from "../_components/ContextProvider";
+import { useContext, useEffect, useState } from "react";
+import { Context, hostHotel } from "../_components/ContextProvider";
 import { site } from "../_utils/request";
 import { motion } from "framer-motion";
 
 const Guest = ({ params }) => {
-  const [hotel, setHotel] = useState<hostHotel | null>(null);
   const [load, setLoad] = useState(false);
+  const { setHosthotel, hosthotel } = useContext(Context);
 
   const getHotel = async () => {
     const hotelurl = (await params).url;
@@ -16,7 +16,7 @@ const Guest = ({ params }) => {
     console.log(res);
 
     if (res.success) {
-      setHotel(res.hotel);
+      setHosthotel(res.hotel);
     }
     setLoad(true);
   };
@@ -28,8 +28,8 @@ const Guest = ({ params }) => {
     <div>
       {load ? (
         <div>
-          {hotel ? (
-            <div>{hotel.name}</div>
+          {hosthotel ? (
+            <div>{hosthotel.name}</div>
           ) : (
             <div>
               <p>Hotel Not Found</p>
