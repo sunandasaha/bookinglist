@@ -50,7 +50,20 @@ const updateHotel = async (req, res) => {
     res.json({ status: "No hotel found" });
   }
 };
+
+const getHotelViaUrl = async (req, res) => {
+  const { hotelurl } = req.headers;
+  const hotel = await Hotelmodel.findOne({ url: hotelurl })
+    .populate("room_cat")
+    .populate("per_person_cat");
+  if (hotel) {
+    res.json({ success: true, hotel });
+  } else {
+    res.json({ success: false });
+  }
+};
 module.exports = {
   createHotel,
   updateHotel,
+  getHotelViaUrl,
 };
