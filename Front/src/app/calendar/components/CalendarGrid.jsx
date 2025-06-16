@@ -204,6 +204,9 @@ export default function CalendarGrid({ startDate }) {
     setEndCell(null);
     await getBookings(); 
   };
+  console.log("hosthotel", hosthotel);
+console.log("rooms", rooms);
+
 
   return (
     <div
@@ -212,7 +215,7 @@ export default function CalendarGrid({ startDate }) {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
+      <div className="inline-block min-w-[900px] border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
           <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
           {dates.map((date, i) => (
