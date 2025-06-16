@@ -4,7 +4,7 @@ import { useState } from "react";
 import TopBar from "./TopBar";
 import CalendarGrid from "./CalendarGrid";
 
-export default function Dashboard({ hotel }) {
+export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
@@ -12,11 +12,9 @@ export default function Dashboard({ hotel }) {
       <TopBar
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
-        hotel={hotel}
       />
       <CalendarGrid
         startDate={selectedDate}
-        hotel={hotel}
       />
     </div>
   );

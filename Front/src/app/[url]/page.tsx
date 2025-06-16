@@ -30,15 +30,10 @@ const Guest = ({ params }) => {
     <div>
       {load ? (
         <div>
-<<<<<<< HEAD
-          {hotel ? (
-            <div>
-              <Dashboard  hotel={hotel} />
-            </div>
-=======
           {hosthotel ? (
-            <div>{hosthotel.name}</div>
->>>>>>> b69644bcb27f718ff9564ab383a8a7a1251db43f
+            <div>
+              <Dashboard />
+            </div>
           ) : (
             <div>
               <p>Hotel Not Found</p>

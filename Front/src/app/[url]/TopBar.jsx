@@ -2,31 +2,20 @@
 
 import { useState, useContext } from "react";
 import {format,startOfMonth,endOfMonth,eachDayOfInterval,startOfDay,} from "date-fns";
-import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Home,Bed,LogOut,Plus,Minus,DollarSign,CalendarCheck,CalendarX,Search,} from "lucide-react";
-import ProfileModal from "./ProfileModal";
-import { useRouter } from "next/navigation";
+import {CalendarDays,User,ChevronLeft,ChevronRight,} from "lucide-react";
 import { Context } from "../_components/ContextProvider.tsx";
-import RoomsPricing from "./RoomsPricing";
-import { Bell } from "lucide-react";
-import Image from "next/image";
+import ProfileModal from "./ProfileModal";
 
-
-export default function TopBar({ selectedDate, setSelectedDate, hotel }) {
-  const { hosthotel,setUser, setHosthotel } = useContext(Context);
+export default function TopBar({ selectedDate, setSelectedDate }) {
+  const { hosthotel } = useContext(Context);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
-  const [showSideMenu, setShowSideMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showRoomsPricing, setShowRoomsPricing] = useState(false);
-  const navigate = useRouter();
 
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
     end: endOfMonth(currentMonth),
   });
-
-  const toggleCalendar = () => setShowCalendar((prev) => !prev);
-  const toggleSideMenu = () => setShowSideMenu((prev) => !prev);
 
   const isSelected = (day) =>
     format(day, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
@@ -45,96 +34,20 @@ export default function TopBar({ selectedDate, setSelectedDate, hotel }) {
 
   const handleToday = () => {
     setSelectedDate(startOfDay(new Date()));
-    setShowSideMenu(false);
-  };
-
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const toggleSearch = () => setSearchOpen((prev) => !prev);
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    onSearch(searchQuery.trim());
-    setSearchOpen(false);
-  };
-
-  const openProfile = () => {
-    console.log("openProfile called");
-    setShowProfile(true);
-    setShowSideMenu(false);
   };
 
   return (
-    <div className="w-full px-6 py-4 flex items-center justify-between bg-white shadow-md z-50 relative">
-      <div className="flex items-center gap-4">
-        <MoreVertical
-          onClick={toggleSideMenu}
-          className="text-gray-700 hover:text-black cursor-pointer"
-          size={24}
-          title="Menu"
-        />
+    <div className="w-full px-4 py-4 flex items-center justify-between bg-white shadow-md z-50 relative">
+      <div className="flex items-center gap-3">
         <img
           src="/svgs/logo.png"
           alt="BookingList"
           className="h-10 w-auto object-contain"
         />
       </div>
-
-      {showSideMenu && (
-        <div className="absolute left-0 top-16 w-64 bg-white shadow-xl rounded-r-lg border-t border-r border-b border-gray-200 z-50">
-          <div className="p-4 space-y-2">
-            <button
-              onClick={openProfile}
-              className="flex items-center gap-3 w-full p-2 hover:bg-gray-100 rounded-lg text-left text-black"
-            >
-              <User size={18} className="text-blue-600" />
-              <span>Profile</span>
-            </button>
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
-              <CalendarCheck size={18} className="text-green-600" />
-              <span>Check In</span>
-            </button>
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
-              <CalendarX size={18} className="text-red-600" />
-              <span>Check Out</span>
-            </button>
-            <button
-              onClick={handleToday}
-              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
-            >
-              <Bed size={18} className="text-indigo-600" />
-              <span>Today's booking</span>
-            </button>
-
-            <button
-              onClick = {()=>{
-                setShowRoomsPricing(true);
-                setShowSideMenu(false);
-              }}
-             className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
-              <Home size={18} className="text-purple-600" />
-              <span>Rooms & Pricing</span>
-            </button>
-            <button
-              onClick={() => {
-                setUser(null);
-                setHosthotel(null);
-                localStorage.removeItem("tok");
-                navigate .push("/login");
-              }}
-              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-red-600"
-            >
-              <LogOut size={18} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      )}
       <div className="relative">
         <button
-          onClick={toggleCalendar}
+          onClick={() => setShowCalendar((prev) => !prev)}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
           title="Select Date"
         >
@@ -150,7 +63,6 @@ export default function TopBar({ selectedDate, setSelectedDate, hotel }) {
               <ChevronLeft
                 onClick={goToPreviousMonth}
                 className="cursor-pointer text-gray-700 hover:text-black"
-                title="Previous Month"
               />
               <div className="text-lg font-semibold text-black">
                 {format(currentMonth, "MMMM yyyy")}
@@ -158,7 +70,6 @@ export default function TopBar({ selectedDate, setSelectedDate, hotel }) {
               <ChevronRight
                 onClick={goToNextMonth}
                 className="cursor-pointer text-gray-700 hover:text-black"
-                title="Next Month"
               />
             </div>
 
@@ -190,7 +101,6 @@ export default function TopBar({ selectedDate, setSelectedDate, hotel }) {
                       ? "bg-green-500 text-white"
                       : "hover:bg-gray-200 text-black"
                   }`}
-                  title={format(day, "eeee, MMMM d, yyyy")}
                 >
                   {format(day, "d")}
                 </button>
@@ -199,24 +109,22 @@ export default function TopBar({ selectedDate, setSelectedDate, hotel }) {
           </div>
         )}
       </div>
-       {showProfile && (
-              <ProfileModal
-                profile={hosthotel}
-                onClose={() => setShowProfile(false)}
-              />
-            )}
-            {showRoomsPricing && (
-                <div className="absolute top-16 left-0 right-0 z-40 bg-white border-t shadow-md p-4">
-                  <RoomsPricing pricingType={hosthotel?.pricingType} />
-                  <button
-                    onClick={() => setShowRoomsPricing(false)}
-                    className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                  >
-                    Close
-                  </button>
-                </div>
-      )}
+      <div>
+        <button
+          onClick={() => setShowProfile(true)}
+          className="p-2 rounded-full hover:bg-gray-100"
+          title="View Hotel Profile"
+        >
+          <User size={22} className="text-gray-700" />
+        </button>
+      </div>
 
+      {showProfile && (
+        <ProfileModal
+          profile={hosthotel}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </div>
   );
 }

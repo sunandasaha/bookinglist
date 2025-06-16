@@ -35,40 +35,8 @@ export default function ProfileModal({ profile, onClose }) {
           <ProfileRow label="📍 Location" value={profile.location} />
           <ProfileRow label="📞 Phone" value={profile.ph1} />
           <ProfileRow label="📱 WhatsApp" value={profile.ph2} />
-          <ProfileRow label="💰 UPI ID" value={profile.upi_id} />
           <ProfileRow label="🛏️ Rooms" value={roomsCount} />
-          <ProfileRow
-            label="🌐 URL"
-            value={
-              profile.url ? (
-                <a
-                  href={profile.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline break-words max-w-[60%]"
-                >
-                  {profile.url}
-                </a>
-              ) : (
-                "N/A"
-              )
-            }
-          />
-          {profile.email && <ProfileRow label="📧 Email" value={profile.email} />}
         </div>
-
-        {user && (
-          <div className="inline p-5 justify-center flex gap-4">
-            <button
-              className="pbutton"
-              onClick={() => {
-                navigate.push("/hotel");
-              }}
-            >
-              Edit
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

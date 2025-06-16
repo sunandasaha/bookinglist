@@ -1,13 +1,13 @@
 "use client";
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
-import { format, addDays } from "date-fns";
+import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
 import { site } from "../_utils/request";
 import { Context } from "../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 
-export default function CalendarGrid({ startDate, hotel }) {
+export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [startCell, setStartCell] = useState(null);
@@ -17,14 +17,14 @@ export default function CalendarGrid({ startDate, hotel }) {
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
 
-  const { user } = useContext(Context);
+  const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
 
   const getBookings = async () => {
     try {
-      const res = await fetch(site + "guestbooking/bookingshost", {
+      const res = await fetch(site + "guestbooking/bookings", {
         headers: {
-          hotelid: hotel._id,
+          hotelid: hosthotel._id,
           sdate: startDate.toString() || "2025-06-20",
           "Content-Type": "application/json",
         },
@@ -46,11 +46,10 @@ export default function CalendarGrid({ startDate, hotel }) {
       setBookings([]);
     }
   };
-
   const rooms = useMemo(() => {
-    if (!hotel) return [];
-    if (hotel.pay_per?.person && hotel.per_person_cat) {
-      return hotel.per_person_cat.flatMap((cat) =>
+    if (!hosthotel) return [];
+    if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
+      return hosthotel.per_person_cat.flatMap((cat) =>
         cat.roomNumbers.map((name) => ({
           name,
           category: cat.name,
@@ -59,8 +58,8 @@ export default function CalendarGrid({ startDate, hotel }) {
         }))
       );
     }
-    if (hotel.pay_per?.room && hotel.room_cat) {
-      return hotel.room_cat.flatMap((cat) =>
+    if (hosthotel.pay_per?.room && hosthotel.room_cat) {
+      return hosthotel.room_cat.flatMap((cat) =>
         cat.room_no.map((name) => ({
           name,
           category: cat.name,
@@ -70,7 +69,7 @@ export default function CalendarGrid({ startDate, hotel }) {
       );
     }
     return [];
-  }, [hotel]);
+  }, [hosthotel]);
 
   useEffect(() => {
     if (startDate) {
@@ -80,15 +79,15 @@ export default function CalendarGrid({ startDate, hotel }) {
   }, [startDate]);
 
   useEffect(() => {
-    if (hotel?._id && startDate) getBookings();
-  }, [hotel, startDate]);
-
-  const getBookingForCell = (roomName, date) => {
+    if (hosthotel?._id && startDate) getBookings();
+  }, [hosthotel, startDate]);
+   const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
       if (b.room !== roomName) return false;
       const cellDate = new Date(date).setHours(0, 0, 0, 0);
       const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
       const toDate = new Date(b.to).setHours(23, 59, 59, 999);
+      
       return cellDate >= fromDate && cellDate <= toDate;
     });
   };
@@ -124,12 +123,6 @@ export default function CalendarGrid({ startDate, hotel }) {
     selectedCells.some(([x, y]) => x === r && y === d);
 
   const handleMouseDown = (r, d) => {
-    const roomName = rooms[r]?.name;
-    const date = dates[d];
-    const isBooked = getBookingForCell(roomName, date);
-
-    if (isBooked) return;
-
     if (isSelected(r, d)) {
       setStartCell(null);
       setEndCell(null);
@@ -142,20 +135,13 @@ export default function CalendarGrid({ startDate, hotel }) {
   };
 
   const handleMouseEnter = (r, d) => {
-    if (isDragging) {
-      const roomName = rooms[r]?.name;
-      const date = dates[d];
-      const isBooked = getBookingForCell(roomName, date);
-      if (!isBooked) {
-        setEndCell([r, d]);
-      }
-    }
+    if (isDragging) setEndCell([r, d]);
   };
 
   const handleMouseUp = () => setIsDragging(false);
 
   const handleBookClick = () => {
-    if (selectedCells.length === 0 || hasBookedCellsInSelection) return;
+    if (selectedCells.length === 0) return;
     const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, d]) => d);
     const from = dates[Math.min(...dateIndices)];
@@ -194,7 +180,7 @@ export default function CalendarGrid({ startDate, hotel }) {
     setSelectedBooking(null);
     setStartCell(null);
     setEndCell(null);
-    await getBookings();
+    await getBookings(); 
   };
 
   return (
@@ -215,9 +201,11 @@ export default function CalendarGrid({ startDate, hotel }) {
           ))}
         </div>
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-100 text-sm text-gray-800 font-medium">
-          <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
+        <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
           {dates.map((date, i) => {
             const dateStart = new Date(date).setHours(0, 0, 0, 0);
+            const dateEnd = new Date(date).setHours(23, 59, 59, 999);
+
             let bookedCount = 0;
 
             for (let r = 0; r < rooms.length; r++) {
@@ -234,7 +222,7 @@ export default function CalendarGrid({ startDate, hotel }) {
             const free = rooms.length - bookedCount;
 
             return (
-              <div key={i} className="p-2 bg-green-100 text-center border-r">
+              <div key={i} className="p-2  bg-green-100 text-center border-r">
                 {free} available
               </div>
             );
@@ -267,13 +255,27 @@ export default function CalendarGrid({ startDate, hotel }) {
                   className={clsx(
                     "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
-                    booking && "bg-green-500 text-white cursor-not-allowed",
-                    !booking && !selected && "hover:bg-blue-100 cursor-pointer"
+                    booking && "bg-green-500 text-white  cursor-not-allowed",
+                    !booking && !selected && "hover:bg-blue-100"
                   )}
-                  onClick={() => handleMouseDown(rIdx, dIdx)}
+                  onClick={() => {
+                    if (booking) {
+                      alert("Hey!! it's booked already");
+                    } else {
+                      handleMouseDown(rIdx, dIdx);
+                    }
+                  }}
                   onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+                  data-room={rIdx}
+                  data-date={dIdx}
                 >
-                  {booking ? "Booked" : selected ? "Selected" : null}
+                  {booking ? (
+                    <div className="text-center">
+                      <div className="font-medium">Booked</div>
+                    </div>
+                  ) : selected ? (
+                    "Selected"
+                  ) : null}
                 </div>
               );
             })}

@@ -37,8 +37,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       return "Number must contain exactly 10 digits.";
     }
     return "";
-  };
-
+  }; 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
