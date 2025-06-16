@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { hostHotel } from "../_components/ContextProvider";
 import { site } from "../_utils/request";
 import { motion } from "framer-motion";
+import Dashboard from "./Dashboard";
 
 const Guest = ({ params }) => {
   const [hotel, setHotel] = useState<hostHotel | null>(null);
@@ -25,11 +26,14 @@ const Guest = ({ params }) => {
     getHotel();
   }, []);
   return (
+
     <div>
       {load ? (
         <div>
           {hotel ? (
-            <div>{hotel.name}</div>
+            <div>
+              <Dashboard  hotel={hotel} />
+            </div>
           ) : (
             <div>
               <p>Hotel Not Found</p>

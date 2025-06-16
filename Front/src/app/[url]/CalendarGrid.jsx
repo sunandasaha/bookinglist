@@ -1,33 +1,31 @@
 "use client";
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
-import { format, addDays, isWithinInterval } from "date-fns";
+import { format, addDays } from "date-fns";
 import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
-import { site } from "../../_utils/request";
-import { Context } from "../../_components/ContextProvider";
+import { site } from "../_utils/request";
+import { Context } from "../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 
-export default function CalendarGrid({ startDate }) {
+export default function CalendarGrid({ startDate, hotel }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [startCell, setStartCell] = useState(null);
   const [endCell, setEndCell] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [fetchedBooking, setFetchedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
 
-  const { hosthotel, user } = useContext(Context);
+  const { user } = useContext(Context);
   const containerRef = useRef(null);
 
   const getBookings = async () => {
     try {
       const res = await fetch(site + "guestbooking/bookingshost", {
         headers: {
-          hotelid: hosthotel._id,
+          hotelid: hotel._id,
           sdate: startDate.toString() || "2025-06-20",
-          authorization: user.token,
           "Content-Type": "application/json",
         },
       });
@@ -48,32 +46,11 @@ export default function CalendarGrid({ startDate }) {
       setBookings([]);
     }
   };
-  const fetchBookingDetails = async (bookingId) => {
-  try {
-    const res = await fetch(site + `guestbooking/bookings/${bookingId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    const result = await res.json();
-    if (result.status === "success") {
-      setFetchedBooking(result.booking);
-    } else {
-      console.error("Error:", result.message);
-    }
-  } catch (err) {
-    console.error("Fetch error:", err);
-  }
-};
-
-
 
   const rooms = useMemo(() => {
-    if (!hosthotel) return [];
-    if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
-      return hosthotel.per_person_cat.flatMap((cat) =>
+    if (!hotel) return [];
+    if (hotel.pay_per?.person && hotel.per_person_cat) {
+      return hotel.per_person_cat.flatMap((cat) =>
         cat.roomNumbers.map((name) => ({
           name,
           category: cat.name,
@@ -82,8 +59,8 @@ export default function CalendarGrid({ startDate }) {
         }))
       );
     }
-    if (hosthotel.pay_per?.room && hosthotel.room_cat) {
-      return hosthotel.room_cat.flatMap((cat) =>
+    if (hotel.pay_per?.room && hotel.room_cat) {
+      return hotel.room_cat.flatMap((cat) =>
         cat.room_no.map((name) => ({
           name,
           category: cat.name,
@@ -93,7 +70,7 @@ export default function CalendarGrid({ startDate }) {
       );
     }
     return [];
-  }, [hosthotel]);
+  }, [hotel]);
 
   useEffect(() => {
     if (startDate) {
@@ -103,15 +80,15 @@ export default function CalendarGrid({ startDate }) {
   }, [startDate]);
 
   useEffect(() => {
-    if (hosthotel?._id && startDate) getBookings();
-  }, [hosthotel, startDate]);
-   const getBookingForCell = (roomName, date) => {
+    if (hotel?._id && startDate) getBookings();
+  }, [hotel, startDate]);
+
+  const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
       if (b.room !== roomName) return false;
       const cellDate = new Date(date).setHours(0, 0, 0, 0);
       const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
       const toDate = new Date(b.to).setHours(23, 59, 59, 999);
-      
       return cellDate >= fromDate && cellDate <= toDate;
     });
   };
@@ -147,6 +124,12 @@ export default function CalendarGrid({ startDate }) {
     selectedCells.some(([x, y]) => x === r && y === d);
 
   const handleMouseDown = (r, d) => {
+    const roomName = rooms[r]?.name;
+    const date = dates[d];
+    const isBooked = getBookingForCell(roomName, date);
+
+    if (isBooked) return;
+
     if (isSelected(r, d)) {
       setStartCell(null);
       setEndCell(null);
@@ -159,13 +142,20 @@ export default function CalendarGrid({ startDate }) {
   };
 
   const handleMouseEnter = (r, d) => {
-    if (isDragging) setEndCell([r, d]);
+    if (isDragging) {
+      const roomName = rooms[r]?.name;
+      const date = dates[d];
+      const isBooked = getBookingForCell(roomName, date);
+      if (!isBooked) {
+        setEndCell([r, d]);
+      }
+    }
   };
 
   const handleMouseUp = () => setIsDragging(false);
 
   const handleBookClick = () => {
-    if (selectedCells.length === 0) return;
+    if (selectedCells.length === 0 || hasBookedCellsInSelection) return;
     const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, d]) => d);
     const from = dates[Math.min(...dateIndices)];
@@ -204,7 +194,7 @@ export default function CalendarGrid({ startDate }) {
     setSelectedBooking(null);
     setStartCell(null);
     setEndCell(null);
-    await getBookings(); 
+    await getBookings();
   };
 
   return (
@@ -225,11 +215,9 @@ export default function CalendarGrid({ startDate }) {
           ))}
         </div>
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-100 text-sm text-gray-800 font-medium">
-        <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
+          <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
           {dates.map((date, i) => {
             const dateStart = new Date(date).setHours(0, 0, 0, 0);
-            const dateEnd = new Date(date).setHours(23, 59, 59, 999);
-
             let bookedCount = 0;
 
             for (let r = 0; r < rooms.length; r++) {
@@ -246,7 +234,7 @@ export default function CalendarGrid({ startDate }) {
             const free = rooms.length - bookedCount;
 
             return (
-              <div key={i} className="p-2  bg-green-100 text-center border-r">
+              <div key={i} className="p-2 bg-green-100 text-center border-r">
                 {free} available
               </div>
             );
@@ -279,28 +267,13 @@ export default function CalendarGrid({ startDate }) {
                   className={clsx(
                     "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
-                    booking && "bg-green-500 text-white ",
-                    !booking && !selected && "hover:bg-blue-100"
+                    booking && "bg-green-500 text-white cursor-not-allowed",
+                    !booking && !selected && "hover:bg-blue-100 cursor-pointer"
                   )}
-                  onClick={() => {
-                    if (booking) {
-                      fetchBookingDetails(booking.booking_id);
-                    } else {
-                      handleMouseDown(rIdx, dIdx);
-                    }
-                  }}
+                  onClick={() => handleMouseDown(rIdx, dIdx)}
                   onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
-                  data-room={rIdx}
-                  data-date={dIdx}
                 >
-                  {booking ? (
-                    <div className="text-center">
-                      <div className="font-medium">Booked</div>
-                      <div className="text-[10px]">ID: {booking.booking_id}</div>
-                    </div>
-                  ) : selected ? (
-                    "Selected"
-                  ) : null}
+                  {booking ? "Booked" : selected ? "Selected" : null}
                 </div>
               );
             })}
@@ -352,28 +325,6 @@ export default function CalendarGrid({ startDate }) {
           </div>
         </div>
       )}
-      {fetchedBooking && (
-  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl shadow-lg p-6 relative max-w-md w-full">
-      <button
-        onClick={() => setFetchedBooking(null)}
-        className="absolute top-2 right-3 text-red-500 font-bold text-xl"
-      >
-        ×
-          </button>
-          <h2 className="text-xl font-semibold mb-2 text-green-500">Booking Details</h2>
-          <div ><strong className = "text-blue-500">Name:</strong> {fetchedBooking.name}</div>
-          <div><strong  className = "text-blue-500">Phone:</strong> {fetchedBooking.phone}</div>
-          <div><strong  className = "text-blue-500">Room(s):</strong> {fetchedBooking.rooms?.join(", ")  }</div>
-          <div><strong  className = "text-blue-500">From:</strong> {format(new Date(fetchedBooking.fromDate), "dd MMM yyyy")}</div>
-          <div><strong  className = "text-blue-500">To:</strong> {format(new Date(fetchedBooking.toDate), "dd MMM yyyy")}</div>
-          <div><strong  className = "text-blue-500">Adults:</strong> {fetchedBooking.adults}, <strong  className = "text-blue-500">Children:</strong> {fetchedBooking.children}</div>
-          <div><strong  className = "text-blue-500">Total:</strong> ₹{fetchedBooking.totalPrice}</div>
-          <div><strong className = "text-blue-500">Advance:</strong> ₹{fetchedBooking.advanceAmount}</div>
-        </div>
-      </div>
-    )}
-
     </div>
   );
 }
