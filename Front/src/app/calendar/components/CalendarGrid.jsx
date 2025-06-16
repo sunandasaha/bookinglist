@@ -14,6 +14,7 @@ export default function CalendarGrid({ startDate }) {
   const [endCell, setEndCell] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [fetchedBooking, setFetchedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
 
@@ -47,6 +48,27 @@ export default function CalendarGrid({ startDate }) {
       setBookings([]);
     }
   };
+  const fetchBookingDetails = async (bookingId) => {
+  try {
+    const res = await fetch(site + `guestbooking/bookings/${bookingId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const result = await res.json();
+    if (result.status === "success") {
+      setFetchedBooking(result.booking);
+    } else {
+      console.error("Error:", result.message);
+    }
+  } catch (err) {
+    console.error("Fetch error:", err);
+  }
+};
+
+
 
   const rooms = useMemo(() => {
     if (!hosthotel) return [];
@@ -180,7 +202,7 @@ export default function CalendarGrid({ startDate }) {
     setSelectedBooking(null);
     setStartCell(null);
     setEndCell(null);
-    await getBookings(); // refresh bookings after saving
+    await getBookings(); 
   };
 
   return (
@@ -190,7 +212,7 @@ export default function CalendarGrid({ startDate }) {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div className="inline-block min-w-[900px] border rounded-xl shadow-xl select-none">
+      <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
           <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
           {dates.map((date, i) => (
@@ -227,12 +249,12 @@ export default function CalendarGrid({ startDate }) {
                   className={clsx(
                     "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
-                    booking && "bg-green-500 text-white cursor-not-allowed",
+                    booking && "bg-green-500 text-white",
                     !booking && !selected && "hover:bg-blue-100"
                   )}
                   onClick={() => {
                     if (booking) {
-                      alert(`Room already booked (ID: ${booking.booking_id})`);
+                      fetchBookingDetails(booking.booking_id);
                     } else {
                       handleMouseDown(rIdx, dIdx);
                     }
@@ -300,6 +322,28 @@ export default function CalendarGrid({ startDate }) {
           </div>
         </div>
       )}
+      {fetchedBooking && (
+  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl shadow-lg p-6 relative max-w-md w-full">
+      <button
+        onClick={() => setFetchedBooking(null)}
+        className="absolute top-2 right-3 text-red-500 font-bold text-xl"
+      >
+        ×
+          </button>
+          <h2 className="text-xl font-semibold mb-2 text-green-500">Booking Details</h2>
+          <div ><strong className = "text-blue-500">Name:</strong> {fetchedBooking.name}</div>
+          <div><strong  className = "text-blue-500">Phone:</strong> {fetchedBooking.phone}</div>
+          <div><strong  className = "text-blue-500">Room(s):</strong> {fetchedBooking.rooms?.join(", ")  }</div>
+          <div><strong  className = "text-blue-500">From:</strong> {format(new Date(fetchedBooking.fromDate), "dd MMM yyyy")}</div>
+          <div><strong  className = "text-blue-500">To:</strong> {format(new Date(fetchedBooking.toDate), "dd MMM yyyy")}</div>
+          <div><strong  className = "text-blue-500">Adults:</strong> {fetchedBooking.adults}, <strong  className = "text-blue-500">Children:</strong> {fetchedBooking.children}</div>
+          <div><strong  className = "text-blue-500">Total:</strong> ₹{fetchedBooking.totalPrice}</div>
+          <div><strong  className = "text-blue-500">Advance:</strong> ₹{fetchedBooking.advanceAmount}</div>
+        </div>
+      </div>
+    )}
+
     </div>
   );
 }

@@ -67,29 +67,26 @@ const createBooking = async (req, res) => {
     res.status(500).json({ status: "failed", error: error.message });
   }
 };
-const getBookingDetails = async (req, res) => {
-  try {
-    const booking = await GuestModel.findOne({
-      booking_id: req.params.bookingId,
-      hotelId: req.headers.hotelid
-    }).lean();
-
-    if (!booking) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
-    }
-
-    res.json({ 
-      success: true,
-      booking: {
-        ...booking,
-        from: booking.fromDate,
-        to: booking.toDate
+const getBookingById = async (req,res) =>{
+  try{
+      const bookingId = req.params.id;
+      if(!bookingId){
+        return res. status(400).json({status: "failed", message: "missing booking id in headers"});
+      
       }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+      const booking = await GuestModel.findById(bookingId).populate("ub_ids");
+      if(!booking){
+        return res.status(404).json({status:"failed", message: "missing booking"});
+      }
+      res.json({status :"success", booking});
+  }catch (error){
+    console.error("Booking Error", error);
+    res.status(500).json({status:"failed" ,error: error.message});
+
   }
-};
+;
+}
+
 const deleteBooking = async (req, res) => {
   try {
     const hotelId = req.user.sid;
@@ -114,6 +111,6 @@ const deleteBooking = async (req, res) => {
 };
 module.exports = {
   createBooking,
-  getBookingDetails,
+  getBookingById ,
   deleteBooking,
 };
