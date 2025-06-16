@@ -29,7 +29,6 @@ const createBooking = async (req, res) => {
         status: "Already booked",
         message: "Already booked",
       });
-      console.log("working", chk);
     } else {
       const bookingid = "BK" + Date.now().toString() + randomInt(100, 999);
       const temp = [];
@@ -43,7 +42,6 @@ const createBooking = async (req, res) => {
         });
         temp.push(up._id);
       }
-      console.log(temp);
 
       const newBooking = await GuestModel.create({
         ...data,
@@ -67,25 +65,26 @@ const createBooking = async (req, res) => {
     res.status(500).json({ status: "failed", error: error.message });
   }
 };
-const getBookingById = async (req,res) =>{
-  try{
-      const bookingId = req.params.id;
-      if(!bookingId){
-        return res. status(400).json({status: "failed", message: "missing booking id in headers"});
-      
-      }
-      const booking = await GuestModel.findById(bookingId).populate("ub_ids");
-      if(!booking){
-        return res.status(404).json({status:"failed", message: "missing booking"});
-      }
-      res.json({status :"success", booking});
-  }catch (error){
+const getBookingById = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    if (!bookingId) {
+      return res
+        .status(400)
+        .json({ status: "failed", message: "missing booking id in headers" });
+    }
+    const booking = await GuestModel.findById(bookingId).populate("ub_ids");
+    if (!booking) {
+      return res
+        .status(404)
+        .json({ status: "failed", message: "missing booking" });
+    }
+    res.json({ status: "success", booking });
+  } catch (error) {
     console.error("Booking Error", error);
-    res.status(500).json({status:"failed" ,error: error.message});
-
+    res.status(500).json({ status: "failed", error: error.message });
   }
-;
-}
+};
 
 const deleteBooking = async (req, res) => {
   try {
@@ -111,6 +110,6 @@ const deleteBooking = async (req, res) => {
 };
 module.exports = {
   createBooking,
-  getBookingById ,
+  getBookingById,
   deleteBooking,
 };
