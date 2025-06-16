@@ -15,6 +15,9 @@ const getBookings = async (req, res) => {
         : new Date();
       const endDate = new Date(new Date().setDate(startDate.getDate() + 7));
       const hotelId = req.headers.hotelid;
+       console.log("Querying bookings between:");
+      console.log("Start:", startDate.toISOString());
+      console.log("End:", endDate.toISOString());
 
       const chk = await UpBookModel.find({
         hotelId: hotelId,
