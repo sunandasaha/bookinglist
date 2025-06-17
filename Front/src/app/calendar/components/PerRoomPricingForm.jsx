@@ -385,7 +385,7 @@ const PerRoomPricingForm = () => {
                 onChange={(e) =>
                   handleChange(catIdx, "price_for_extra_person", e.target.value)
                 }
-                className="input w-full"
+                className="input w-full appearance-none"
               />
 
               {/* Agent Commission */}

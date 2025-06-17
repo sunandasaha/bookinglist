@@ -1,23 +1,20 @@
 "use client";
-
 import { useState, useContext } from "react";
-import {format,startOfMonth,endOfMonth,eachDayOfInterval,startOfDay,} from "date-fns";
-import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Home,Bed,LogOut,Plus,Minus,DollarSign,CalendarCheck,CalendarX,Search,} from "lucide-react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from "date-fns";
+import { CalendarDays, User, MoreVertical, ChevronLeft, ChevronRight, Search, Bell } from "lucide-react";
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
-import { Bell } from "lucide-react";
-import Image from "next/image";
 
-
-export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
-  const { hosthotel,setUser, setHosthotel } = useContext(Context);
+export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSearchBID }) {
+  const { hosthotel, setUser, setHosthotel } = useContext(Context);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showRoomsPricing, setShowRoomsPricing] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useRouter();
 
   const daysInMonth = eachDayOfInterval({
@@ -27,6 +24,7 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
 
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
   const toggleSideMenu = () => setShowSideMenu((prev) => !prev);
+  const toggleSearch = () => setSearchOpen((prev) => !prev);
 
   const isSelected = (day) =>
     format(day, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
@@ -48,20 +46,12 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
     setShowSideMenu(false);
   };
 
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const toggleSearch = () => setSearchOpen((prev) => !prev);
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
-    onSearch(searchQuery.trim());
     setSearchOpen(false);
   };
 
   const openProfile = () => {
-    console.log("openProfile called");
     setShowProfile(true);
     setShowSideMenu(false);
   };
@@ -199,36 +189,36 @@ export default function TopBar({ selectedDate, setSelectedDate, onSearch }) {
           </div>
         )}
       </div>
-      <div className="flex items-center gap-4">
-          {/* Search Icon & Form */}
-          <div className="relative">
-            <Search
-              onClick={toggleSearch}
-              className="text-gray-700 hover:text-black cursor-pointer"
-              size={24}
-              title="Search Booking ID"
-            />
-            {searchOpen && (
-              <form
-                onSubmit={handleSearchSubmit}
-                className="absolute right-0 mt-2 bg-white border rounded-md shadow-lg p-2 flex items-center gap-2 z-50"
+       <div className="flex items-center gap-4">
+        {/* Search Icon & Form */}
+        <div className="relative">
+          <Search
+            onClick={toggleSearch}
+            className="text-gray-700 hover:text-black cursor-pointer"
+            size={24}
+            title="Search Booking ID"
+          />
+          {searchOpen && (
+            <form
+              onSubmit={handleSearchSubmit}
+              className="absolute right-0 mt-2 bg-white border rounded-md shadow-lg p-2 flex items-center gap-2 z-50"
+            >
+              <input
+                type="text"
+                value={searchBID}
+                onChange={(e) => setSearchBID(e.target.value)}
+                placeholder="Enter Booking ID"
+                className="border border-gray-300 rounded px-2 py-1 text-sm text-black"
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="bg-green-500 text-black px-3 py-1 rounded text-sm hover:bg-green-600"
               >
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Enter Booking ID"
-                  className="border border-gray-300 rounded px-2 py-1 text-sm text-black"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  className="bg-green-500 text-black px-3 py-1 rounded text-sm hover:bg-green-600"
-                >
-                  Search
-                </button>
-              </form>
-            )}
+                Search
+              </button>
+            </form>
+          )}
           </div>
 
           {/* Bell Notification Icon */}

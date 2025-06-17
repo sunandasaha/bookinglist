@@ -7,7 +7,7 @@ import { site } from "../../_utils/request";
 import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 
-export default function CalendarGrid({ startDate }) {
+export default function CalendarGrid({ startDate, searchBID }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [startCell, setStartCell] = useState(null);
@@ -20,6 +20,22 @@ export default function CalendarGrid({ startDate }) {
 
   const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
+  const getCellClass = (roomName, date, rIdx, dIdx) => {
+  const booking = getBookingForCell(roomName, date);
+  const isHighlighted = booking && searchBID && 
+    booking.booking_id.toLowerCase().includes(searchBID.toLowerCase());
+
+  const selected = isSelected(rIdx, dIdx);
+
+  return clsx(
+    "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
+    selected && "bg-blue-300",
+    isHighlighted && "bg-yellow-300",
+    booking && "bg-green-500 text-white",
+    !booking && !selected && "hover:bg-blue-100"
+  );
+};
+
 
   const getBookings = async () => {
     try {
@@ -269,41 +285,35 @@ export default function CalendarGrid({ startDate }) {
                   : `₹${room.price?.rate}`}
               </div>
             </div>
+                  {dates.map((date, dIdx) => {
+  const booking = getBookingForCell(room.name, date);
+  return (
+    <div
+      key={dIdx}
+      className={getCellClass(room.name, date, rIdx, dIdx)}
+      onClick={() => {
+        if (booking) {
+          fetchBookingDetails(booking.booking_id);
+        } else {
+          handleMouseDown(rIdx, dIdx);
+        }
+      }}
+      onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+      data-room={rIdx}
+      data-date={dIdx}
+    >
+      {booking ? (
+        <div className="text-center">
+          <div className="font-medium">Booked</div>
+          <div className="text-[10px]">ID: {booking.booking_id}</div>
+        </div>
+      ) : isSelected(rIdx, dIdx) ? (
+        "Selected"
+      ) : null}
+    </div>
+  );
+})}
 
-            {dates.map((date, dIdx) => {
-              const booking = getBookingForCell(room.name, date);
-              const selected = isSelected(rIdx, dIdx);
-              return (
-                <div
-                  key={dIdx}
-                  className={clsx(
-                    "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
-                    selected && "bg-blue-300",
-                    booking && "bg-green-500 text-white ",
-                    !booking && !selected && "hover:bg-blue-100"
-                  )}
-                  onClick={() => {
-                    if (booking) {
-                      fetchBookingDetails(booking.booking_id);
-                    } else {
-                      handleMouseDown(rIdx, dIdx);
-                    }
-                  }}
-                  onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
-                  data-room={rIdx}
-                  data-date={dIdx}
-                >
-                  {booking ? (
-                    <div className="text-center">
-                      <div className="font-medium">Booked</div>
-                      <div className="text-[10px]">ID: {booking.booking_id}</div>
-                    </div>
-                  ) : selected ? (
-                    "Selected"
-                  ) : null}
-                </div>
-              );
-            })}
           </div>
         ))}
 
