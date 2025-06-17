@@ -12,7 +12,9 @@ export default function Dashboard() {
   const navigate = useRouter();
 
   useEffect(() => {
+    console.log(pending);
     if (!user) {
+
       navigate.push("/");
     }
   }, [user, navigate]);

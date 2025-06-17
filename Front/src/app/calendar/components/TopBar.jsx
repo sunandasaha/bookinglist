@@ -1,7 +1,8 @@
 "use client";
 import { useState, useContext } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from "date-fns";
-import { CalendarDays, User, MoreVertical, ChevronLeft, ChevronRight, Search, Bell } from "lucide-react";
+import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Search,Bell,CalendarCheck,CalendarX,Bed,Home,LogOut,} from "lucide-react";
+
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider.tsx";
