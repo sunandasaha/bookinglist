@@ -8,7 +8,8 @@ import { motion } from "framer-motion";
 
 export default function Home() {
   const navigate = useRouter();
-  const { setUser, user, setHosthotel, setAgent } = useContext(Context);
+  const { setUser, user, setHosthotel, setAgent, setPending } =
+    useContext(Context);
 
   const addstuff = (dat: hostHotel) => {
     if (!dat.pay_per) {
@@ -30,6 +31,7 @@ export default function Home() {
         } else if (res.user.role === "host") {
           if (res.user.cred) {
             if (setHosthotel) setHosthotel(addstuff(res.user.cred));
+            if (res.user.pending && setPending) setPending(res.user.pending);
             navigate.push("/calendar");
           } else {
             navigate.push("/hotel");

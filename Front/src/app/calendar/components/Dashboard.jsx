@@ -5,16 +5,15 @@ import TopBar from "./TopBar";
 import CalendarGrid from "./CalendarGrid";
 import { Context } from "../../_components/ContextProvider";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchBookingId, setSearchBookingId] = useState("");
-  const { user, hosthotel } = useContext(Context);
+  const { user, pending } = useContext(Context);
   const navigate = useRouter();
 
   useEffect(() => {
-    console.log(hosthotel);
+    console.log(pending);
 
     if (!user) {
       navigate.push("/");
@@ -59,7 +58,6 @@ export default function Dashboard() {
         bookings={filteredBookings}
         searchBookingId={searchBookingId}
       />
-      {/* <Link href={"/test"}>Test</Link> */}
     </div>
   );
 }

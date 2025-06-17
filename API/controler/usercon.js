@@ -4,6 +4,7 @@ const { createHmac } = require("crypto");
 const Usermodel = require("../models/Users");
 const Hotelmodel = require("../models/Hotel");
 const Agentmodel = require("../models/Agent");
+const GuestModel = require("../models/GuestBooking");
 
 const retry = new Map();
 
@@ -43,6 +44,14 @@ const getDet = async (role, id) => {
   return cred;
 };
 
+const getPending = async (role, id) => {
+  if (role === "host" && id) {
+    const pen = await GuestModel.find({ status: 0, hotelId: id });
+    return pen;
+  }
+  return null;
+};
+
 const glogin = async (req, res) => {
   const gres = await getCred(req.body.code);
   let user = await Usermodel.findOne({ email: gres.email });
@@ -61,9 +70,10 @@ const glogin = async (req, res) => {
       process.env.ACCESS_TOKEN
     );
     const cred = await getDet(user?.role, user?.sid);
+    const pending = await getPending(user?.role, user?.sid);
     res.json({
       status: "success",
-      user: { role: user.role, token: tok, cred },
+      user: { role: user.role, token: tok, cred, pending },
     });
   } else {
     res.json({ status: "failed" });
@@ -106,9 +116,10 @@ const login = async (req, res) => {
           process.env.ACCESS_TOKEN
         );
         const cred = await getDet(chk.role, chk.sid);
+        const pending = await getPending(user?.role, user?.sid);
         res.json({
           status: "success",
-          user: { role: chk.role, token: tok, cred },
+          user: { role: chk.role, token: tok, cred, pending },
         });
       } else if (chk.password === "google") {
         res.json({ status: "Login with Google" });
@@ -164,9 +175,10 @@ const logTok = async (req, res) => {
           process.env.ACCESS_TOKEN
         );
         const cred = await getDet(user.role, user.sid);
+        const pending = await getPending(user?.role, user?.sid);
         res.json({
           status: "success",
-          user: { role: user.role, token: tok, cred },
+          user: { role: user.role, token: tok, cred, pending },
         });
       }
     }

@@ -23,6 +23,30 @@ export type hostHotel = {
   per_person_cat?: per_percent_cat[];
 };
 
+type booking = {
+  hotelId: string;
+  agent_Id?: string;
+  ub_ids: string[];
+  status: number;
+  amountPaid?: number;
+  _id: string;
+  name: string;
+  email?: String;
+  phone?: Number;
+  whatsapp: number;
+  address: string;
+  fromDate: string;
+  toDate: string;
+  rooms: string[];
+  adults: number;
+  children?: number;
+  age_0_5?: number;
+  age_6_10?: number;
+  totalPrice: number;
+  advanceAmount: number;
+  createdAt?: string;
+};
+
 type room_cat = {
   _id?: string;
   name: string;
@@ -72,6 +96,8 @@ type Ccontext = {
   setHosthotel: React.Dispatch<React.SetStateAction<hostHotel | null>> | null;
   setAgent: React.Dispatch<React.SetStateAction<agent | null>> | null;
   pop: string;
+  pending: booking[] | null;
+  setPending: React.Dispatch<React.SetStateAction<booking[] | null>> | null;
 };
 
 export const Context = createContext<Ccontext>({
@@ -83,6 +109,8 @@ export const Context = createContext<Ccontext>({
   setPop: null,
   agent: null,
   setAgent: null,
+  pending: null,
+  setPending: null,
 });
 
 const ContextProvider = ({
@@ -94,6 +122,7 @@ const ContextProvider = ({
   const [agent, setAgent] = useState<agent | null>(null);
   const [hosthotel, setHosthotel] = useState<hostHotel | null>(null);
   const [pop, setPop] = useState("");
+  const [pending, setPending] = useState<booking[] | null>(null);
 
   return (
     <Context.Provider
@@ -106,6 +135,8 @@ const ContextProvider = ({
         setHosthotel,
         agent,
         setAgent,
+        pending,
+        setPending,
       }}
     >
       <GoogleOAuthProvider clientId="85449916853-ilvmr3fr74rmit72esdsbvoptgvbr1m3.apps.googleusercontent.com">

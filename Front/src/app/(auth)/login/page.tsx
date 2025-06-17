@@ -18,7 +18,7 @@ const Login = () => {
   const [prob, setProb] = useState("");
   const [info, setInfo] = useState<info>({ email: "", password: "" });
   const navigate = useRouter();
-  const { setUser, setHosthotel, setAgent } = useContext(Context);
+  const { setUser, setHosthotel, setAgent, setPending } = useContext(Context);
 
   const login = async () => {
     const reg =
@@ -35,6 +35,7 @@ const Login = () => {
         } else if (res.user.role === "host") {
           if (res.user.cred) {
             if (setHosthotel) setHosthotel(res.user.cred);
+            if (res.user.pending && setPending) setPending(res.user.pending);
             navigate.push("/calendar");
           } else {
             navigate.push("/hotel");
@@ -76,6 +77,7 @@ const Login = () => {
           } else if (res.user.role === "host") {
             if (res.user.cred) {
               if (setHosthotel) setHosthotel(addstuff(res.user.cred));
+              if (res.user.pending && setPending) setPending(res.user.pending);
               navigate.push("/calendar");
             } else {
               navigate.push("/hotel");
