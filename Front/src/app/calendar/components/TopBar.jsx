@@ -9,13 +9,14 @@ import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
 
 export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSearchBID }) {
-  const { hosthotel, setUser, setHosthotel } = useContext(Context);
+  const { hosthotel, setUser, setHosthotel, pending } = useContext(Context);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showRoomsPricing, setShowRoomsPricing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [showNot , setShowNot] = useState(false);
   const navigate = useRouter();
 
   const daysInMonth = eachDayOfInterval({
@@ -26,6 +27,11 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
   const toggleSideMenu = () => setShowSideMenu((prev) => !prev);
   const toggleSearch = () => setSearchOpen((prev) => !prev);
+  const handleBookingDecision = async (b, at) => {
+    // accept code 
+
+};
+
 
   const isSelected = (day) =>
     format(day, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
@@ -225,6 +231,7 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
           {/* Bell Notification Icon */}
           <div className="relative">
             <Bell
+              onClick = {()=> setShowNot((prev)=> !prev)}
               className="text-gray-700 hover:text-black cursor-pointer"
               size={24}
               title="Notifications"
@@ -248,7 +255,39 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
                     Close
                   </button>
                 </div>
-      )}
+          )}
+          {showNot && (
+            <div className="absolute right-0 top-16 w-96 bg-white border-l shadow-lg z-50 max-h-[80vh] overflow-y-auto rounded-l-md p-4 space-y-4">
+              <h2 className="text-lg font-bold mb-2">Pending Requests</h2>
+              {pending?.length > 0 ? (
+                pending.map((bk) => (
+                  <div key={bk._id} className="border p-3 rounded shadow-sm bg-gray-50">
+                    <div className="font-semibold">{bk.name}</div>
+                    <div className="text-sm text-gray-700">📅 {format(new Date(bk.fromDate), "dd MMM")} → {format(new Date(bk.toDate), "dd MMM")}</div>
+                    <div className="text-sm text-gray-700">💬 {bk.whatsapp}</div>
+                    <div className="text-sm text-gray-700">Rooms: {bk.rooms.join(", ")}</div>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => handleBookingDecision(bk._id, true)}
+                        className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleBookingDecision(bk._id, false)}
+                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500">No pending bookings.</div>
+              )}
+            </div>
+          )}
+
 
     </div>
   );
