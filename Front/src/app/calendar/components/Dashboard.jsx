@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchBID, setSearchBID] = useState("");
   const { user, hosthotel, socket, setSocket } = useContext(Context);
+  const [bookings, setBookings] = useState([]);
   const navigate = useRouter();
 
   useEffect(() => {
@@ -31,8 +32,11 @@ export default function Dashboard() {
         setSelectedDate={setSelectedDate}
         searchBID={searchBID}
         setSearchBID={setSearchBID}
+        setBookings = {setBookings}
+
       />
-      <CalendarGrid startDate={selectedDate} searchBID={searchBID} />
+      <CalendarGrid startDate={selectedDate} searchBID={searchBID} bookings = {bookings} setBookings = {setBookings}
+ />
     </div>
   );
 }

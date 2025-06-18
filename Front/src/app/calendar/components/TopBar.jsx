@@ -33,6 +33,7 @@ export default function TopBar({
   setSelectedDate,
   searchBID,
   setSearchBID,
+  setBookings,
 }) {
   const {
     hosthotel,
@@ -109,15 +110,42 @@ export default function TopBar({
     if (socket) {
       socket.on("new-booking", (bok) => {
         setPending((p) => [...p, bok]);
-      });
+       const normalizedBooking = {
+        _id: bok._id,
+        booking_id: bok.booking_id || bok._id,
+        fromDate: new Date(bok.fromDate),
+        toDate: new Date(bok.toDate),
+        room:[],
+        confirmed: false
+      };
+        if (bok.rooms && bok.rooms.length) {
+            for (let j = 0; j < bok.rooms.length; j++) {
+              normalizedBooking.room.push(bok.rooms[j]);
+            }
+          } else if (bok.room) {
+            normalizedBooking.room.push(bok.room);
+          }
+          setBookings((prev) => {
+          const newBooking = { ...normalizedBooking };
+          const newBookings = [...prev, newBooking];
+        return newBookings;
+            });
+    });
+
+      
+      
       socket.on("pen-success", ({ id }) => {
         setPending((p) => p.filter((el) => el._id !== id));
+        setBookings(prev => prev.filter(el => el._id !== id));
       });
     }
     return () => {
-      if (socket) socket.off("new-booking");
-    };
-  }, [socket]);
+      if (socket) {
+      socket.off("new-booking");
+      socket.off("pen-success");
+    }
+  };
+  }, [socket, setBookings]);
 
   return (
     <div className="w-full px-6 py-4 flex items-center justify-between bg-white shadow-md z-50 relative">
@@ -319,44 +347,71 @@ export default function TopBar({
         </div>
       )}
       {showNot && (
-        <div className="absolute right-0 top-16 w-96 bg-white border-l shadow-lg z-50 max-h-[80vh] overflow-y-auto rounded-l-md p-4 space-y-4">
-          <h2 className="text-lg font-bold mb-2">Pending Requests</h2>
-          {pending?.length > 0 ? (
-            pending.map((bk) => (
-              <div
-                key={bk._id}
-                className="border p-3 rounded shadow-sm bg-gray-50"
-              >
-                <div className="font-semibold">{bk.name}</div>
-                <div className="text-sm text-gray-700">
-                  📅 {format(new Date(bk.fromDate), "dd MMM")} →{" "}
-                  {format(new Date(bk.toDate), "dd MMM")}
-                </div>
-                <div className="text-sm text-gray-700">💬 {bk.whatsapp}</div>
-                <div className="text-sm text-gray-700">
-                  Rooms: {bk.rooms.join(", ")}
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={() => handleBookingDecision(bk._id, true)}
-                    className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => handleBookingDecision(bk._id, false)}
-                    className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Reject
-                  </button>
-                </div>
+        <>
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setShowNot(false)}
+            />
+            <div className={`
+              fixed md:absolute
+              top-16 md:top-full
+              right-0
+              w-full md:w-96
+              h-[calc(100vh-4rem)] md:h-auto
+              bg-white border-l border-t md:border-t-0 shadow-lg z-50
+              overflow-y-auto
+              rounded-t-lg md:rounded-l-lg md:rounded-t-none
+              p-4 space-y-4
+              transform
+              ${showNot ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-y-0 md:translate-x-full'}
+              transition-transform duration-300 ease-in-out
+            `}>
+              <div className="flex justify-between items-center pb-2 border-b">
+                <h2 className="text-lg font-bold">Pending Requests</h2>
+                <button
+                  onClick={() => setShowNot(false)}
+                  className="p-1 text-gray-500 hover:text-black"
+                >
+                  ✕
+                </button>
               </div>
-            ))
-          ) : (
-            <div className="text-sm text-gray-500">No pending bookings.</div>
-          )}
-        </div>
-      )}
+              {pending?.length > 0 ? (
+                <div className="space-y-3">
+                  {pending.map((bk) => (
+                    <div key={bk._id} className="border p-3 rounded shadow-sm bg-gray-50">
+                      <div className="font-semibold truncate">{bk.name}</div>
+                      <div className="text-sm text-gray-700">
+                        📅 {format(new Date(bk.fromDate), "dd MMM")} → {format(new Date(bk.toDate), "dd MMM")}
+                      </div> 
+                      <div className="text-sm text-gray-700">💬 {bk.whatsapp}</div>
+                      <div className="text-sm text-gray-700 truncate">
+                        Rooms: {bk.rooms.join(", ")}
+                      </div>
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        <button
+                          onClick={() => handleBookingDecision(bk._id, true)}
+                          className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 flex-1 min-w-[100px]"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleBookingDecision(bk._id, false)}
+                          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 flex-1 min-w-[100px]"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 py-4 text-center">
+                  No pending bookings
+                </div>
+              )}
+            </div>
+          </>
+        )}
     </div>
   );
 }

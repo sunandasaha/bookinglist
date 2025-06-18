@@ -7,9 +7,8 @@ import { site } from "../../_utils/request";
 import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 
-export default function CalendarGrid({ startDate, searchBID }) {
+export default function CalendarGrid({ startDate, searchBID, bookings, setBookings}) {
   const [dates, setDates] = useState([]);
-  const [bookings, setBookings] = useState([]);
   const [startCell, setStartCell] = useState(null);
   const [endCell, setEndCell] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -53,6 +52,7 @@ export default function CalendarGrid({ startDate, searchBID }) {
 
       setBookings(
         bookingsData.map((b) => ({
+          
           ...b,
           b_ID: b.booking_id,
           from: new Date(b.fromDate),
@@ -123,7 +123,8 @@ export default function CalendarGrid({ startDate, searchBID }) {
   }, [hosthotel, startDate]);
    const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
-      if (b.room !== roomName) return false;
+      if (!b.room.includes(roomName)) return false;
+
       const cellDate = new Date(date).setHours(0, 0, 0, 0);
       const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
       const toDate = new Date(b.to).setHours(23, 59, 59, 999);
