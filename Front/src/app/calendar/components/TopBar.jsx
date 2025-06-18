@@ -1,22 +1,55 @@
 "use client";
-import { useState, useContext } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from "date-fns";
-import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Search,Bell,CalendarCheck,CalendarX,Bed,Home,LogOut,} from "lucide-react";
+import { useState, useContext, useEffect } from "react";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  startOfDay,
+} from "date-fns";
+import {
+  CalendarDays,
+  User,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Bell,
+  CalendarCheck,
+  CalendarX,
+  Bed,
+  Home,
+  LogOut,
+} from "lucide-react";
 
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
+import { postReq, site } from "../../_utils/request.ts";
 
-export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSearchBID }) {
-  const { hosthotel, setUser, setHosthotel, pending } = useContext(Context);
+export default function TopBar({
+  selectedDate,
+  setSelectedDate,
+  searchBID,
+  setSearchBID,
+}) {
+  const {
+    hosthotel,
+    setUser,
+    setHosthotel,
+    pending,
+    socket,
+    setPending,
+    user,
+  } = useContext(Context);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showRoomsPricing, setShowRoomsPricing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [showNot , setShowNot] = useState(false);
+  const [showNot, setShowNot] = useState(false);
   const navigate = useRouter();
 
   const daysInMonth = eachDayOfInterval({
@@ -27,11 +60,20 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
   const toggleSideMenu = () => setShowSideMenu((prev) => !prev);
   const toggleSearch = () => setSearchOpen((prev) => !prev);
-  const handleBookingDecision = async (b, at) => {
-    // accept code 
-
-};
-
+  const handleBookingDecision = async (id, res) => {
+    if (socket) {
+      socket.emit("pending", { id, res });
+    } else {
+      const res = await postReq(
+        site + "guestbooking/pending",
+        { _id: id, res },
+        user.token
+      );
+      if (res.success) {
+        setPending((p) => p.filter((el) => el._id !== id));
+      }
+    }
+  };
 
   const isSelected = (day) =>
     format(day, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
@@ -62,6 +104,20 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
     setShowProfile(true);
     setShowSideMenu(false);
   };
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("new-booking", (bok) => {
+        setPending((p) => [...p, bok]);
+      });
+      socket.on("pen-success", ({ id }) => {
+        setPending((p) => p.filter((el) => el._id !== id));
+      });
+    }
+    return () => {
+      if (socket) socket.off("new-booking");
+    };
+  }, [socket]);
 
   return (
     <div className="w-full px-6 py-4 flex items-center justify-between bg-white shadow-md z-50 relative">
@@ -106,11 +162,12 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
             </button>
 
             <button
-              onClick = {()=>{
+              onClick={() => {
                 setShowRoomsPricing(true);
                 setShowSideMenu(false);
               }}
-             className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
+              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+            >
               <Home size={18} className="text-purple-600" />
               <span>Rooms & Pricing</span>
             </button>
@@ -119,7 +176,7 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
                 setUser(null);
                 setHosthotel(null);
                 localStorage.removeItem("tok");
-                navigate .push("/login");
+                navigate.push("/login");
               }}
               className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-red-600"
             >
@@ -196,7 +253,7 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
           </div>
         )}
       </div>
-       <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4">
         {/* Search Icon & Form */}
         <div className="relative">
           <Search
@@ -226,75 +283,80 @@ export default function TopBar({ selectedDate, setSelectedDate, searchBID, setSe
               </button>
             </form>
           )}
-          </div>
-
-          {/* Bell Notification Icon */}
-          <div className="relative">
-            <Bell
-              onClick = {()=> setShowNot((prev)=> !prev)}
-              className="text-gray-700 hover:text-black cursor-pointer"
-              size={24}
-              title="Notifications"
-            />
-            {pending && pending.length >0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {pending.length}
-              </span>
-            )}
-             
-          </div>
         </div>
 
-       {showProfile && (
-              <ProfileModal
-                profile={hosthotel}
-                onClose={() => setShowProfile(false)}
-              />
-            )}
-            {showRoomsPricing && (
-                <div className="absolute top-16 left-0 right-0 z-40 bg-white border-t shadow-md p-4">
-                  <RoomsPricing pricingType={hosthotel?.pricingType} />
+        {/* Bell Notification Icon */}
+        <div className="relative">
+          <Bell
+            onClick={() => setShowNot((prev) => !prev)}
+            className="text-gray-700 hover:text-black cursor-pointer"
+            size={24}
+            title="Notifications"
+          />
+          {pending && pending.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {pending.length}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {showProfile && (
+        <ProfileModal
+          profile={hosthotel}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+      {showRoomsPricing && (
+        <div className="absolute top-16 left-0 right-0 z-40 bg-white border-t shadow-md p-4">
+          <RoomsPricing pricingType={hosthotel?.pricingType} />
+          <button
+            onClick={() => setShowRoomsPricing(false)}
+            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Close
+          </button>
+        </div>
+      )}
+      {showNot && (
+        <div className="absolute right-0 top-16 w-96 bg-white border-l shadow-lg z-50 max-h-[80vh] overflow-y-auto rounded-l-md p-4 space-y-4">
+          <h2 className="text-lg font-bold mb-2">Pending Requests</h2>
+          {pending?.length > 0 ? (
+            pending.map((bk) => (
+              <div
+                key={bk._id}
+                className="border p-3 rounded shadow-sm bg-gray-50"
+              >
+                <div className="font-semibold">{bk.name}</div>
+                <div className="text-sm text-gray-700">
+                  📅 {format(new Date(bk.fromDate), "dd MMM")} →{" "}
+                  {format(new Date(bk.toDate), "dd MMM")}
+                </div>
+                <div className="text-sm text-gray-700">💬 {bk.whatsapp}</div>
+                <div className="text-sm text-gray-700">
+                  Rooms: {bk.rooms.join(", ")}
+                </div>
+                <div className="flex gap-2 mt-2">
                   <button
-                    onClick={() => setShowRoomsPricing(false)}
-                    className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    onClick={() => handleBookingDecision(bk._id, true)}
+                    className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
                   >
-                    Close
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleBookingDecision(bk._id, false)}
+                    className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Reject
                   </button>
                 </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-sm text-gray-500">No pending bookings.</div>
           )}
-          {showNot && (
-            <div className="absolute right-0 top-16 w-96 bg-white border-l shadow-lg z-50 max-h-[80vh] overflow-y-auto rounded-l-md p-4 space-y-4">
-              <h2 className="text-lg font-bold mb-2">Pending Requests</h2>
-              {pending?.length > 0 ? (
-                pending.map((bk) => (
-                  <div key={bk._id} className="border p-3 rounded shadow-sm bg-gray-50">
-                    <div className="font-semibold">{bk.name}</div>
-                    <div className="text-sm text-gray-700">📅 {format(new Date(bk.fromDate), "dd MMM")} → {format(new Date(bk.toDate), "dd MMM")}</div>
-                    <div className="text-sm text-gray-700">💬 {bk.whatsapp}</div>
-                    <div className="text-sm text-gray-700">Rooms: {bk.rooms.join(", ")}</div>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => handleBookingDecision(bk._id, true)}
-                        className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleBookingDecision(bk._id, false)}
-                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">No pending bookings.</div>
-              )}
-            </div>
-          )}
-
-
+        </div>
+      )}
     </div>
   );
 }

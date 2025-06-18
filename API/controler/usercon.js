@@ -116,7 +116,7 @@ const login = async (req, res) => {
           process.env.ACCESS_TOKEN
         );
         const cred = await getDet(chk.role, chk.sid);
-        const pending = await getPending(user?.role, user?.sid);
+        const pending = await getPending(chk?.role, chk?.sid);
         res.json({
           status: "success",
           user: { role: chk.role, token: tok, cred, pending },
@@ -127,7 +127,7 @@ const login = async (req, res) => {
         res.json({ status: "Wrong Password" });
         retry.set(email, {
           time: Date.now(),
-          cd: ret.cd ? ret.cd + 30000 : -30000,
+          cd: ret?.cd ? ret.cd + 30000 : -30000,
         });
       }
     } else {

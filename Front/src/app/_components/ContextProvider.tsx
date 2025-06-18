@@ -2,6 +2,7 @@
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { createContext, JSX, useState } from "react";
+import { Socket } from "socket.io-client";
 
 type user = {
   token: string;
@@ -97,6 +98,8 @@ type Ccontext = {
   setAgent: React.Dispatch<React.SetStateAction<agent | null>> | null;
   pop: string;
   pending: booking[] | null;
+  socket: Socket | null;
+  setSocket: React.Dispatch<React.SetStateAction<Socket | null>> | null;
   setPending: React.Dispatch<React.SetStateAction<booking[] | null>> | null;
 };
 
@@ -111,6 +114,8 @@ export const Context = createContext<Ccontext>({
   setAgent: null,
   pending: null,
   setPending: null,
+  socket: null,
+  setSocket: null,
 });
 
 const ContextProvider = ({
@@ -119,6 +124,7 @@ const ContextProvider = ({
   children: JSX.Element | React.ReactNode;
 }) => {
   const [user, setUser] = useState<user>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [agent, setAgent] = useState<agent | null>(null);
   const [hosthotel, setHosthotel] = useState<hostHotel | null>(null);
   const [pop, setPop] = useState("");
@@ -137,6 +143,8 @@ const ContextProvider = ({
         setAgent,
         pending,
         setPending,
+        setSocket,
+        socket,
       }}
     >
       <GoogleOAuthProvider clientId="85449916853-ilvmr3fr74rmit72esdsbvoptgvbr1m3.apps.googleusercontent.com">

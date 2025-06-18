@@ -3,6 +3,7 @@ const HotelModel = require("../models/Hotel");
 const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
 const { randomInt } = require("crypto");
+const { sendNewBook } = require("../sockets/global");
 
 const createBooking = async (req, res) => {
   try {
@@ -51,6 +52,9 @@ const createBooking = async (req, res) => {
         status: req.user?.role === "host" ? 1 : 0,
         agent_Id: req.user?.role === "agent" ? req.user._id : null,
       });
+      if (req.user?.role !== "host") {
+        sendNewBook(data.hotelId, newBooking);
+      }
 
       const book = await UpBookModel.find({
         hotelId: data.hotelId,
