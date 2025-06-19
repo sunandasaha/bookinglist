@@ -5,14 +5,14 @@ import AgentNav from "./_comp/AgentNav";
 import { getReq } from "../../_utils/request";
 import { Context } from "../../_components/ContextProvider";
 
-type hots = {
+type Hotel = {
   name: string;
   location: string;
   url: string;
 };
 
 const AgentDashboard = () => {
-  const [hotels, setHotels] = useState<hots | null>(null);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
   const { user } = useContext(Context);
 
   const getHotels = async () => {
@@ -23,12 +23,14 @@ const AgentDashboard = () => {
   };
 
   useEffect(() => {
-    getHotels();
-  }, []);
+    if (user?.role === "agent") {
+      getHotels();
+    }
+  }, [user]);
 
   return (
-    <div>
-      <AgentNav />
+    <div className="min-h-screen bg-gray-50">
+      <AgentNav hotels={hotels} />
     </div>
   );
 };
