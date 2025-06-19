@@ -28,7 +28,7 @@ const AgentNav = () => {
     if (!user || user?.role !== "agent") {
       navigate.push("/");
     } else {
-      console.log(agent);
+      //console.log(agent);
     }
   });
   return (

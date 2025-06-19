@@ -110,41 +110,28 @@ export default function TopBar({
     if (socket) {
       socket.on("new-booking", (bok) => {
         setPending((p) => [...p, bok]);
-       const normalizedBooking = {
-        _id: bok._id,
-        booking_id: bok.booking_id || bok._id,
-        fromDate: new Date(bok.fromDate),
-        toDate: new Date(bok.toDate),
-        room:[],
-        confirmed: false
-      };
-        if (bok.rooms && bok.rooms.length) {
-            for (let j = 0; j < bok.rooms.length; j++) {
-              normalizedBooking.room.push(bok.rooms[j]);
-            }
-          } else if (bok.room) {
-            normalizedBooking.room.push(bok.room);
-          }
-          setBookings((prev) => {
-          const newBooking = { ...normalizedBooking };
-          const newBookings = [...prev, newBooking];
-        return newBookings;
-            });
-    });
 
-      
-      
+        const temp = bok.rooms.map((el) => ({
+          booking_id: bok._id,
+          fromDate: bok.fromDate,
+          toDate: bok.toDate,
+          room: el,
+          confirmed: false,
+        }));
+        setBookings((prev) => [...prev, ...temp]);
+      });
+
       socket.on("pen-success", ({ id }) => {
         setPending((p) => p.filter((el) => el._id !== id));
-        setBookings(prev => prev.filter(el => el._id !== id));
+        //setBookings(prev => prev.filter(el => el._id !== id));
       });
     }
     return () => {
       if (socket) {
-      socket.off("new-booking");
-      socket.off("pen-success");
-    }
-  };
+        socket.off("new-booking");
+        socket.off("pen-success");
+      }
+    };
   }, [socket, setBookings]);
 
   return (
@@ -348,11 +335,12 @@ export default function TopBar({
       )}
       {showNot && (
         <>
-            <div 
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
-              onClick={() => setShowNot(false)}
-            />
-            <div className={`
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setShowNot(false)}
+          />
+          <div
+            className={`
               fixed md:absolute
               top-16 md:top-full
               right-0
@@ -363,55 +351,66 @@ export default function TopBar({
               rounded-t-lg md:rounded-l-lg md:rounded-t-none
               p-4 space-y-4
               transform
-              ${showNot ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-y-0 md:translate-x-full'}
+              ${
+                showNot
+                  ? "translate-y-0 md:translate-x-0"
+                  : "translate-y-full md:translate-y-0 md:translate-x-full"
+              }
               transition-transform duration-300 ease-in-out
-            `}>
-              <div className="flex justify-between items-center pb-2 border-b">
-                <h2 className="text-lg font-bold">Pending Requests</h2>
-                <button
-                  onClick={() => setShowNot(false)}
-                  className="p-1 text-gray-500 hover:text-black"
-                >
-                  ✕
-                </button>
-              </div>
-              {pending?.length > 0 ? (
-                <div className="space-y-3">
-                  {pending.map((bk) => (
-                    <div key={bk._id} className="border p-3 rounded shadow-sm bg-gray-50">
-                      <div className="font-semibold truncate">{bk.name}</div>
-                      <div className="text-sm text-gray-700">
-                        📅 {format(new Date(bk.fromDate), "dd MMM")} → {format(new Date(bk.toDate), "dd MMM")}
-                      </div> 
-                      <div className="text-sm text-gray-700">💬 {bk.whatsapp}</div>
-                      <div className="text-sm text-gray-700 truncate">
-                        Rooms: {bk.rooms.join(", ")}
-                      </div>
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        <button
-                          onClick={() => handleBookingDecision(bk._id, true)}
-                          className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 flex-1 min-w-[100px]"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleBookingDecision(bk._id, false)}
-                          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 flex-1 min-w-[100px]"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500 py-4 text-center">
-                  No pending bookings
-                </div>
-              )}
+            `}
+          >
+            <div className="flex justify-between items-center pb-2 border-b">
+              <h2 className="text-lg font-bold">Pending Requests</h2>
+              <button
+                onClick={() => setShowNot(false)}
+                className="p-1 text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
             </div>
-          </>
-        )}
+            {pending?.length > 0 ? (
+              <div className="space-y-3">
+                {pending.map((bk) => (
+                  <div
+                    key={bk._id}
+                    className="border p-3 rounded shadow-sm bg-gray-50"
+                  >
+                    <div className="font-semibold truncate">{bk.name}</div>
+                    <div className="text-sm text-gray-700">
+                      📅 {format(new Date(bk.fromDate), "dd MMM")} →{" "}
+                      {format(new Date(bk.toDate), "dd MMM")}
+                    </div>
+                    <div className="text-sm text-gray-700">
+                      💬 {bk.whatsapp}
+                    </div>
+                    <div className="text-sm text-gray-700 truncate">
+                      Rooms: {bk.rooms.join(", ")}
+                    </div>
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      <button
+                        onClick={() => handleBookingDecision(bk._id, true)}
+                        className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 flex-1 min-w-[100px]"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleBookingDecision(bk._id, false)}
+                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 flex-1 min-w-[100px]"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500 py-4 text-center">
+                No pending bookings
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

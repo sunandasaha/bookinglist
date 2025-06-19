@@ -62,8 +62,14 @@ const getHotelViaUrl = async (req, res) => {
     res.json({ success: false });
   }
 };
+
+const getHotelList = async (req, res) => {
+  const hots = await Hotelmodel.find({}).select("name location url");
+  res.json({ success: true, hotels: hots });
+};
 module.exports = {
   createHotel,
   updateHotel,
   getHotelViaUrl,
+  getHotelList,
 };
