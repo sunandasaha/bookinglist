@@ -113,8 +113,8 @@ export default function TopBar({
 
         const temp = bok.rooms.map((el) => ({
           booking_id: bok._id,
-          fromDate: bok.fromDate,
-          toDate: bok.toDate,
+          fromDate: new Date(bok.fromDate),
+          toDate: new Date(bok.toDate),
           room: el,
           confirmed: false,
         }));

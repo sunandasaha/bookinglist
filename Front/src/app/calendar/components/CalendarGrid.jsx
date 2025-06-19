@@ -126,7 +126,8 @@ export default function CalendarGrid({
 
   useEffect(() => {
     if (hosthotel?._id && startDate) getBookings();
-  }, [hosthotel, startDate]);
+  }, [hosthotel, startDate, bookings]);
+
   const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
       if (!b.room.includes(roomName)) return false;
