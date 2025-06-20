@@ -27,6 +27,7 @@ export type hostHotel = {
 type booking = {
   hotelId: string;
   agent_Id?: string;
+  agentCut: number;
   ub_ids: string[];
   status: number;
   amountPaid?: number;
