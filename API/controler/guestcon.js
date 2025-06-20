@@ -50,7 +50,7 @@ const createBooking = async (req, res) => {
         _id: bookingid,
         ub_ids: temp,
         status: req.user?.role === "host" ? 1 : 0,
-        agent_Id: req.user?.role === "agent" ? req.user._id : null,
+        agent_Id: req.user?.role === "agent" ? req.user.sid : null,
       });
       if (req.user?.role !== "host") {
         sendNewBook(data.hotelId, newBooking);
@@ -71,6 +71,7 @@ const createBooking = async (req, res) => {
     res.status(500).json({ status: "failed", error: error.message });
   }
 };
+
 const getBookingById = async (req, res) => {
   try {
     const bookingId = req.params.id;
@@ -79,7 +80,7 @@ const getBookingById = async (req, res) => {
         .status(400)
         .json({ status: "failed", message: "missing booking id in headers" });
     }
-    const booking = await GuestModel.findById(bookingId).populate("ub_ids");
+    const booking = await GuestModel.findById(bookingId).populate("agent_Id");
     if (!booking) {
       return res
         .status(404)
@@ -114,8 +115,17 @@ const deleteBooking = async (req, res) => {
     res.status(500).json({ status: "failed", error: error.message });
   }
 };
+
+const getAgentBookings = async (req, res) => {
+  if (req.user?.role === "agent") {
+    const bookings = await GuestModel.find({ agent_Id: req.user.sid });
+    res.json({ success: true, bookings });
+  }
+};
+
 module.exports = {
   createBooking,
   getBookingById,
   deleteBooking,
+  getAgentBookings,
 };

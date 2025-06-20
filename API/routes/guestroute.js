@@ -3,6 +3,7 @@ const {
   createBooking,
   getBookingById,
   deleteBooking,
+  getAgentBookings,
 } = require("../controler/guestcon");
 
 const { authUser, chkHost, chkAgent } = require("../middleware/auth");
@@ -18,5 +19,6 @@ guestroute.get("/bookings", getBookings);
 guestroute.get("/bookingshost", authUser, chkHost, getBookings);
 guestroute.get("/bookings/:id", getBookingById);
 guestroute.post("/pending", authUser, chkHost, updateBooking);
+guestroute.get("/agent", authUser, chkAgent, getAgentBookings);
 
 module.exports = guestroute;

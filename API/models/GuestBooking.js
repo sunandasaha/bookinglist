@@ -68,6 +68,7 @@ const GuestSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    agentCut: Number,
     advanceAmount: {
       type: Number,
       required: true,
