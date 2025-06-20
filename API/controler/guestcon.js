@@ -119,6 +119,7 @@ const deleteBooking = async (req, res) => {
 const getAgentBookings = async (req, res) => {
   if (req.user?.role === "agent") {
     const bookings = await GuestModel.find({ agent_Id: req.user.sid })
+      .populate("hotelId")
       .sort({
         createdAt: -1,
       })
