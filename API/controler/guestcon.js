@@ -118,7 +118,22 @@ const deleteBooking = async (req, res) => {
 
 const getAgentBookings = async (req, res) => {
   if (req.user?.role === "agent") {
-    const bookings = await GuestModel.find({ agent_Id: req.user.sid });
+    const bookings = await GuestModel.find({ agent_Id: req.user.sid })
+      .sort({
+        createdAt: -1,
+      })
+      .limit(50);
+    res.json({ success: true, bookings });
+  }
+};
+
+const getHotelBookings = async (req, res) => {
+  if (req.user?.role === "host") {
+    const bookings = await GuestModel.find({ hotelId: req.user.sid })
+      .sort({
+        createdAt: -1,
+      })
+      .limit(50);
     res.json({ success: true, bookings });
   }
 };
@@ -128,4 +143,5 @@ module.exports = {
   getBookingById,
   deleteBooking,
   getAgentBookings,
+  getHotelBookings,
 };
