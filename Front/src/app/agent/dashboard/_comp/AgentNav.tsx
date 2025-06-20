@@ -7,6 +7,7 @@ import { Search, User, History } from "lucide-react";
 import PopEffect from "../../../_components/PopEffect";
 import AgentProfile from "./AgentProfile";
 import AgentHistory from "../../history/page.jsx";
+import { AnimatePresence } from "framer-motion";
 
 type Hotel = {
   name: string;
@@ -19,7 +20,7 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
   const navigate = useRouter();
   const [pr, setPr] = useState(false);
   const [search, setSearch] = useState("");
-  const [showHistory , setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== "agent") {
@@ -86,24 +87,23 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
           </p>
         )}
       </div>
-      {pr && (
-        <PopEffect cb={() => setPr(false)}>
-          <div className="flex flex-col items-center gap-10">
-            <AgentProfile />
-          </div>
-        </PopEffect>
-      )}
-      {showHistory && (
-        <PopEffect cb = { () => setPr(false)}>
-          <div className = "flex flex-col items-center gap-10 max-w-4xl w-full">
-            <AgentHistory />
-
-          </div>
-        </PopEffect>
-        
-      )}
+      <AnimatePresence>
+        {pr && (
+          <PopEffect cb={() => setPr(false)}>
+            <div className="flex flex-col items-center gap-10">
+              <AgentProfile />
+            </div>
+          </PopEffect>
+        )}
+        {showHistory && (
+          <PopEffect cb={() => setShowHistory(false)}>
+            <div className="flex flex-col items-center gap-10 max-w-4xl w-full">
+              <AgentHistory />
+            </div>
+          </PopEffect>
+        )}
+      </AnimatePresence>
     </div>
-    
   );
 };
 
