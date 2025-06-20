@@ -58,14 +58,14 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setIsEditing(false);
     }
   };
-  const { totalPrice, advanceAmount } = useMemo(() => {
+  const { totalPrice, advanceAmount, agentCut } = useMemo(() => {
     if (
       !hosthotel ||
       !booking?.roomNames?.length ||
       !booking.from ||
       !booking.to
     ) {
-      return { totalPrice: 0, advanceAmount: 0 };
+      return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
     }
 
     const selectedRooms = booking.roomNames;
@@ -81,10 +81,10 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     const children = Number(formData.children) || 0;
 
     if (age_0_5 + age_6_10 !== children) {
-      return { totalPrice: 0, advanceAmount: 0 };
+      return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
     }
 
-    //  PER ROOM PRICING
+    // PER ROOM PRICING
     if (hosthotel?.pay_per?.room) {
       const selectedCats =
         hosthotel.room_cat?.filter((cat) =>
@@ -92,7 +92,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         ) || [];
 
       if (selectedCats.length === 0) {
-        return { totalPrice: 0, advanceAmount: 0 };
+        return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
       }
 
       let totalBase = 0;
@@ -100,6 +100,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       let totalCapacity = 0;
       const allPerAdultRates = [];
       const allExtraPrices = [];
+      let totalAgentCut = 0;
 
       for (const cat of selectedCats) {
         const roomCount = cat.room_no.filter((r) =>
@@ -119,6 +120,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         totalAdvance += cat.advance?.percent
           ? (cat.advance.amount / 100) * cat.price * nights * roomCount
           : (cat.advance.amount || 0) * nights * roomCount;
+        if (cat.agent_com) {
+          const catAgentCut = cat.agent_com.percent
+            ? (cat.agent_com.amount / 100) * (cat.price * roomCount * nights)
+            : (cat.agent_com.amount || 0) * roomCount * nights;
+          totalAgentCut += catAgentCut;
+        }
       }
 
       const extraAdults = Math.max(0, adults - totalCapacity);
@@ -131,11 +138,14 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
 
       const total = totalBase + extraCharges + childCharge;
+
       return {
-        totalPrice: parseFloat(total.toFixed(2)),
+        totalPrice: parseFloat((total).toFixed(2)),
         advanceAmount: parseFloat(totalAdvance.toFixed(2)),
+        agentCut: parseFloat(totalAgentCut.toFixed(2)),
       };
     }
+
     // PER PERSON PRICING LOGIC
     if (hosthotel?.pay_per?.person) {
       const selectedCats =
@@ -144,13 +154,16 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         ) || [];
 
       if (selectedCats.length === 0) {
-        return { totalPrice: 0, advanceAmount: 0 };
+        return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
       }
+
       let totalBase = 0;
       let totalAdvance = 0;
       const allRate1s = [];
       let remainingAdults = adults;
       const roomPlan = [];
+      let totalAgentCut = 0;
+
       for (const cat of selectedCats) {
         const matchedRooms = cat.roomNumbers.filter((r) =>
           selectedRooms.includes(r)
@@ -180,6 +193,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           roomPlan.push({ cat, assigned: assign, extra: 0 });
         }
       }
+
       if (remainingAdults > 0) {
         for (const plan of roomPlan) {
           const cat = plan.cat;
@@ -196,6 +210,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           if (remainingAdults === 0) break;
         }
       }
+
       if (remainingAdults > 0) {
         const maxAdults = roomPlan.reduce((sum, r) => {
           const cap = r.cat.capacity || 0;
@@ -208,17 +223,39 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           } adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
           totalPrice: 0,
           advanceAmount: 0,
+          agentCut: 0,
         };
       }
+
       const minRate1 = allRate1s.length > 0 ? Math.min(...allRate1s) : 0;
       const childCharge = age_6_10 * 0.5 * minRate1 * nights;
+      const total = totalBase + childCharge;
+      for (const plan of roomPlan) {
+        const cat = plan.cat;
+        if (!cat.agentCommission) continue;
+
+        const assignedPeople = plan.assigned + plan.extra;
+        let rate = 0;
+        if (assignedPeople === 1) rate = cat.rate1 || 0;
+        else if (assignedPeople === 2) rate = cat.rate2 || 0;
+        else if (assignedPeople === 3) rate = cat.rate3 || 0;
+        else if (assignedPeople >= 4) rate = cat.rate4 || 0;
+
+        const catAgentCut = cat.agentCommission.percent
+          ? (cat.agentCommission.amount / 100) * (rate * nights)
+          : (cat.agentCommission.amount || 0) * nights;
+        
+        totalAgentCut += catAgentCut;
+      }
 
       return {
-        totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
+        totalPrice: parseFloat((total).toFixed(2)),
         advanceAmount: parseFloat(totalAdvance.toFixed(2)),
+        agentCut: parseFloat(totalAgentCut.toFixed(2)),
       };
     }
-    return { totalPrice: 0, advanceAmount: 0 };
+
+    return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
   }, [
     hosthotel,
     booking,
@@ -241,7 +278,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       age_6_10: Number(formData.age_6_10),
       totalPrice,
       advanceAmount,
+      agentCut,
     };
+    console.log(bookingPayload);
 
     try {
       const result = await postReq(
@@ -471,6 +510,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
             <p>
               <strong>Advance to Pay:</strong> ₹
               {advanceAmount ? advanceAmount.toFixed(2) : 0}
+            </p>
+            <p>
+              <strong>Agent Commission: </strong>  ₹ {agentCut ? agentCut.toFixed(2): 0}
             </p>
 
             <button

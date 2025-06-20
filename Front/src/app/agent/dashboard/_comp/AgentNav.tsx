@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Context } from "../../../_components/ContextProvider";
 import { useRouter } from "next/navigation";
-import { Search, User } from "lucide-react";
+import { Search, User, History } from "lucide-react";
 import PopEffect from "../../../_components/PopEffect";
 import AgentProfile from "./AgentProfile";
 
@@ -26,7 +26,7 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
   }, [user, navigate]);
 
   const filteredHotels = hotels.filter((h) =>
-    h.name.toLowerCase().includes(search.toLowerCase())
+    h.name.toLowerCase().includes(search.toLowerCase()) || h.location.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -36,24 +36,29 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
           src="/svgs/logo.png"
           alt="BookingList"
           className="h-10 w-auto object-contain cursor-pointer"
-          onClick={() => navigate.push("/agent")}
         />
 
         <div className="flex items-center gap-2 flex-1 max-w-md mx-4">
           <Search className="text-gray-500" />
           <input
             type="text"
-            placeholder="Search hotel..."
+            placeholder="Search hotel or location"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
           />
         </div>
+          <div className="flex items-center gap-5">   
 
         <User
           onClick={() => setPr(true)}
-          className="text-gray-700 hover:text-black cursor-pointer"
+          className=" w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
         />
+       <History 
+           onClick={() => navigate.push("/agent/history")}
+           aria-label="View History"
+           className="w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer" />
+        </div>
       </div>
       <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {filteredHotels.length > 0 ? (

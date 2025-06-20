@@ -386,6 +386,9 @@ export default function TopBar({
                     <div className="text-sm text-gray-700 truncate">
                       Rooms: {bk.rooms.join(", ")}
                     </div>
+                    <div className="text-sm text-gray-700">
+                      agent_com: {bk.agentCut || 0}
+                    </div>
                     <div className="flex gap-2 mt-2 flex-wrap">
                       <button
                         onClick={() => handleBookingDecision(bk._id, true)}
