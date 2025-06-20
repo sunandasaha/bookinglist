@@ -8,7 +8,7 @@ import { useContext, useEffect, useState } from "react";
 const AgentHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useContext(Context);
+  const { user, hostHotel } = useContext(Context);
   const navigate = useRouter();
 
   const getData = async () => {
@@ -59,8 +59,8 @@ const AgentHistory = () => {
             <p>
               {" "}
               <strong>📅 From: </strong>{" "}
-              {new Date(booking.fromDate).toLocaleDateString()} →
-              <strong>To:</strong>{" "}
+              {new Date(booking.fromDate).toLocaleDateString()} <br />
+              <strong> 📅To:</strong>{" "}
               {new Date(booking.toDate).toLocaleDateString()}
             </p>
             <p>

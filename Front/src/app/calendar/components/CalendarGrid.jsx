@@ -421,6 +421,18 @@ export default function CalendarGrid({
               <strong className="text-blue-500">Advance:</strong> ₹
               {fetchedBooking.advanceAmount}
             </div>
+            {fetchedBooking.agent_Id && (
+              <>
+                <div className="border-t border-black-200 my-2 pt-2">
+                    <strong className="text-blue-500">Agent:</strong>{" "}
+                    {fetchedBooking.agent_Id.name}
+                </div>
+                <div>
+                    <strong className="text-blue-500">Agent Amount:</strong> ₹
+                    {(fetchedBooking.agentCut).toFixed(2)}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
