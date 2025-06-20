@@ -23,7 +23,7 @@ export default function Dashboard() {
       soc.emit("host-con", { hotelid: hosthotel?._id });
       setSocket(soc);
     }
-  }, []);
+  }, [hosthotel]);
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-gray-50">
@@ -32,11 +32,14 @@ export default function Dashboard() {
         setSelectedDate={setSelectedDate}
         searchBID={searchBID}
         setSearchBID={setSearchBID}
-        setBookings = {setBookings}
-
+        setBookings={setBookings}
       />
-      <CalendarGrid startDate={selectedDate} searchBID={searchBID} bookings = {bookings} setBookings = {setBookings}
- />
+      <CalendarGrid
+        startDate={selectedDate}
+        searchBID={searchBID}
+        bookings={bookings}
+        setBookings={setBookings}
+      />
     </div>
   );
 }

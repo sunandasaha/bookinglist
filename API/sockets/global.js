@@ -12,8 +12,6 @@ const getio = () => {
 
 const sendNewBook = (id, bok) => {
   const sid = hid.get(id);
-  console.log(sid, id);
-
   if (io && sid) {
     io.to(sid).emit("new-booking", bok);
   }

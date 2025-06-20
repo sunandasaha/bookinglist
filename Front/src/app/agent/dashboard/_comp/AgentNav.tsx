@@ -25,8 +25,10 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
     }
   }, [user, navigate]);
 
-  const filteredHotels = hotels.filter((h) =>
-    h.name.toLowerCase().includes(search.toLowerCase()) || h.location.toLowerCase().includes(search.toLowerCase())
+  const filteredHotels = hotels.filter(
+    (h) =>
+      h.name.toLowerCase().includes(search.toLowerCase()) ||
+      h.location.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -48,16 +50,16 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
           />
         </div>
-          <div className="flex items-center gap-5">   
-
-        <User
-          onClick={() => setPr(true)}
-          className=" w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
-        />
-       <History 
-           onClick={() => navigate.push("/agent/history")}
-           aria-label="View History"
-           className="w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer" />
+        <div className="flex items-center gap-5">
+          <User
+            onClick={() => setPr(true)}
+            className=" w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
+          />
+          <History
+            onClick={() => navigate.push("/agent/history")}
+            aria-label="View History"
+            className="w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
+          />
         </div>
       </div>
       <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -66,14 +68,13 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
             <div
               key={i}
               onClick={() => navigate.push(`/agent/dashboard/${hotel.url}`)}
-
-
               className="border rounded-lg p-4 bg-gray shadow hover:shadow-md cursor-pointer transition duration-200"
             >
               <h3 className="text-lg font-bold text-gray-900"> {hotel.name}</h3>
               <p className="text-gray-600"> 📍Location :{hotel.location}</p>
-              <p className="text-blue-600 text-sm truncate">  🌐URL :
-                {hotel.url}
+              <p className="text-blue-600 text-sm truncate">
+                {" "}
+                🌐URL :{hotel.url}
               </p>
             </div>
           ))
