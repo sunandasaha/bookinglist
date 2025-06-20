@@ -58,7 +58,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setIsEditing(false);
     }
   };
-  const { totalPrice, advanceAmount, agentCut } = useMemo(() => {
+  const { totalPrice, advanceAmount } = useMemo(() => {
     if (
       !hosthotel ||
       !booking?.roomNames?.length ||
@@ -131,19 +131,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
 
       let  total = totalBase + extraCharges + childCharge;
-      let agentCut = 0;
-
-    if (room_cat.agent_com) {
-      agentCut =room_cat.agent_com.percent
-        ? (room_cat.agent_com.amount / 100) * total
-        : room_cat.agent_com.amount || 0;
-      total -= calculatedAgentCut;
-    }
-
       return {
         totalPrice: parseFloat((totalBase + extraCharges + childCharge).toFixed(2)),
         advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-        agentCut : parseFloat(agentCut.toFixed(2)),
       };
     }
     // PER PERSON PRICING LOGIC
@@ -223,16 +213,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       const minRate1 = allRate1s.length > 0 ? Math.min(...allRate1s) : 0;
       const childCharge = age_6_10 * 0.5 * minRate1 * nights;
       let total = totalBase + childCharge;
-       if (pay_percent_cat.agentCommission) {
-    agentCut = pay_percent_cat.agentCommission.percent
-      ? (pay_percent_cat.agentCommission.amount / 100) * total
-      : pay_percent_cat.agentCommission.amount || 0;
-    total -= agentCut;
-  }
   return {
         totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
         advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-        agentCut : parseFloat(agentCut.toFixed(2)),
       };
     }
     return { totalPrice: 0, advanceAmount: 0 };
@@ -258,7 +241,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       age_6_10: Number(formData.age_6_10),
       totalPrice,
       advanceAmount,
-      agentCut,
     };
     console.log(bookingPayload);
 

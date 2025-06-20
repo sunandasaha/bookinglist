@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Search, User, History } from "lucide-react";
 import PopEffect from "../../../_components/PopEffect";
 import AgentProfile from "./AgentProfile";
+import AgentHistory from "../../history/page.jsx";
 
 type Hotel = {
   name: string;
@@ -18,6 +19,7 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
   const navigate = useRouter();
   const [pr, setPr] = useState(false);
   const [search, setSearch] = useState("");
+  const [showHistory , setShowHistory] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== "agent") {
@@ -56,7 +58,7 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
             className=" w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
           />
           <History
-            onClick={() => navigate.push("/agent/history")}
+            onClick={() => setShowHistory(true)}
             aria-label="View History"
             className="w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
           />
@@ -91,7 +93,17 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
           </div>
         </PopEffect>
       )}
+      {showHistory && (
+        <PopEffect cb = { () => setPr(false)}>
+          <div className = "flex flex-col items-center gap-10 max-w-4xl w-full">
+            <AgentHistory />
+
+          </div>
+        </PopEffect>
+        
+      )}
     </div>
+    
   );
 };
 
