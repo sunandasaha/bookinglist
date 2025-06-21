@@ -288,8 +288,8 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           >
             <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
               <p>
-                <strong>From:</strong> {format(booking.from, "MMM dd")} -{" "}
-                <strong>To:</strong> {format(booking.to, "MMM dd")}
+                <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
+                <strong>Checkout:</strong> {format(booking.to, "MMM dd")}
               </p>
               <p>
                 <strong>Rooms:</strong> {booking.roomNames.join(", ")}
@@ -457,7 +457,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
             </p>
             <p>
               <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
-              <strong>Checkout:</strong> {format(booking.from, "MMM dd")}
+              <strong>Checkout:</strong> {format(booking.to, "MMM dd")}
             </p>
             <p>
               <strong>Rooms:</strong> {booking.roomNames.join(", ")}

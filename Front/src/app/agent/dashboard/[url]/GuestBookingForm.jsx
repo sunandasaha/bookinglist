@@ -494,8 +494,8 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               <strong>6–10 yrs:</strong> {formData.age_6_10}
             </p>
             <p>
-              <strong>From</strong> {format(booking.from, "MMM dd")} -{" "}
-              <strong>To</strong> {format(booking.from, "MMM dd")}
+              <strong>Checkin</strong> {format(booking.from, "MMM dd")} -{" "}
+              <strong>Checkout</strong> {format(booking.to, "MMM dd")}
             </p>
             <p>
               <strong>Rooms:</strong> {booking.roomNames.join(", ")}

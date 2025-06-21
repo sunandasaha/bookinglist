@@ -145,7 +145,7 @@ export default function CalendarGrid({ startDate }) {
     const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, d]) => d);
     const from = dates[Math.min(...dateIndices)];
-    const to = dates[Math.max(...dateIndices)];
+    const to = addDays(dates[Math.max(...dateIndices)], 1);
     setSelectedBooking({
       from,
       to,
