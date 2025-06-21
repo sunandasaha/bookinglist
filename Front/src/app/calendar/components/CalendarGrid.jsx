@@ -433,7 +433,35 @@ export default function CalendarGrid({
                 </div>
               </>
             )}
-          </div>
+            <div className="mt-4 flex justify-center gap-3">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                onClick={() => {
+                  console.log("Reschedule clicked", fetchedBooking._id);
+                  // Open modal to reschedule
+                }}
+              >
+                Reschedule
+              </button>
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Are you sure you want to cancel booking ID ${fetchedBooking._id}?`
+                    )
+                  ) {
+                    console.log("Cancel confirmed", fetchedBooking._id);
+                    // Call cancel API 
+                  }
+                }}
+              >
+                Cancel Booking
+              </button>
+            </div>
+
+           
+        </div>
         </div>
       )}
     </div>
