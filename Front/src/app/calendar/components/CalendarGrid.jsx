@@ -3,7 +3,7 @@ import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
-import { site } from "../../_utils/request";
+import { putReq, site } from "../../_utils/request";
 import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 
@@ -424,12 +424,12 @@ export default function CalendarGrid({
             {fetchedBooking.agent_Id && (
               <>
                 <div className="border-t border-black-200 my-2 pt-2">
-                    <strong className="text-blue-500">Agent:</strong>{" "}
-                    {fetchedBooking.agent_Id.name}
+                  <strong className="text-blue-500">Agent:</strong>{" "}
+                  {fetchedBooking.agent_Id.name}
                 </div>
                 <div>
-                    <strong className="text-blue-500">Agent Amount:</strong> ₹
-                    {(fetchedBooking.agentCut).toFixed(2)}
+                  <strong className="text-blue-500">Agent Amount:</strong> ₹
+                  {fetchedBooking.agentCut.toFixed(2)}
                 </div>
               </>
             )}
@@ -445,23 +445,34 @@ export default function CalendarGrid({
               </button>
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                onClick={() => {
+                onClick={async () => {
                   if (
                     confirm(
                       `Are you sure you want to cancel booking ID ${fetchedBooking._id}?`
                     )
                   ) {
                     console.log("Cancel confirmed", fetchedBooking._id);
-                    // Call cancel API 
+                    // Call cancel API
+                    const res = await putReq(
+                      "guestbooking/status",
+                      {
+                        id: fetchedBooking._id,
+                        can: true,
+                      },
+                      user.token
+                    );
+                    console.log(res);
+
+                    if (res.success) {
+                      setBookings((p) => [...p]);
+                    }
                   }
                 }}
               >
                 Cancel Booking
               </button>
             </div>
-
-           
-        </div>
+          </div>
         </div>
       )}
     </div>

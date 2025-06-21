@@ -8,7 +8,11 @@ const {
 } = require("../controler/guestcon");
 
 const { authUser, chkHost, chkAgent } = require("../middleware/auth");
-const { getBookings, updateBooking } = require("../controler/upbookingcon");
+const {
+  getBookings,
+  updateBooking,
+  cancelBooking,
+} = require("../controler/upbookingcon");
 
 const guestroute = express.Router();
 
@@ -22,5 +26,6 @@ guestroute.get("/bookings/:id", getBookingById);
 guestroute.post("/pending", authUser, chkHost, updateBooking);
 guestroute.get("/agent", authUser, chkAgent, getAgentBookings);
 guestroute.get("/host", authUser, chkHost, getHotelBookings);
+guestroute.put("/status", authUser, chkHost, cancelBooking);
 
 module.exports = guestroute;

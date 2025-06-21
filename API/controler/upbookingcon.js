@@ -68,12 +68,14 @@ const updateBooking = async (req, res) => {
 };
 
 const cancelBooking = async (req, res) => {
-  const id = req.params.id || req.body.id;
+  const { id, can } = req.body;
   if (!id) {
     res.json({ success: false, status: "no id" });
   } else {
     try {
       const book = await GuestModel.findById(id);
+      console.log(book);
+
       if (!book) {
         res.json({ success: false, status: "nfailed" });
       } else {
@@ -81,7 +83,7 @@ const cancelBooking = async (req, res) => {
           await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
         }
         book.ub_ids = [];
-        book.status = 3;
+        book.status = can ? 3 : 4;
         book.save();
       }
       res.json({ success: true, status: "success" });
