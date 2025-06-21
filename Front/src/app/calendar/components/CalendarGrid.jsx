@@ -138,7 +138,7 @@ export default function CalendarGrid({
       const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
       const toDate = new Date(b.to).setHours(0, 0, 0, 0);
 
-      return cellDate >= fromDate && cellDate < toDate;
+      return cellDate >= fromDate && cellDate <= toDate;
     });
   };
 
@@ -195,7 +195,7 @@ export default function CalendarGrid({
     const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, d]) => d);
     const from = dates[Math.min(...dateIndices)];
-    const to = addDays(dates[Math.max(...dateIndices)], 1);
+    const to = dates[Math.max(...dateIndices)];
     setSelectedBooking({
       from,
       to,
@@ -407,7 +407,8 @@ export default function CalendarGrid({
             </div>
             <div>
               <strong className="text-blue-500">Checkout:</strong>{" "}
-              {format(new Date(fetchedBooking.toDate), "dd MMM yyyy")}
+              {format(addDays(new Date(fetchedBooking.toDate), 1), "dd MMM yyyy")}
+
             </div>
             <div>
               <strong className="text-blue-500">Adults:</strong>{" "}
