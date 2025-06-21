@@ -130,6 +130,8 @@ const resheduleBooking = async (req, res) => {
         }
       }
       bok.ub_ids = temp;
+      bok.fromDate = data.fromDate;
+      bok.toDate = data.toDate;
       bok.rooms = troom;
       bok.status = 1;
       bok.save();
