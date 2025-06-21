@@ -6,6 +6,7 @@ import GuestBookingForm from "./GuestBookingForm";
 import { putReq, site } from "../../_utils/request";
 import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
+import RescheduleModal from "./RescheduleModal";
 
 export default function CalendarGrid({
   startDate,
@@ -20,8 +21,9 @@ export default function CalendarGrid({
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [fetchedBooking, setFetchedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
-  const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =
-    useState(false);
+  const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+
 
   const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
@@ -134,9 +136,9 @@ export default function CalendarGrid({
 
       const cellDate = new Date(date).setHours(0, 0, 0, 0);
       const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
-      const toDate = new Date(b.to).setHours(23, 59, 59, 999);
+      const toDate = new Date(b.to).setHours(0, 0, 0, 0);
 
-      return cellDate >= fromDate && cellDate <= toDate;
+      return cellDate >= fromDate && cellDate < toDate;
     });
   };
 
@@ -193,7 +195,7 @@ export default function CalendarGrid({
     const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, d]) => d);
     const from = dates[Math.min(...dateIndices)];
-    const to = dates[Math.max(...dateIndices)];
+    const to = addDays(dates[Math.max(...dateIndices)], 1);
     setSelectedBooking({
       from,
       to,
@@ -400,11 +402,11 @@ export default function CalendarGrid({
               {fetchedBooking.rooms?.join(", ")}
             </div>
             <div>
-              <strong className="text-blue-500">From:</strong>{" "}
+              <strong className="text-blue-500">Checkin:</strong>{" "}
               {format(new Date(fetchedBooking.fromDate), "dd MMM yyyy")}
             </div>
             <div>
-              <strong className="text-blue-500">To:</strong>{" "}
+              <strong className="text-blue-500">Checkout:</strong>{" "}
               {format(new Date(fetchedBooking.toDate), "dd MMM yyyy")}
             </div>
             <div>
@@ -423,56 +425,81 @@ export default function CalendarGrid({
             </div>
             {fetchedBooking.agent_Id && (
               <>
-                <div className="border-t border-black-200 my-2 pt-2">
-                  <strong className="text-blue-500">Agent:</strong>{" "}
-                  {fetchedBooking.agent_Id.name}
+                <div className="border-t border-black-200 ">
+                    <strong className="text-black-500">👤Agent:</strong>{" "}
+                    {fetchedBooking.agent_Id.name}
                 </div>
                 <div>
-                  <strong className="text-blue-500">Agent Amount:</strong> ₹
-                  {fetchedBooking.agentCut.toFixed(2)}
+                    <strong className="text-black-500">🏢Agency:</strong> {" "}
+                    {fetchedBooking.agent_Id.agency}
+                </div>
+                <div>
+                    <strong className="text-black-500"> 📍Location:</strong> {" "}
+                    {fetchedBooking.agent_Id.location}
+                </div>
+                <div>
+                    <strong className="text-black-500"> 💬whatsapp:</strong> {" "}
+                    {fetchedBooking.agent_Id.ph1}
+                </div>
+                <div>
+                    <strong className="text-black-500"> 💰Commission:</strong> ₹
+                    {(fetchedBooking.agentCut).toFixed(2)}
                 </div>
               </>
             )}
-            <div className="mt-4 flex justify-center gap-3">
-              <button
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                onClick={() => {
-                  console.log("Reschedule clicked", fetchedBooking._id);
-                  // Open modal to reschedule
-                }}
-              >
-                Reschedule
-              </button>
-              <button
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                onClick={async () => {
-                  if (
-                    confirm(
-                      `Are you sure you want to cancel booking ID ${fetchedBooking._id}?`
-                    )
-                  ) {
-                    console.log("Cancel confirmed", fetchedBooking._id);
-                    // Call cancel API
-                    const res = await putReq(
-                      "guestbooking/status",
-                      {
-                        id: fetchedBooking._id,
-                        can: true,
-                      },
-                      user.token
-                    );
-                    console.log(res);
+            {fetchedBooking.status === 1 && (
+            
+              <div className="mt-4 flex justify-center gap-3">
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onClick={() => {
+                    console.log("Reschedule clicked", fetchedBooking._id);
+                    setShowRescheduleModal(true); 
+                  }}
 
-                    if (res.success) {
-                      setBookings((p) => [...p]);
+                >
+                  Reschedule
+                </button>
+                <button
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                  onClick={async () => {
+                    if (
+                      confirm(
+                        `Are you sure you want to cancel booking ID ${fetchedBooking._id}?`
+                      )
+                    ) {
+                      console.log("Cancel confirmed", fetchedBooking._id);
+                      const res = await putReq(
+                        "guestbooking/status",
+                        {
+                          id: fetchedBooking._id,
+                          can: true,
+                        },
+                        user.token
+                      );
+                      console.log(res);
+
+                      if (res.success) {
+                        setBookings((p) => [...p]);
+                        setFetchedBooking(null);
+                        
+                      }
                     }
-                  }
-                }}
-              >
-                Cancel Booking
-              </button>
-            </div>
-          </div>
+                  }}
+                >
+                  Cancel Booking
+                </button>
+              </div>
+            )} 
+             {showRescheduleModal && fetchedBooking && (
+            <RescheduleModal
+                booking={fetchedBooking}
+                onClose={() => setShowRescheduleModal(false)}
+            />
+            )}  
+
+           
+        </div>
         </div>
       )}
     </div>

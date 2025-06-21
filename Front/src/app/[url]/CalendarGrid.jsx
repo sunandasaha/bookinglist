@@ -86,9 +86,9 @@ export default function CalendarGrid({ startDate }) {
       if (b.room !== roomName) return false;
       const cellDate = new Date(date).setHours(0, 0, 0, 0);
       const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
-      const toDate = new Date(b.to).setHours(23, 59, 59, 999);
+      const toDate = new Date(b.to).setHours(0, 0, 0, 0);
       
-      return cellDate >= fromDate && cellDate <= toDate;
+      return cellDate >= fromDate && cellDate < toDate;
     });
   };
 
