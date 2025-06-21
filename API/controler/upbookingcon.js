@@ -74,8 +74,6 @@ const cancelBooking = async (req, res) => {
   } else {
     try {
       const book = await GuestModel.findById(id);
-      console.log(book);
-
       if (!book) {
         res.json({ success: false, status: "nfailed" });
       } else {
@@ -93,4 +91,59 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-module.exports = { getBookings, updateBooking, cancelBooking };
+const resheduleBooking = async (req, res) => {
+  const data = req.body;
+  const bok = await GuestModel.findById(data.bid);
+
+  if (bok.ub_ids.length > 0) {
+    for (let i = 0; i < bok.ub_ids.length; i++) {
+      await UpBookModel.findByIdAndDelete(bok.ub_ids[i]);
+    }
+  }
+  bok.ub_ids = [];
+
+  const chk = await UpBookModel.find({
+    hotelId: req.user.sid,
+    fromDate: { $lte: data.toDate },
+    toDate: { $gte: data.fromDate },
+  });
+
+  if (chk.length + data.nrooms > data.catrooms.length) {
+    res.json({ success: false, status: "rooms not available" });
+  } else {
+    if (bok) {
+      const temp = [];
+      const troom = [];
+      for (let i = 0; data.nrooms > 0 && i < data.catrooms.length; i++) {
+        if (!chk.some((e) => e.room === data.catrooms[i])) {
+          const up = await UpBookModel.create({
+            hotelId: req.user.sid,
+            room: data.catrooms[i],
+            booking_id: data.bid,
+            fromDate: data.fromDate,
+            toDate: data.toDate,
+            confirmed: true,
+          });
+          temp.push(up._id);
+          troom.push(data.catrooms[i]);
+          data.nrooms -= 1;
+        }
+      }
+      bok.ub_ids = temp;
+      bok.rooms = troom;
+      bok.status = 1;
+      bok.save();
+
+      res.json({ success: true, status: "reshedule successful" });
+    } else {
+      res.json({ success: false, status: "booking not found" });
+    }
+  }
+};
+
+module.exports = {
+  getBookings,
+  updateBooking,
+  cancelBooking,
+  resheduleBooking,
+};

@@ -8,24 +8,20 @@ import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 import RescheduleModal from "./RescheduleModal";
 
-export default function CalendarGrid({
-  startDate,
-  searchBID,
-  bookings,
-  setBookings,
-}) {
+export default function CalendarGrid({ startDate, searchBID }) {
   const [dates, setDates] = useState([]);
   const [startCell, setStartCell] = useState(null);
+  const [bookings, setBookings] = useState([]);
   const [endCell, setEndCell] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [fetchedBooking, setFetchedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
-  const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =useState(false);
+  const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =
+    useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
 
-
-  const { hosthotel, user } = useContext(Context);
+  const { hosthotel, user, pending, setPending } = useContext(Context);
   const containerRef = useRef(null);
   const getCellClass = (roomName, date, rIdx, dIdx) => {
     const booking = getBookingForCell(roomName, date);
@@ -57,6 +53,8 @@ export default function CalendarGrid({
       });
 
       const data = await res.json();
+      console.log(data);
+
       const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
 
       setBookings(
@@ -128,7 +126,7 @@ export default function CalendarGrid({
 
   useEffect(() => {
     if (hosthotel?._id && startDate) getBookings();
-  }, [hosthotel, startDate, bookings]);
+  }, [hosthotel, startDate, pending]);
 
   const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
@@ -426,37 +424,35 @@ export default function CalendarGrid({
             {fetchedBooking.agent_Id && (
               <>
                 <div className="border-t border-black-200 ">
-                    <strong className="text-black-500">👤Agent:</strong>{" "}
-                    {fetchedBooking.agent_Id.name}
+                  <strong className="text-black-500">👤Agent:</strong>{" "}
+                  {fetchedBooking.agent_Id.name}
                 </div>
                 <div>
-                    <strong className="text-black-500">🏢Agency:</strong> {" "}
-                    {fetchedBooking.agent_Id.agency}
+                  <strong className="text-black-500">🏢Agency:</strong>{" "}
+                  {fetchedBooking.agent_Id.agency}
                 </div>
                 <div>
-                    <strong className="text-black-500"> 📍Location:</strong> {" "}
-                    {fetchedBooking.agent_Id.location}
+                  <strong className="text-black-500"> 📍Location:</strong>{" "}
+                  {fetchedBooking.agent_Id.location}
                 </div>
                 <div>
-                    <strong className="text-black-500"> 💬whatsapp:</strong> {" "}
-                    {fetchedBooking.agent_Id.ph1}
+                  <strong className="text-black-500"> 💬whatsapp:</strong>{" "}
+                  {fetchedBooking.agent_Id.ph1}
                 </div>
                 <div>
-                    <strong className="text-black-500"> 💰Commission:</strong> ₹
-                    {(fetchedBooking.agentCut).toFixed(2)}
+                  <strong className="text-black-500"> 💰Commission:</strong> ₹
+                  {fetchedBooking.agentCut.toFixed(2)}
                 </div>
               </>
             )}
             {fetchedBooking.status === 1 && (
-            
               <div className="mt-4 flex justify-center gap-3">
                 <button
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                   onClick={() => {
                     console.log("Reschedule clicked", fetchedBooking._id);
-                    setShowRescheduleModal(true); 
+                    setShowRescheduleModal(true);
                   }}
-
                 >
                   Reschedule
                 </button>
@@ -480,9 +476,8 @@ export default function CalendarGrid({
                       console.log(res);
 
                       if (res.success) {
-                        setBookings((p) => [...p]);
+                        setPending((p) => [...p]);
                         setFetchedBooking(null);
-                        
                       }
                     }
                   }}
@@ -490,16 +485,14 @@ export default function CalendarGrid({
                   Cancel Booking
                 </button>
               </div>
-            )} 
-             {showRescheduleModal && fetchedBooking && (
-            <RescheduleModal
+            )}
+            {showRescheduleModal && fetchedBooking && (
+              <RescheduleModal
                 booking={fetchedBooking}
                 onClose={() => setShowRescheduleModal(false)}
-            />
-            )}  
-
-           
-        </div>
+              />
+            )}
+          </div>
         </div>
       )}
     </div>

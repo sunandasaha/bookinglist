@@ -33,7 +33,6 @@ export default function TopBar({
   setSelectedDate,
   searchBID,
   setSearchBID,
-  setBookings,
 }) {
   const {
     hosthotel,
@@ -110,20 +109,10 @@ export default function TopBar({
     if (socket) {
       socket.on("new-booking", (bok) => {
         setPending((p) => [...p, bok]);
-
-        const temp = bok.rooms.map((el) => ({
-          booking_id: bok._id,
-          fromDate: new Date(bok.fromDate),
-          toDate: new Date(bok.toDate),
-          room: el,
-          confirmed: false,
-        }));
-        setBookings((prev) => [...prev, ...temp]);
       });
 
       socket.on("pen-success", ({ id }) => {
         setPending((p) => p.filter((el) => el._id !== id));
-        //setBookings(prev => prev.filter(el => el._id !== id));
       });
     }
     return () => {
@@ -132,7 +121,7 @@ export default function TopBar({
         socket.off("pen-success");
       }
     };
-  }, [socket, setBookings]);
+  }, [socket]);
 
   return (
     <div className="w-full px-6 py-4 flex items-center justify-between bg-white shadow-md z-50 relative">

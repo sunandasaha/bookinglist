@@ -1,9 +1,45 @@
 "use client";
-import { useState } from "react";
-import { format } from "date-fns";
+import { useContext, useState } from "react";
+import { format, toDate } from "date-fns";
+import { Context } from "../../_components/ContextProvider";
+import { putReq } from "../../_utils/request";
 
 export default function RescheduleModal({ booking, onClose }) {
   const [showForm, setShowForm] = useState(false);
+  const { setPending, hosthotel, user } = useContext(Context);
+  const [dates, setDates] = useState({
+    from: booking.fromDate.slice(0, 10),
+    to: booking.toDate.slice(0, 10),
+  });
+
+  const reschedule = async () => {
+    let cat;
+    if (hosthotel.pay_per.room) {
+      cat = hosthotel.room_cat.find((e) =>
+        e.room_no.includes(booking.rooms[0])
+      );
+    } else {
+      cat = hosthotel.per_person_cat.find((e) =>
+        e.roomNumbers.includes(booking.rooms[0])
+      );
+    }
+    const res = await putReq(
+      "guestbooking/reschedule",
+      {
+        catrooms: hosthotel.pay_per.room ? cat.room_no : cat.roomNumbers,
+        fromDate: new Date(dates.from),
+        toDate: new Date(dates.to),
+        bid: booking._id,
+        nrooms: booking.rooms.length,
+      },
+      user.token
+    );
+
+    if (res.success) {
+      setPending((p) => [...p]);
+      onClose();
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
@@ -19,24 +55,43 @@ export default function RescheduleModal({ booking, onClose }) {
           Reschedule Booking
         </h2>
         <div className="space-y-2 text-sm mb-4">
-          <div><strong>Name:</strong> {booking.name}</div>
-          <div><strong>Phone:</strong> {booking.phone}</div>
-          <div><strong>Room(s):</strong> {booking.rooms?.join(", ")}</div>
+          <div>
+            <strong>Name:</strong> {booking.name}
+          </div>
+          <div>
+            <strong>Phone:</strong> {booking.phone}
+          </div>
+          <div>
+            <strong>Room(s):</strong> {booking.rooms?.join(", ")}
+          </div>
           <div>
             <strong>Current Stay:</strong>{" "}
             {format(new Date(booking.fromDate), "dd MMM yyyy")} -{" "}
             {format(new Date(booking.toDate), "dd MMM yyyy")}
           </div>
           <div>
-            <strong>Number of rooms:</strong>{booking.rooms?.length}
+            <strong>Number of rooms:</strong>
+            {booking.rooms?.length}
           </div>
         </div>
         {!showForm ? (
           <div className="flex justify-center gap-4">
             <button
               className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-              onClick={() => {
+              onClick={async () => {
                 console.log("Hold action"); // hold
+                const res = await putReq(
+                  "guestbooking/status",
+                  {
+                    id: fetchedBooking._id,
+                    can: false,
+                  },
+                  user.token
+                );
+                if (res.success) {
+                  setPending((p) => [...p]);
+                  onClose();
+                }
               }}
             >
               Hold
@@ -54,16 +109,22 @@ export default function RescheduleModal({ booking, onClose }) {
               <label className="block text-sm font-medium">From Date:</label>
               <input
                 type="date"
-                defaultValue={booking.fromDate.slice(0, 10)}
+                value={dates.from}
                 className="border px-3 py-1 rounded w-full"
+                onChange={(e) => {
+                  setDates((p) => ({ ...p, from: e.target.value }));
+                }}
               />
             </div>
             <div>
               <label className="block text-sm font-medium">To Date:</label>
               <input
                 type="date"
-                defaultValue={booking.toDate.slice(0, 10)}
+                value={dates.to}
                 className="border px-3 py-1 rounded w-full"
+                onChange={(e) => {
+                  setDates((p) => ({ ...p, to: e.target.value }));
+                }}
               />
             </div>
             <div className="flex justify-end gap-3">
@@ -79,7 +140,7 @@ export default function RescheduleModal({ booking, onClose }) {
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log("Submit updated dates"); //submit
+                  reschedule(); //submit
                 }}
               >
                 Submit
@@ -87,8 +148,6 @@ export default function RescheduleModal({ booking, onClose }) {
             </div>
           </form>
         )}
-
-
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ const {
   getBookings,
   updateBooking,
   cancelBooking,
+  resheduleBooking,
 } = require("../controler/upbookingcon");
 
 const guestroute = express.Router();
@@ -27,5 +28,6 @@ guestroute.post("/pending", authUser, chkHost, updateBooking);
 guestroute.get("/agent", authUser, chkAgent, getAgentBookings);
 guestroute.get("/host", authUser, chkHost, getHotelBookings);
 guestroute.put("/status", authUser, chkHost, cancelBooking);
+guestroute.put("/reschedule", authUser, chkHost, resheduleBooking);
 
 module.exports = guestroute;
