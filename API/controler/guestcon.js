@@ -8,6 +8,8 @@ const { sendNewBook } = require("../sockets/global");
 const createBooking = async (req, res) => {
   try {
     const data = req.body;
+    console.log(data.fromDate);
+
     const fromDate = new Date(data.fromDate.substring(0, 10));
     const toDate = new Date(data.toDate.substring(0, 10));
     if (!data.hotelId) {
@@ -33,7 +35,8 @@ const createBooking = async (req, res) => {
         message: "Already booked",
       });
     } else {
-      const bookingid = "BK" + Date.now().toString() + randomInt(100, 999);
+      const bookingid =
+        "BK" + Date.now().toString().substring(3) + randomInt(100, 999);
       const temp = [];
       for (let i = 0; i < data.rooms.length; i++) {
         const up = await UpBookModel.create({
@@ -151,15 +154,21 @@ const getCheckedBookings = async (req, res) => {
     if (det === "tb") {
       bok = await GuestModel.find({
         hotelId: req.user.sid,
+        status: { $in: [1, 11] },
         fromDate: { $lte: date },
         toDate: { $gte: date },
       });
     } else {
       bok =
         det === "checkin"
-          ? await GuestModel.find({ hotelId: req.user.sid, fromDate: date })
+          ? await GuestModel.find({
+              hotelId: req.user.sid,
+              fromDate: date,
+              status: 1,
+            })
           : await GuestModel.find({
               hotelId: req.user.sid,
+              status: 11,
               toDate: new Date(new Date().setDate(date.getDate() - 1)),
             });
     }
