@@ -61,12 +61,20 @@ const CheckDetails = ({ params }) => {
       }
     }
   };
+   const handleCheckout = async (id) => {
+    if (confirm("Are you sure to mark this guest as checked out?")) {
+      // code
+      alert("Checked out!");
+    }
+  };
 
   const updatePriceField = (id, field, value) => {
     setPriceDetails((prev) => ({
       ...prev,
       [id]: { ...prev[id], [field]: value },
+       
     }));
+     
   };
 
   const calculateFinal = (b) => {
@@ -84,6 +92,7 @@ const CheckDetails = ({ params }) => {
       [b._id]: {
         ...prev[b._id],
         finalPrice: Math.max(final, 0).toFixed(2),
+        showCheckout: true,
       },
     }));
   };
@@ -193,6 +202,14 @@ const CheckDetails = ({ params }) => {
                     <div className="text-sm font-semibold text-indigo-600">
                       Total Amount: ₹{priceDetails[b._id].finalPrice}
                     </div>
+                  )}
+                  {priceDetails[b._id]?.showCheckout && (
+                    <button
+                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      onClick={() => handleCheckout(b._id)}
+                    >
+                      Checkout
+                    </button>
                   )}
                 </div>
               )}
