@@ -122,8 +122,6 @@ const resheduleBooking = async (req, res) => {
       const troom = [];
       for (let i = 0; data.nrooms > 0 && i < data.catrooms.length; i++) {
         if (!chk.some((e) => e.room === data.catrooms[i])) {
-          console.log(data.catrooms[i]);
-
           const up = await UpBookModel.create({
             hotelId: req.user.sid,
             room: data.catrooms[i],

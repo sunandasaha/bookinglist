@@ -85,7 +85,7 @@ export default function RescheduleModal({ booking, onClose }) {
                 const res = await putReq(
                   "guestbooking/status",
                   {
-                    id: fetchedBooking._id,
+                    id: booking._id,
                     can: false,
                   },
                   user.token

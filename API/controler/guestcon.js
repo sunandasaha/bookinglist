@@ -139,6 +139,8 @@ const getHotelBookings = async (req, res) => {
   }
 };
 
+const getCheckedBookings = async (req, res) => {};
+
 module.exports = {
   createBooking,
   getBookingById,
