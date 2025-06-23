@@ -11,7 +11,7 @@ const getBookings = async (req, res) => {
       });
     } else {
       const startDate = req.headers.sdate
-        ? new Date(req.headers.sdate)
+        ? new Date(req.headers.sdate.substring(0, 10))
         : new Date();
       const endDate = new Date(new Date().setDate(startDate.getDate() + 7));
       const hotelId = req.headers.hotelid;
