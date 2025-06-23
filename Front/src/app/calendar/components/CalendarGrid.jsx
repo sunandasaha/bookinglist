@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
-import { format, addDays, isWithinInterval } from "date-fns";
+import { format, addDays } from "date-fns";
 import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
 import { putReq, site } from "../../_utils/request";
@@ -131,12 +131,11 @@ export default function CalendarGrid({ startDate, searchBID }) {
   const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
       if (!b.room.includes(roomName)) return false;
-
-      const cellDate = new Date(date).setHours(0, 0, 0, 0);
-      const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
-      const toDate = new Date(b.to).setHours(0, 0, 0, 0);
-
+      const cellDate = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
+      const fromDate = new Date(new Date(b.from).toISOString().substring(0, 10)).getTime();
+      const toDate = new Date(new Date(b.to).toISOString().substring(0, 10)).getTime();
       return cellDate >= fromDate && cellDate <= toDate;
+
     });
   };
 
@@ -255,8 +254,8 @@ export default function CalendarGrid({ startDate, searchBID }) {
             Availability
           </div>
           {dates.map((date, i) => {
-            const dateStart = new Date(date).setHours(0, 0, 0, 0);
-            const dateEnd = new Date(date).setHours(23, 59, 59, 999);
+            const dateStart = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
+            const dateEnd = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
 
             let bookedCount = 0;
 
@@ -264,8 +263,8 @@ export default function CalendarGrid({ startDate, searchBID }) {
               const roomName = rooms[r]?.name;
               const booking = bookings.find((b) => {
                 if (b.room !== roomName) return false;
-                const from = new Date(b.from).setHours(0, 0, 0, 0);
-                const to = new Date(b.to).setHours(23, 59, 59, 999);
+                const from = new Date(new Date(b.from).toISOString().substring(0, 10)).getTime();
+                const to = new Date(new Date(b.to).toISOString().substring(0, 10)).getTime();
                 return dateStart >= from && dateStart <= to;
               });
               if (booking) bookedCount++;
