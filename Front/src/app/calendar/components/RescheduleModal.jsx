@@ -1,6 +1,6 @@
 "use client";
 import { useContext, useState } from "react";
-import { format, toDate } from "date-fns";
+import { format, addDays } from "date-fns";
 import { Context } from "../../_components/ContextProvider";
 import { putReq } from "../../_utils/request";
 
@@ -65,13 +65,17 @@ export default function RescheduleModal({ booking, onClose }) {
             <strong>Room(s):</strong> {booking.rooms?.join(", ")}
           </div>
           <div>
-            <strong>Current Stay:</strong>{" "}
-            {format(new Date(booking.fromDate), "dd MMM yyyy")} -{" "}
-            {format(new Date(booking.toDate), "dd MMM yyyy")}
-          </div>
-          <div>
             <strong>Number of rooms:</strong>
             {booking.rooms?.length}
+          </div>
+          <div>
+            <strong>Checkin:</strong>{" "}
+            {format(new Date(booking.fromDate), "dd MMM yyyy")}
+          </div>
+          <div>
+             <strong>Checkout:</strong>{" "}
+
+            {format(addDays(new Date(booking.toDate), 1) , "dd MMM yyyy")}
           </div>
         </div>
         {!showForm ? (
