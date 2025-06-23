@@ -96,33 +96,23 @@ const CheckDetails = ({ params }) => {
               <div className="text-sm text-gray-700">
                 🛏️ Rooms: {b.rooms?.join(", ")}
               </div>
-
-              {det === "checkin" && (
-                <>
-                  <div>
-                    <label className="flex items-center gap-2 text-red-600 mt-2">
-                      <input
-                        type="checkbox"
-                        onChange={(e) => {
-                          if (e.target.checked) handleCancel(b._id);
-                        }}
-                      />
-                      Didn't Arrive (Cancel Booking)
-                    </label>
-                  </div>
-                  <div>
-                    <label className="flex items-center gap-2 text-green-600 mt-2">
-                      <input
-                        type="checkbox"
-                        onChange={(e) => {
-                          if (e.target.checked) handleIn(b._id);
-                        }}
-                      />
-                      Check-in
-                    </label>
-                  </div>
-                </>
+               {det === "checkin" && (
+                <div className="flex gap-4 mt-2">
+                  <button
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                    onClick={() => handleCancel(b._id)}
+                  >
+                    Didn't Arrive
+                  </button>
+                  <button
+                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                    onClick={() => handleIn(b._id)}
+                  >
+                    Check-in
+                  </button>
+                </div>
               )}
+
 
               {(det === "checkout" || (det === "tb" && earlyOpen[b._id])) && (
                 <div className="space-y-2">
