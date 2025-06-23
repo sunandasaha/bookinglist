@@ -149,7 +149,12 @@ export default function TopBar({
               <User size={18} className="text-blue-600" />
               <span>Profile</span>
             </button>
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
+            <button
+              onClick={() => {
+                navigate.push("/calendar/checkin");
+              }}
+              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+            >
               <CalendarCheck size={18} className="text-green-600" />
               <span>Check In</span>
             </button>

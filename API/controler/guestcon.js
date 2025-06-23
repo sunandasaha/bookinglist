@@ -8,6 +8,8 @@ const { sendNewBook } = require("../sockets/global");
 const createBooking = async (req, res) => {
   try {
     const data = req.body;
+    const fromDate = new Date(data.fromDate.substring(0, 10));
+    const toDate = new Date(data.toDate.substring(0, 10));
     if (!data.hotelId) {
       return res
         .status(400)
@@ -20,8 +22,8 @@ const createBooking = async (req, res) => {
     const chk = await UpBookModel.findOne({
       hotelId: data.hotelId,
       room: { $in: data.rooms },
-      fromDate: { $lte: data.toDate },
-      toDate: { $gte: data.fromDate },
+      fromDate: { $lte: toDate },
+      toDate: { $gte: fromDate },
     });
 
     if (chk) {
@@ -38,8 +40,8 @@ const createBooking = async (req, res) => {
           hotelId: data.hotelId,
           room: data.rooms[i],
           booking_id: bookingid,
-          fromDate: data.fromDate,
-          toDate: data.toDate,
+          fromDate,
+          toDate,
           confirmed: req.user?.role === "host" ? true : false,
         });
         temp.push(up._id);
@@ -49,6 +51,8 @@ const createBooking = async (req, res) => {
         ...data,
         _id: bookingid,
         ub_ids: temp,
+        fromDate,
+        toDate,
         status: req.user?.role === "host" ? 1 : 0,
         agent_Id: req.user?.role === "agent" ? req.user.sid : null,
       });
@@ -139,7 +143,28 @@ const getHotelBookings = async (req, res) => {
   }
 };
 
-const getCheckedBookings = async (req, res) => {};
+const getCheckedBookings = async (req, res) => {
+  const det = req.params.det;
+  const date = new Date(new Date().toISOString().substring(0, 10));
+  if (det) {
+    let bok;
+    if (det === "tb") {
+      bok = await GuestModel.find({
+        hotelId: req.user.sid,
+        fromDate: { $lte: date },
+        toDate: { $gte: date },
+      });
+    } else {
+      bok =
+        det === "checkin"
+          ? await GuestModel.find({ hotelId: req.user.sid, fromDate: date })
+          : await GuestModel.find({ hotelId: req.user.sid, toDate: date });
+    }
+    res.json({ success: true, bookings: bok });
+  } else {
+    res.json({ success: false });
+  }
+};
 
 module.exports = {
   createBooking,
@@ -147,4 +172,5 @@ module.exports = {
   deleteBooking,
   getAgentBookings,
   getHotelBookings,
+  getCheckedBookings,
 };
