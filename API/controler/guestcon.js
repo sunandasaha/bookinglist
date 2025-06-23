@@ -158,7 +158,10 @@ const getCheckedBookings = async (req, res) => {
       bok =
         det === "checkin"
           ? await GuestModel.find({ hotelId: req.user.sid, fromDate: date })
-          : await GuestModel.find({ hotelId: req.user.sid, toDate: date });
+          : await GuestModel.find({
+              hotelId: req.user.sid,
+              toDate: new Date(new Date().setDate(date.getDate() - 1)),
+            });
     }
     res.json({ success: true, bookings: bok });
   } else {
