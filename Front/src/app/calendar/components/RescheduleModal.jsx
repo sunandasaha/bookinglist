@@ -38,6 +38,8 @@ export default function RescheduleModal({ booking, onClose }) {
     if (res.success) {
       setPending((p) => [...p]);
       onClose();
+    } else {
+      console.log(res);
     }
   };
 
