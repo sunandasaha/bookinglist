@@ -490,7 +490,9 @@ export default function CalendarGrid({ startDate, searchBID }) {
             {showRescheduleModal && fetchedBooking && (
               <RescheduleModal
                 booking={fetchedBooking}
-                onClose={() => setShowRescheduleModal(false)}
+                onClose={() => {setShowRescheduleModal(false);
+                   setFetchedBooking(null);}
+                }
               />
             )}
           </div>
