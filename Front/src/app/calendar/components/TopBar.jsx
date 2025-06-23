@@ -158,12 +158,17 @@ export default function TopBar({
               <CalendarCheck size={18} className="text-green-600" />
               <span>Check In</span>
             </button>
-            <button className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black">
+            <button 
+            onClick={() => {
+                navigate.push("/calendar/checkout");
+              }}
+            className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+            >
               <CalendarX size={18} className="text-red-600" />
               <span>Check Out</span>
             </button>
             <button
-              onClick={handleToday}
+              onClick={() => navigate.push("/calendar/tb")}
               className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
             >
               <Bed size={18} className="text-indigo-600" />

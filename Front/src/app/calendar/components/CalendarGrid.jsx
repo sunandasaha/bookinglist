@@ -131,11 +131,10 @@ export default function CalendarGrid({ startDate, searchBID }) {
   const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
       if (!b.room.includes(roomName)) return false;
-      const cellDate = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
-      const fromDate = new Date(new Date(b.from).toISOString().substring(0, 10)).getTime();
-      const toDate = new Date(new Date(b.to).toISOString().substring(0, 10)).getTime();
-      return cellDate >= fromDate && cellDate <= toDate;
-
+      const cellDate = new Date(date).setHours(0, 0, 0, 0);
+      const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
+      const toDate = new Date(b.to).setHours(0, 0, 0, 0);
+       return cellDate >= fromDate && cellDate <= toDate;
     });
   };
 
@@ -191,8 +190,11 @@ export default function CalendarGrid({ startDate, searchBID }) {
     if (selectedCells.length === 0) return;
     const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, d]) => d);
-    const from = dates[Math.min(...dateIndices)];
-    const to = dates[Math.max(...dateIndices)];
+    const fromDate = dates[Math.min(...dateIndices)];
+    const toDate = dates[Math.max(...dateIndices)];
+    const from = format(fromDate, "yyyy-MM-dd");
+    const to = format(toDate, "yyyy-MM-dd");
+    
     setSelectedBooking({
       from,
       to,
@@ -265,7 +267,7 @@ export default function CalendarGrid({ startDate, searchBID }) {
                 if (b.room !== roomName) return false;
                 const from = new Date(new Date(b.from).toISOString().substring(0, 10)).getTime();
                 const to = new Date(new Date(b.to).toISOString().substring(0, 10)).getTime();
-                return dateStart >= from && dateStart <= to;
+                return dateStart >= from && dateStart < to;
               });
               if (booking) bookedCount++;
             }

@@ -10,6 +10,7 @@ const createBooking = async (req, res) => {
     const data = req.body;
     const fromDate = new Date(data.fromDate.substring(0, 10));
     const toDate = new Date(data.toDate.substring(0, 10));
+
     if (!data.hotelId) {
       return res
         .status(400)
