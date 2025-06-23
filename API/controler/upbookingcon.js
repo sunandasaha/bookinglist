@@ -13,7 +13,11 @@ const getBookings = async (req, res) => {
       const startDate = req.headers.sdate
         ? new Date(req.headers.sdate.substring(0, 10))
         : new Date();
-      const endDate = new Date(new Date().setDate(startDate.getDate() + 7));
+      const endDate = new Date(
+        new Date(new Date().setDate(startDate.getDate() + 7))
+          .toISOString()
+          .substring(0, 10)
+      );
       const hotelId = req.headers.hotelid;
 
       const chk = await UpBookModel.find({
@@ -75,13 +79,38 @@ const cancelBooking = async (req, res) => {
     try {
       const book = await GuestModel.findById(id);
       if (!book) {
-        res.json({ success: false, status: "nfailed" });
+        res.json({ success: false, status: "failed" });
       } else {
         for (let i = 0; i < book.ub_ids.length; i++) {
           await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
         }
         book.ub_ids = [];
         book.status = can ? 3 : 4;
+        book.save();
+      }
+      res.json({ success: true, status: "success" });
+    } catch (error) {
+      res.json({ success: false, status: "failed" });
+    }
+  }
+};
+
+const checkoutBooking = async (req, res) => {
+  const { id, amountPaid } = req.body;
+  if (!id) {
+    res.json({ success: false, status: "no id" });
+  } else {
+    try {
+      const book = await GuestModel.findById(id);
+      if (!book) {
+        res.json({ success: false, status: "failed" });
+      } else {
+        for (let i = 0; i < book.ub_ids.length; i++) {
+          await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
+        }
+        book.ub_ids = [];
+        book.status = 12;
+        book.amountPaid = amountPaid;
         book.save();
       }
       res.json({ success: true, status: "success" });
@@ -154,4 +183,5 @@ module.exports = {
   updateBooking,
   cancelBooking,
   resheduleBooking,
+  checkoutBooking,
 };

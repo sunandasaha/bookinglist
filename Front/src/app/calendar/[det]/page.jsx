@@ -19,7 +19,6 @@ const CheckDetails = ({ params }) => {
     const res = await getReq("guestbooking/chk/" + par, user?.token);
     if (res.success) {
       setBookings(res.bookings);
-      console.log("SET BOOKINGS: ", res.bookings);
     } else {
       console.log(res);
     }
@@ -27,13 +26,39 @@ const CheckDetails = ({ params }) => {
 
   const handleCancel = async (id) => {
     if (confirm("Are you sure you want to cancel this booking?")) {
-      //code
+      const res = await putReq(
+        "guestbooking/status",
+        {
+          id,
+          can: true,
+        },
+        user.token
+      );
+      if (res.success) {
+        setBookings((p) => {
+          const copy = p.filter((e) => e._id !== id);
+          return copy;
+        });
+      }
     }
   };
 
   const handleIn = async (id) => {
     if (confirm("Mark this guest as checked in?")) {
-      //code
+      const res = await putReq(
+        "guestbooking/stat",
+        {
+          id,
+          status: 11,
+        },
+        user.token
+      );
+      if (res.success) {
+        setBookings((p) => {
+          const copy = p.filter((e) => e._id !== id);
+          return copy;
+        });
+      }
     }
   };
 
@@ -91,12 +116,17 @@ const CheckDetails = ({ params }) => {
               className="border rounded p-4 shadow-sm bg-gray-50 space-y-2"
             >
               <div className="font-semibold text-lg">{b.name}</div>
-              <div className="text-sm text-gray-700">💬 whatsapp {b.whatsapp}</div>
-              <div className="text-sm text-gray-700"> 💰 price : {b.totalPrice}</div>
+              <div className="text-sm text-gray-700">
+                💬 whatsapp {b.whatsapp}
+              </div>
+              <div className="text-sm text-gray-700">
+                {" "}
+                💰 price : {b.totalPrice}
+              </div>
               <div className="text-sm text-gray-700">
                 🛏️ Rooms: {b.rooms?.join(", ")}
               </div>
-               {det === "checkin" && (
+              {det === "checkin" && (
                 <div className="flex gap-4 mt-2">
                   <button
                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
@@ -112,7 +142,6 @@ const CheckDetails = ({ params }) => {
                   </button>
                 </div>
               )}
-
 
               {(det === "checkout" || (det === "tb" && earlyOpen[b._id])) && (
                 <div className="space-y-2">
@@ -139,7 +168,9 @@ const CheckDetails = ({ params }) => {
                     />
                     <select
                       className="border px-2 py-1 rounded"
-                      value={priceDetails[b._id]?.isPercent ? "percent" : "rupee"}
+                      value={
+                        priceDetails[b._id]?.isPercent ? "percent" : "rupee"
+                      }
                       onChange={(e) =>
                         updatePriceField(
                           b._id,

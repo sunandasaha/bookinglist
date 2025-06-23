@@ -147,6 +147,18 @@ const getHotelBookings = async (req, res) => {
   }
 };
 
+const changeStatus = async (req, res) => {
+  const { id, status } = req.body;
+  const booking = await GuestModel.findById(id);
+  if (booking) {
+    booking.status = status;
+    booking.save();
+    res.json({ success: true });
+  } else {
+    res.json({ success: false });
+  }
+};
+
 const getCheckedBookings = async (req, res) => {
   const det = req.params.det;
   const date = new Date(new Date().toISOString().substring(0, 10));
@@ -170,7 +182,11 @@ const getCheckedBookings = async (req, res) => {
           : await GuestModel.find({
               hotelId: req.user.sid,
               status: 11,
-              toDate: new Date(new Date().setDate(date.getDate() - 1)),
+              toDate: new Date(
+                new Date(new Date().setDate(date.getDate() - 1))
+                  .toISOString()
+                  .substring(0, 10)
+              ),
             });
     }
     res.json({ success: true, bookings: bok });
@@ -186,4 +202,5 @@ module.exports = {
   getAgentBookings,
   getHotelBookings,
   getCheckedBookings,
+  changeStatus,
 };
