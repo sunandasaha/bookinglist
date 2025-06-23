@@ -31,6 +31,12 @@ const CheckDetails = ({ params }) => {
     }
   };
 
+  const handleIn = async (id) => {
+    if (confirm("Mark this guest as checked in?")) {
+      //code
+    }
+  };
+
   const updatePriceField = (id, field, value) => {
     setPriceDetails((prev) => ({
       ...prev,
@@ -92,15 +98,30 @@ const CheckDetails = ({ params }) => {
               </div>
 
               {det === "checkin" && (
-                <label className="flex items-center gap-2 text-red-600 mt-2">
-                  <input
-                    type="checkbox"
-                    onChange={(e) => {
-                      if (e.target.checked) handleCancel(b._id);
-                    }}
-                  />
-                  Didn't Arrive (Cancel Booking)
-                </label>
+                <>
+                  <div>
+                    <label className="flex items-center gap-2 text-red-600 mt-2">
+                      <input
+                        type="checkbox"
+                        onChange={(e) => {
+                          if (e.target.checked) handleCancel(b._id);
+                        }}
+                      />
+                      Didn't Arrive (Cancel Booking)
+                    </label>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-green-600 mt-2">
+                      <input
+                        type="checkbox"
+                        onChange={(e) => {
+                          if (e.target.checked) handleIn(b._id);
+                        }}
+                      />
+                      Check-in
+                    </label>
+                  </div>
+                </>
               )}
 
               {(det === "checkout" || (det === "tb" && earlyOpen[b._id])) && (
