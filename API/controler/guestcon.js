@@ -143,6 +143,8 @@ const getHotelBookings = async (req, res) => {
         createdAt: -1,
       })
       .limit(50);
+      console.log("Bookings for hotel:", req.user.sid);
+      console.log(bookings);
     res.json({ success: true, bookings });
   }
 };

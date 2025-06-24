@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider";
 import { getReq, putReq } from "../../_utils/request";
+import PopEffect from "../../_components/PopEffect";
 import React, { useContext, useEffect, useState } from "react";
 
 const CheckDetails = ({ params }) => {
@@ -117,6 +118,7 @@ const CheckDetails = ({ params }) => {
   }, []);
 
   return (
+     <PopEffect cb = {()=> navigate.back() } >
     <div className="p-4 space-y-4">
       <h2 className="text-xl font-bold capitalize">
         {det === "checkin"
@@ -176,6 +178,8 @@ const CheckDetails = ({ params }) => {
                         updatePriceField(b._id, "extra", e.target.value)
                       }
                     />
+                  </div>
+                  <div  className="flex items-center gap-2 flex-wrap">
                     <label className="text-sm">Discount:</label>
                     <input
                       type="number"
@@ -240,9 +244,14 @@ const CheckDetails = ({ params }) => {
             </div>
           ))}
         </div>
+        
       )}
+     
     </div>
+    </PopEffect>
+  
   );
+  
 };
 
 export default CheckDetails;
