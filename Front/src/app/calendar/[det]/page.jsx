@@ -94,7 +94,7 @@ const CheckDetails = ({ params }) => {
     const extra = parseFloat(dets.extra) || 0;
     const discount = parseFloat(dets.discount) || 0;
     const isPercent = dets.isPercent;
-    const base = b.totalPrice;
+    const base = b.totalPrice - b.advanceAmount;
 
     const discountValue = isPercent ? (discount / 100) * base : discount;
     const final = base + extra - discountValue;
@@ -143,7 +143,7 @@ const CheckDetails = ({ params }) => {
               </div>
               <div className="text-sm text-gray-700">
                 {" "}
-                💰 price : {b.totalPrice}
+                💰 balance : { b.totalPrice - b.advanceAmount}
               </div>
               <div className="text-sm text-gray-700">
                 🛏️ Rooms: {b.rooms?.join(", ")}
