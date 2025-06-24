@@ -76,6 +76,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
       const result = await res.json();
       if (result.status === "success") {
         setFetchedBooking(result.booking);
+         console.log(result.booking);
       } else {
         alert("No booking found for ID: " + bookingId);
       }
@@ -455,7 +456,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
                 </div>
               </>
             )}
-            {fetchedBooking.status === 1 || fetchedBooking.status === 4 && (
+            {(fetchedBooking.status === 1 || fetchedBooking.status === 4 ) && (
               <div className="mt-4 flex justify-center gap-3">
                 <button
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
