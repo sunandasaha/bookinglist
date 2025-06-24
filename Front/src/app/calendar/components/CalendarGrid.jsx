@@ -77,7 +77,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
       if (result.status === "success") {
         setFetchedBooking(result.booking);
       } else {
-        console.error("Error:", result.message);
+        alert("No booking found for ID: " + bookingId);
       }
     } catch (err) {
       console.error("Fetch error:", err);
@@ -122,17 +122,8 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
     if (hosthotel?._id && startDate) getBookings();
   }, [hosthotel, startDate, pending]);
   useEffect(() => {
-    if (!searchBID || bookings.length === 0) return;
-
-    const matched = bookings.find((b) =>
-      b.booking_id.toLowerCase().includes(searchBID.toLowerCase())
-    );
-
-    if (matched) {
-      fetchBookingDetails(matched.booking_id);
-    } else {
-      alert("No booking found for ID: " + searchBID);
-    }
+    if (!searchBID) return;
+    fetchBookingDetails(searchBID);
   }, [searchTrigger]);
 
   const getBookingForCell = (roomName, date) => {

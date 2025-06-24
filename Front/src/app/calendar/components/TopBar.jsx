@@ -1,6 +1,8 @@
 "use client";
 import { useState, useContext, useEffect } from "react";
-import {format,startOfMonth,
+import {
+  format,
+  startOfMonth,
   endOfMonth,
   eachDayOfInterval,
   startOfDay,
@@ -33,7 +35,6 @@ export default function TopBar({
   searchBID,
   setSearchBID,
   setSearchTrigger,
-
 }) {
   const {
     hosthotel,
@@ -98,8 +99,10 @@ export default function TopBar({
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    console.log("yolo");
+
     setSearchOpen(false);
-    setSearchTrigger(prev => prev + 1);
+    setSearchTrigger((prev) => prev + 1);
   };
 
   const openProfile = () => {
@@ -160,11 +163,11 @@ export default function TopBar({
               <CalendarCheck size={18} className="text-green-600" />
               <span>Check In</span>
             </button>
-            <button 
-            onClick={() => {
+            <button
+              onClick={() => {
                 navigate.push("/calendar/checkout");
               }}
-            className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
             >
               <CalendarX size={18} className="text-red-600" />
               <span>Check Out</span>
