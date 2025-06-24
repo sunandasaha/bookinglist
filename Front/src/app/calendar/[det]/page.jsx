@@ -61,10 +61,23 @@ const CheckDetails = ({ params }) => {
       }
     }
   };
-   const handleCheckout = async (id) => {
+  const handleCheckout = async (id, amo) => {
     if (confirm("Are you sure to mark this guest as checked out?")) {
-      // code
-      alert("Checked out!");
+      const res = await putReq(
+        "guestbooking/checkout",
+        {
+          id,
+          amountPaid: amo,
+        },
+        user.token
+      );
+      if (res.success) {
+        setBookings((p) => {
+          const copy = p.filter((e) => e._id !== id);
+          return copy;
+        });
+        alert("Checked out!");
+      }
     }
   };
 
@@ -72,9 +85,7 @@ const CheckDetails = ({ params }) => {
     setPriceDetails((prev) => ({
       ...prev,
       [id]: { ...prev[id], [field]: value },
-       
     }));
-     
   };
 
   const calculateFinal = (b) => {
@@ -206,7 +217,9 @@ const CheckDetails = ({ params }) => {
                   {priceDetails[b._id]?.showCheckout && (
                     <button
                       className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      onClick={() => handleCheckout(b._id)}
+                      onClick={() =>
+                        handleCheckout(b._id, priceDetails[b._id].finalPrice)
+                      }
                     >
                       Checkout
                     </button>

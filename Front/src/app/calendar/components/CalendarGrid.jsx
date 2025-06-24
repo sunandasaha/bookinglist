@@ -134,7 +134,7 @@ export default function CalendarGrid({ startDate, searchBID }) {
       const cellDate = new Date(date).setHours(0, 0, 0, 0);
       const fromDate = new Date(b.from).setHours(0, 0, 0, 0);
       const toDate = new Date(b.to).setHours(0, 0, 0, 0);
-       return cellDate >= fromDate && cellDate <= toDate;
+      return cellDate >= fromDate && cellDate <= toDate;
     });
   };
 
@@ -194,7 +194,7 @@ export default function CalendarGrid({ startDate, searchBID }) {
     const toDate = dates[Math.max(...dateIndices)];
     const from = format(fromDate, "yyyy-MM-dd");
     const to = format(toDate, "yyyy-MM-dd");
-    
+
     setSelectedBooking({
       from,
       to,
@@ -256,8 +256,12 @@ export default function CalendarGrid({ startDate, searchBID }) {
             Availability
           </div>
           {dates.map((date, i) => {
-            const dateStart = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
-            const dateEnd = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
+            const dateStart = new Date(
+              new Date(date).toISOString().substring(0, 10)
+            ).getTime();
+            const dateEnd = new Date(
+              new Date(date).toISOString().substring(0, 10)
+            ).getTime();
 
             let bookedCount = 0;
 
@@ -265,8 +269,12 @@ export default function CalendarGrid({ startDate, searchBID }) {
               const roomName = rooms[r]?.name;
               const booking = bookings.find((b) => {
                 if (b.room !== roomName) return false;
-                const from = new Date(new Date(b.from).toISOString().substring(0, 10)).getTime();
-                const to = new Date(new Date(b.to).toISOString().substring(0, 10)).getTime();
+                const from = new Date(
+                  new Date(b.from).toISOString().substring(0, 10)
+                ).getTime();
+                const to = new Date(
+                  new Date(b.to).toISOString().substring(0, 10)
+                ).getTime();
                 return dateStart >= from && dateStart < to;
               });
               if (booking) bookedCount++;
@@ -406,8 +414,10 @@ export default function CalendarGrid({ startDate, searchBID }) {
             </div>
             <div>
               <strong className="text-blue-500">Checkout:</strong>{" "}
-              {format(addDays(new Date(fetchedBooking.toDate), 1), "dd MMM yyyy")}
-
+              {format(
+                addDays(new Date(fetchedBooking.toDate), 1),
+                "dd MMM yyyy"
+              )}
             </div>
             <div>
               <strong className="text-blue-500">Adults:</strong>{" "}
@@ -488,12 +498,14 @@ export default function CalendarGrid({ startDate, searchBID }) {
                 </button>
               </div>
             )}
+
             {showRescheduleModal && fetchedBooking && (
               <RescheduleModal
                 booking={fetchedBooking}
-                onClose={() => {setShowRescheduleModal(false);
-                   setFetchedBooking(null);}
-                }
+                onClose={() => {
+                  setShowRescheduleModal(false);
+                  setFetchedBooking(null);
+                }}
               />
             )}
           </div>
