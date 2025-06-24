@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Context } from "../../_components/ContextProvider";
 import { getReq, putReq } from "../../_utils/request";
+import PopEffect from "../../_components/PopEffect";
 import React, { useContext, useEffect, useState } from "react";
 
 const CheckDetails = ({ params }) => {
@@ -106,6 +107,7 @@ const CheckDetails = ({ params }) => {
   }, []);
 
   return (
+     <PopEffect cb={() => navigate.back()}>
     <div className="p-4 space-y-4">
       <h2 className="text-xl font-bold capitalize">
         {det === "checkin"
@@ -117,7 +119,7 @@ const CheckDetails = ({ params }) => {
 
       {bookings.length === 0 ? (
         <p className="text-gray-500">No bookings found for today.</p>
-      ) : (
+        ) : (
         <div className="space-y-4">
           {bookings.map((b) => (
             <div
@@ -155,6 +157,7 @@ const CheckDetails = ({ params }) => {
               {(det === "checkout" || (det === "tb" && earlyOpen[b._id])) && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
+                  <div>
                     <label className="text-sm">Extra (₹):</label>
                     <input
                       type="number"
@@ -165,6 +168,8 @@ const CheckDetails = ({ params }) => {
                         updatePriceField(b._id, "extra", e.target.value)
                       }
                     />
+                  </div>
+                  <div  className="flex items-center gap-2">
                     <label className="text-sm">Discount:</label>
                     <input
                       type="number"
@@ -175,6 +180,7 @@ const CheckDetails = ({ params }) => {
                         updatePriceField(b._id, "discount", e.target.value)
                       }
                     />
+
                     <select
                       className="border px-2 py-1 rounded"
                       value={
@@ -188,9 +194,11 @@ const CheckDetails = ({ params }) => {
                         )
                       }
                     >
+
                       <option value="rupee">₹</option>
                       <option value="percent">%</option>
                     </select>
+                  </div>
                     <button
                       onClick={() => calculateFinal(b)}
                       className="ml-2 px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
@@ -229,6 +237,7 @@ const CheckDetails = ({ params }) => {
         </div>
       )}
     </div>
+    </PopEffect>
   );
 };
 

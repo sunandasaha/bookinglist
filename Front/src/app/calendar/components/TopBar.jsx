@@ -51,6 +51,7 @@ export default function TopBar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNot, setShowNot] = useState(false);
   const navigate = useRouter();
+  const [Popup , setPopup] = useState(null);
 
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
