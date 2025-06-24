@@ -10,6 +10,7 @@ import { site } from "../../_utils/request";
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchBID, setSearchBID] = useState("");
+  const [searchTrigger, setSearchTrigger] = useState(0);
   const { user, hosthotel, socket, setSocket } = useContext(Context);
   const navigate = useRouter();
 
@@ -31,8 +32,9 @@ export default function Dashboard() {
         setSelectedDate={setSelectedDate}
         searchBID={searchBID}
         setSearchBID={setSearchBID}
+        setSearchTrigger = {setSearchTrigger}
       />
-      <CalendarGrid startDate={selectedDate} searchBID={searchBID} />
+      <CalendarGrid startDate={selectedDate} searchBID={searchBID} searchTrigger={searchTrigger} />
     </div>
   );
 }

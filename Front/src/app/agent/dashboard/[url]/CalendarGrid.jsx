@@ -144,8 +144,10 @@ export default function CalendarGrid({ startDate }) {
     if (selectedCells.length === 0) return;
     const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
     const dateIndices = selectedCells.map(([_, d]) => d);
-    const from = dates[Math.min(...dateIndices)];
-    const to = dates[Math.max(...dateIndices)];
+    const fromDate = dates[Math.min(...dateIndices)];
+    const toDate = dates[Math.max(...dateIndices)];
+    const from = format(fromDate, "yyyy-MM-dd");
+    const to = format(toDate, "yyyy-MM-dd");
     setSelectedBooking({
       from,
       to,
@@ -203,8 +205,8 @@ export default function CalendarGrid({ startDate }) {
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-100 text-sm text-gray-800 font-medium">
         <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
           {dates.map((date, i) => {
-            const dateStart = new Date(date).setHours(0, 0, 0, 0);
-            const dateEnd = new Date(date).setHours(23, 59, 59, 999);
+            const dateStart = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
+            const dateEnd = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
 
             let bookedCount = 0;
 
@@ -212,9 +214,9 @@ export default function CalendarGrid({ startDate }) {
               const roomName = rooms[r]?.name;
               const booking = bookings.find((b) => {
                 if (b.room !== roomName) return false;
-                const from = new Date(b.from).setHours(0, 0, 0, 0);
-                const to = new Date(b.to).setHours(23, 59, 59, 999);
-                return dateStart >= from && dateStart <= to;
+                const from = new Date(new Date(b.from).toISOString().substring(0, 10)).getTime();
+                const to = new Date(new Date(b.to).toISOString().substring(0, 10)).getTime();
+                return dateStart >= from && dateStart < to;
               });
               if (booking) bookedCount++;
             }
