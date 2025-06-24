@@ -157,7 +157,7 @@ const CheckDetails = ({ params }) => {
               {(det === "checkout" || (det === "tb" && earlyOpen[b._id])) && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                  <div>
+                  <div className = "flex items-center gap-2">
                     <label className="text-sm">Extra (₹):</label>
                     <input
                       type="number"
@@ -205,7 +205,7 @@ const CheckDetails = ({ params }) => {
                     >
                       Final Price
                     </button>
-                  </div>
+                </div>
                   {priceDetails[b._id]?.finalPrice && (
                     <div className="text-sm font-semibold text-indigo-600">
                       Total Amount: ₹{priceDetails[b._id].finalPrice}

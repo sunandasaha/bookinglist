@@ -1,8 +1,6 @@
 "use client";
 import { useState, useContext, useEffect } from "react";
-import {
-  format,
-  startOfMonth,
+import {format,startOfMonth,
   endOfMonth,
   eachDayOfInterval,
   startOfDay,
@@ -24,6 +22,7 @@ import {
 
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
+import PopEffect from "../../_components/PopEffect";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
 import { postReq, site } from "../../_utils/request.ts";
@@ -33,6 +32,8 @@ export default function TopBar({
   setSelectedDate,
   searchBID,
   setSearchBID,
+  setSearchTrigger,
+
 }) {
   const {
     hosthotel,
@@ -51,7 +52,6 @@ export default function TopBar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNot, setShowNot] = useState(false);
   const navigate = useRouter();
-  const [Popup , setPopup] = useState(null);
 
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
@@ -99,6 +99,7 @@ export default function TopBar({
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setSearchOpen(false);
+    setSearchTrigger(prev => prev + 1);
   };
 
   const openProfile = () => {
@@ -323,16 +324,13 @@ export default function TopBar({
         />
       )}
       {showRoomsPricing && (
-        <div className="absolute top-16 left-0 right-0 z-40 bg-white border-t shadow-md p-4">
-          <RoomsPricing pricingType={hosthotel?.pricingType} />
-          <button
-            onClick={() => setShowRoomsPricing(false)}
-            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-          >
-            Close
-          </button>
-        </div>
+        <PopEffect cb={() => setShowRoomsPricing(false)}>
+          <div className="bg-white p-4 rounded-md shadow-md max-w-xl w-full">
+            <RoomsPricing pricingType={hosthotel?.pricingType} />
+          </div>
+        </PopEffect>
       )}
+
       {showNot && (
         <>
           <div

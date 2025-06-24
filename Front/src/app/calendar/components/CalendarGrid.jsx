@@ -8,7 +8,7 @@ import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 import RescheduleModal from "./RescheduleModal";
 
-export default function CalendarGrid({ startDate, searchBID }) {
+export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
   const [dates, setDates] = useState([]);
   const [startCell, setStartCell] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -18,24 +18,18 @@ export default function CalendarGrid({ startDate, searchBID }) {
   const [fetchedBooking, setFetchedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =
-    useState(false);
+  useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
 
   const { hosthotel, user, pending, setPending } = useContext(Context);
   const containerRef = useRef(null);
   const getCellClass = (roomName, date, rIdx, dIdx) => {
     const booking = getBookingForCell(roomName, date);
-    const isHighlighted =
-      booking &&
-      searchBID &&
-      booking.booking_id.toLowerCase().includes(searchBID.toLowerCase());
-
     const selected = isSelected(rIdx, dIdx);
 
     return clsx(
       "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
       selected && "bg-blue-300",
-      isHighlighted && "bg-yellow-300",
       booking && "bg-green-500 text-white",
       !booking && !selected && "hover:bg-blue-100"
     );
@@ -127,6 +121,21 @@ export default function CalendarGrid({ startDate, searchBID }) {
   useEffect(() => {
     if (hosthotel?._id && startDate) getBookings();
   }, [hosthotel, startDate, pending]);
+  useEffect(() => {
+  if (!searchBID || bookings.length === 0) return;
+
+  const matched = bookings.find((b) =>
+    b.booking_id.toLowerCase().includes(searchBID.toLowerCase())
+  );
+
+  if (matched) {
+    fetchBookingDetails(matched.booking_id); 
+  }else {
+    alert("No booking found for ID: " + searchBID);
+  }
+  
+}, [ searchTrigger]);
+
 
   const getBookingForCell = (roomName, date) => {
     return bookings.find((b) => {
@@ -256,7 +265,7 @@ export default function CalendarGrid({ startDate, searchBID }) {
             Availability
           </div>
           {dates.map((date, i) => {
-            const dateStart = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
+            const dateStart = new Date(new Date(date).toISOString().substring(0, 10)).getTime(); 
             const dateEnd = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
 
             let bookedCount = 0;
