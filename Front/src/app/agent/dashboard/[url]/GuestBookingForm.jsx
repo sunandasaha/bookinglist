@@ -47,6 +47,24 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
   };
+   const handleSubmit = (e) => {
+    e.preventDefault();
+    const phoneError = validatePhone(formData.phone);
+    const whatsappError = validatePhone(formData.whatsapp);
+    const childCount = Number(formData.children);
+    const age0_5 = Number(formData.age_0_5);
+    const age6_10 = Number(formData.age_6_10);
+    let childError = "";
+    if (childCount != age0_5+age6_10){
+      childError = "Total children must match age 0–5 or  age 6–10";
+    }
+    setErrors({ phone: phoneError, whatsapp: whatsappError,child: childError });
+
+    if (!phoneError && !whatsappError && !childError) {
+      setSubmitted(true);
+      setIsEditing(false);
+    }
+  };
  
   const { totalPrice, advanceAmount, agentCut } = useMemo(() => {
     if (
