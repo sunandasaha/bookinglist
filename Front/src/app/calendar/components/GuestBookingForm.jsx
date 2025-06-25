@@ -65,7 +65,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   }
 
   const selectedRooms = booking.roomNames;
-  const nights = ((new Date(booking.to).setHours(0, 0, 0, 0) - new Date(booking.from).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) + 1;
+  const nights = (addDays((new Date(booking.to), 1).setHours(0, 0, 0, 0) - new Date(booking.from).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) + 1;
 
   const adults = Number(formData.adults) || 0;
   const age_0_5 = Number(formData.age_0_5) || 0;

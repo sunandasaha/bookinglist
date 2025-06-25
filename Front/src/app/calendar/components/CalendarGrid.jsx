@@ -84,30 +84,40 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
       console.error("Fetch error:", err);
     }
   };
-
+  let actualRooms = [];
   const rooms = useMemo(() => {
     if (!hosthotel) return [];
     if (hosthotel.pay_per?.person && hosthotel.per_person_cat) {
-      return hosthotel.per_person_cat.flatMap((cat) =>
+      actualRooms = hosthotel.per_person_cat.flatMap((cat) =>
         cat.roomNumbers.map((name) => ({
           name,
           category: cat.name,
           price: { one: cat.rate1 },
           capacity: cat.capacity,
+          isDummy: false,
         }))
       );
     }
     if (hosthotel.pay_per?.room && hosthotel.room_cat) {
-      return hosthotel.room_cat.flatMap((cat) =>
+      actualRooms = hosthotel.room_cat.flatMap((cat) =>
         cat.room_no.map((name) => ({
           name,
           category: cat.name,
           price: { rate: cat.price },
           capacity: cat.capacity,
+          isDummy: false,
         }))
       );
     }
-    return [];
+    const total = hosthotel.rooms || 0;
+    const missing = total - actualRooms.length;
+    const dummyRooms =  Array.from({length: missing}, (_, i)=>({
+      name: `Room-${actualRooms.length + i + 1}`,
+      category: "Unavailable",
+      isDummy: true,
+
+    }));
+   return [...actualRooms, ...dummyRooms];
   }, [hosthotel]);
 
   useEffect(() => {
@@ -296,7 +306,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
-              onClick={() => setSelectedRoomName(room.name)}
+              onClick={() => { if(!room.isDummy) setSelectedRoomName(room.name) }}
             >
               <div>{room.name}</div>
               <div className="text-xs text-gray-500">
@@ -307,31 +317,35 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
             </div>
             {dates.map((date, dIdx) => {
               const booking = getBookingForCell(room.name, date);
+               const isDummy = room.isDummy;
               return (
                 <div
                   key={dIdx}
-                  className={getCellClass(room.name, date, rIdx, dIdx)}
+                  className={clsx(
+                    "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
+                    isDummy && "bg-gray-300 text-gray-500 cursor-not-allowed",
+                    !isDummy && getCellClass(room.name, date, rIdx, dIdx)
+                  )}
                   onClick={() => {
+                    if (isDummy) return;
                     if (booking) {
                       fetchBookingDetails(booking.booking_id);
                     } else {
                       handleMouseDown(rIdx, dIdx);
                     }
                   }}
-                  onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+                  onMouseEnter={() =>  !isDummy && handleMouseEnter(rIdx, dIdx)}
                   data-room={rIdx}
                   data-date={dIdx}
                 >
-                  {booking ? (
-                    <div className="text-center">
-                      <div className="font-medium">Booked</div>
-                      <div className="text-[10px]">
-                        ID: {booking.booking_id}
-                      </div>
-                    </div>
-                  ) : isSelected(rIdx, dIdx) ? (
-                    "Selected"
-                  ) : null}
+                   {isDummy ? (
+                        <span>Unavailable</span>
+                      ) : booking ? (
+                              <div className="text-center">
+                                <div className="font-medium">Booked</div>
+                                <div className="text-[10px]">ID: {booking.booking_id}</div>
+                              </div>
+                        ) : isSelected(rIdx, dIdx) ? ("Selected") : null}
                 </div>
               );
             })}
