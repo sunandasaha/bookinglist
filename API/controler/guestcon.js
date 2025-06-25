@@ -5,6 +5,7 @@ const UpBookModel = require("../models/UpcomingBookings");
 const { randomInt } = require("crypto");
 const { sendNewBook } = require("../sockets/global");
 const { setFalse } = require("../middleware/bookingQue");
+const { log } = require("console");
 
 const createBooking = async (req, res) => {
   try {
@@ -90,7 +91,12 @@ const getBookingById = async (req, res) => {
         .json({ status: "failed", message: "missing booking id in headers" });
     }
     const booking = await GuestModel.findById(bookingId).populate("agent_Id");
-    if (!booking || booking.hotelId !== req.user.sid) {
+    log(req.user.sid, booking.hotelId.toString());
+    if (
+      !booking ||
+      (booking.hotelId?.toString() !== req.user?.sid &&
+        booking.agent_Id?.toString() !== req.user?.sid)
+    ) {
       return res
         .status(404)
         .json({ status: "failed", message: "missing booking" });

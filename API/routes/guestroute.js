@@ -27,7 +27,7 @@ guestroute.post("/guest", bookingHold, createBooking);
 guestroute.delete("/:id", authUser, chkHost, deleteBooking);
 guestroute.get("/bookings", getBookings);
 guestroute.get("/bookingshost", authUser, chkHost, getBookings);
-guestroute.get("/bookings/:id", getBookingById);
+guestroute.get("/bookings/:id", authUser, getBookingById);
 guestroute.post("/pending", authUser, chkHost, updateBooking);
 guestroute.get("/agent", authUser, chkAgent, getAgentBookings);
 guestroute.get("/host", authUser, chkHost, getHotelBookings);

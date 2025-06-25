@@ -70,13 +70,14 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          authorization: user.token,
         },
       });
 
       const result = await res.json();
       if (result.status === "success") {
         setFetchedBooking(result.booking);
-         console.log(result.booking);
+        console.log(result.booking);
       } else {
         alert("No booking found for ID: " + bookingId);
       }
@@ -111,13 +112,12 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
     }
     const total = hosthotel.rooms || 0;
     const missing = total - actualRooms.length;
-    const dummyRooms =  Array.from({length: missing}, (_, i)=>({
+    const dummyRooms = Array.from({ length: missing }, (_, i) => ({
       name: `Room-${actualRooms.length + i + 1}`,
       category: "Unavailable",
       isDummy: true,
-
     }));
-   return [...actualRooms, ...dummyRooms];
+    return [...actualRooms, ...dummyRooms];
   }, [hosthotel]);
 
   useEffect(() => {
@@ -261,29 +261,31 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
           ))}
         </div>
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-100 text-sm text-gray-800 font-medium">
-          <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
-            {dates.map((date, i) => {
-              const dateStart = new Date(date).setHours(0, 0, 0, 0);
-              let bookedCount = 0;
-              let totalAvailableRooms = 0;
+          <div className="p-2 border-r sticky left-0 bg-gray-100">
+            Availability
+          </div>
+          {dates.map((date, i) => {
+            const dateStart = new Date(date).setHours(0, 0, 0, 0);
+            let bookedCount = 0;
+            let totalAvailableRooms = 0;
 
-              for (let r = 0; r < rooms.length; r++) {
-                const room = rooms[r];
-                if (room.isDummy) continue;
-                
-                totalAvailableRooms++;
-                
-                const booking = bookings.find((b) => {
-                  if (!b.room.includes(room.name)) return false;
-                  const from = new Date(b.from).setHours(0, 0, 0, 0);
-                  const to = new Date(b.to).setHours(0, 0, 0, 0);
-                  return dateStart >= from && dateStart <= to;
-                });
-                
-                if (booking) bookedCount++;
-              }
+            for (let r = 0; r < rooms.length; r++) {
+              const room = rooms[r];
+              if (room.isDummy) continue;
 
-              const free = totalAvailableRooms - bookedCount;
+              totalAvailableRooms++;
+
+              const booking = bookings.find((b) => {
+                if (!b.room.includes(room.name)) return false;
+                const from = new Date(b.from).setHours(0, 0, 0, 0);
+                const to = new Date(b.to).setHours(0, 0, 0, 0);
+                return dateStart >= from && dateStart <= to;
+              });
+
+              if (booking) bookedCount++;
+            }
+
+            const free = totalAvailableRooms - bookedCount;
 
             return (
               <div key={i} className="p-2 bg-green-100 text-center border-r">
@@ -299,7 +301,9 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
-              onClick={() => { if(!room.isDummy) setSelectedRoomName(room.name) }}
+              onClick={() => {
+                if (!room.isDummy) setSelectedRoomName(room.name);
+              }}
             >
               <div>{room.name}</div>
               <div className="text-xs text-gray-500">
@@ -310,7 +314,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
             </div>
             {dates.map((date, dIdx) => {
               const booking = getBookingForCell(room.name, date);
-               const isDummy = room.isDummy;
+              const isDummy = room.isDummy;
               return (
                 <div
                   key={dIdx}
@@ -327,18 +331,22 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
                       handleMouseDown(rIdx, dIdx);
                     }
                   }}
-                  onMouseEnter={() =>  !isDummy && handleMouseEnter(rIdx, dIdx)}
+                  onMouseEnter={() => !isDummy && handleMouseEnter(rIdx, dIdx)}
                   data-room={rIdx}
                   data-date={dIdx}
                 >
-                   {isDummy ? (
-                        <span>Unavailable</span>
-                      ) : booking ? (
-                              <div className="text-center">
-                                <div className="font-medium">Booked</div>
-                                <div className="text-[10px]">ID: {booking.booking_id}</div>
-                              </div>
-                        ) : isSelected(rIdx, dIdx) ? ("Selected") : null}
+                  {isDummy ? (
+                    <span>Unavailable</span>
+                  ) : booking ? (
+                    <div className="text-center">
+                      <div className="font-medium">Booked</div>
+                      <div className="text-[10px]">
+                        ID: {booking.booking_id}
+                      </div>
+                    </div>
+                  ) : isSelected(rIdx, dIdx) ? (
+                    "Selected"
+                  ) : null}
                 </div>
               );
             })}
@@ -463,7 +471,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
                 </div>
               </>
             )}
-            {(fetchedBooking.status === 1 || fetchedBooking.status === 4 ) && (
+            {(fetchedBooking.status === 1 || fetchedBooking.status === 4) && (
               <div className="mt-4 flex justify-center gap-3">
                 <button
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
