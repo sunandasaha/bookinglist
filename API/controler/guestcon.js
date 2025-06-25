@@ -90,7 +90,7 @@ const getBookingById = async (req, res) => {
         .json({ status: "failed", message: "missing booking id in headers" });
     }
     const booking = await GuestModel.findById(bookingId).populate("agent_Id");
-    if (!booking) {
+    if (!booking || booking.hotelId !== req.user.sid) {
       return res
         .status(404)
         .json({ status: "failed", message: "missing booking" });
