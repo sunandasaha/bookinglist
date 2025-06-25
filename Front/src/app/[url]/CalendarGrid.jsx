@@ -203,34 +203,37 @@ export default function CalendarGrid({ startDate }) {
           ))}
         </div>
         <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-100 text-sm text-gray-800 font-medium">
-        <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
-          {dates.map((date, i) => {
-            const dateStart = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
-            const dateEnd = new Date(new Date(date).toISOString().substring(0, 10)).getTime();
+          <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
+            {dates.map((date, i) => {
+              const dateStart = new Date(date).setHours(0, 0, 0, 0);
+              let bookedCount = 0;
+              let totalAvailableRooms = 0;
 
-            let bookedCount = 0;
+              for (let r = 0; r < rooms.length; r++) {
+                const room = rooms[r];
+                if (room.isDummy) continue;
+                
+                totalAvailableRooms++;
+                
+                const booking = bookings.find((b) => {
+                  if (!b.room.includes(room.name)) return false;
+                  const from = new Date(b.from).setHours(0, 0, 0, 0);
+                  const to = new Date(b.to).setHours(0, 0, 0, 0);
+                  return dateStart >= from && dateStart <= to;
+                });
+                
+                if (booking) bookedCount++;
+              }
 
-            for (let r = 0; r < rooms.length; r++) {
-              const roomName = rooms[r]?.name;
-              const booking = bookings.find((b) => {
-                if (b.room !== roomName) return false;
-                const from = new Date(new Date(b.from).toISOString().substring(0, 10)).getTime();
-                const to = new Date(new Date(b.to).toISOString().substring(0, 10)).getTime();
-                return dateStart >= from && dateStart < to;
-              });
-              if (booking) bookedCount++;
-            }
-
-            const free = rooms.length - bookedCount;
+              const free = totalAvailableRooms - bookedCount;
 
             return (
-              <div key={i} className="p-2  bg-green-100 text-center border-r">
+              <div key={i} className="p-2 bg-green-100 text-center border-r">
                 {free} available
               </div>
             );
           })}
         </div>
-
         {rooms.map((room, rIdx) => (
           <div
             key={room.name}
