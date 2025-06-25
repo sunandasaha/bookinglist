@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { X } from "lucide-react";
 import { postReq, getReq } from "../../_utils/request";
@@ -30,6 +30,8 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [submitted, setSubmitted] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [bookingId, setBookingId] = useState("");
+  const [customAdvance, setCustomAdvance] = useState(null);
+
 
   const validatePhone = (number) => {
     const cleaned = number.replace(/\D/g, "");
@@ -52,9 +54,16 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     e.preventDefault();
     const phoneError = validatePhone(formData.phone);
     const whatsappError = validatePhone(formData.whatsapp);
-    setErrors({ phone: phoneError, whatsapp: whatsappError });
+    const childCount = Number(formData.children);
+    const age0_5 = Number(formData.age_0_5);
+    const age6_10 = Number(formData.age_6_10);
+    let childError = "";
+    if (childCount != age0_5+age6_10){
+      childError = "Total children must match age 0–5 or  age 6–10";
+    }
+    setErrors({ phone: phoneError, whatsapp: whatsappError,child: childError });
 
-    if (!phoneError && !whatsappError) {
+    if (!phoneError && !whatsappError && !childError) {
       setSubmitted(true);
       setIsEditing(false);
     }
@@ -151,9 +160,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       remainingAdults -= assign;
       let rate = 0;
       if (assign === 1) rate = cat.rate1 || 0;
-      else if (assign === 2) rate = cat.rate2 || 0;
-      else if (assign === 3) rate = cat.rate3 || 0;
-      else if (assign >= 4) rate = cat.rate4 || 0;
+      else if (assign === 2) rate = cat.rate2*2|| 0;
+      else if (assign === 3) rate = cat.rate3*3 || 0;
+      else if (assign >= 4) rate = cat.rate4*4 || 0;
 
       totalBase += rate * nights;
       if (assign <= capacity) {
@@ -195,15 +204,34 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       advanceAmount: 0
     };
   }
-  const minRate1 = allRate1s.length > 0 ? Math.min(...allRate1s) : 0;
-  const childCharge = age_6_10 * 0.5 * minRate1 * nights;
+  const maxCap = selectedCats.reduce((max, cat) => {
+  return Math.max(max, cat.capacity || 0);
+}, 0);
+
+let rateForChildren = 0;
+for (const cat of selectedCats) {
+  if ((cat.capacity || 0) === maxCap) {
+    if (maxCap === 1) rateForChildren = cat.rate1 || 0;
+    else if (maxCap === 2) rateForChildren = cat.rate2 || 0;
+    else if (maxCap === 3) rateForChildren = cat.rate3 || 0;
+    else if (maxCap >= 4) rateForChildren = cat.rate4 || 0;
+    break;
+  }
+}
+const childCharge = age_6_10 * rateForChildren * nights * 0.5;
 
   return {
     totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
     advanceAmount: parseFloat(totalAdvance.toFixed(2))
   };
 }return { totalPrice: 0, advanceAmount: 0 };
+
 }, [hosthotel, booking, formData.adults, formData.children, formData.age_0_5, formData.age_6_10]);
+useEffect(() => {
+  if (advanceAmount && !customAdvance) {
+    setCustomAdvance(advanceAmount); 
+  }
+}, [advanceAmount]);
 
 const handlePayment = async () => {
     const bookingPayload = {
@@ -217,7 +245,7 @@ const handlePayment = async () => {
       age_0_5: Number(formData.age_0_5),
       age_6_10: Number(formData.age_6_10),
       totalPrice,
-      advanceAmount,
+      advanceAmount: Number(customAdvance ?? advanceAmount),
     };
 
     try {
@@ -340,11 +368,12 @@ const handlePayment = async () => {
                 <input
                   type="number"
                   name="adults"
+                  onWheel={(e) => e.target.blur()} 
                   value={formData.adults}
                   onChange={handleChange}
                   placeholder="Adults"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -353,14 +382,21 @@ const handlePayment = async () => {
                 </label>
                 <input
                   type="number"
+                  onWheel={(e) => e.target.blur()} 
                   name="children"
                   value={formData.children}
                   onChange={handleChange}
                   placeholder="Children"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className=" no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              {errors.child && (
+                  <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
+                    <p>{errors.child}</p>
+                  </div>
+                )}
+
             </div>
             <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
               <div>
@@ -368,11 +404,12 @@ const handlePayment = async () => {
                 <input
                   type="number"
                   name="age_0_5"
+                  onWheel={(e) => e.target.blur()} 
                   value={formData.age_0_5}
                   onChange={handleChange}
                   placeholder="0–5 yrs"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -384,9 +421,10 @@ const handlePayment = async () => {
                   name="age_6_10"
                   value={formData.age_6_10}
                   onChange={handleChange}
+                  onWheel={(e) => e.target.blur()} 
                   placeholder="6–10 yrs"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -442,10 +480,20 @@ const handlePayment = async () => {
               <strong>Total Price:</strong> ₹
               {totalPrice ? totalPrice.toFixed(2) : 0}
             </p>
-            <p>
-              <strong>Advance to Pay:</strong> ₹
-              {advanceAmount ? advanceAmount.toFixed(2) : 0}
-            </p>
+            <div className="w-full max-w-xs">
+            <label className="text-sm text-gray-600 ml-1 font-semibold">
+              Advance to Pay (editable)
+            </label>
+            <input
+              type="number"
+              name="customAdvance"
+              onWheel={(e) => e.target.blur()} 
+              value={customAdvance ?? ""}
+              onChange={(e) => setCustomAdvance(Number(e.target.value))}
+              className="w-full p-3 mt-1 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
 
             <button
               onClick={() => setIsEditing(true)}

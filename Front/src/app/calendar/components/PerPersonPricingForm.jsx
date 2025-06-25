@@ -317,8 +317,9 @@ const PerPersonPricingForm = () => {
                 placeholder="Capacity"
                 value={cat.capacity}
                 onChange={(e) => handleChange(catIdx, "capacity", e.target.value)}
-                className="border rounded p-2 w-full"
+                className="no-spinner border rounded p-2 w-full"
                 type="number"
+                onWheel={(e) => e.target.blur()} 
                 min="0"
               />
 
@@ -328,15 +329,16 @@ const PerPersonPricingForm = () => {
                 {[1, 2, 3, 4].map((num) => (
                   <div key={num}>
                     <label className="text-sm text-gray-600">
-                      {num} Person{num > 1 ? "s" : ""}
+                     {num} occupancy
                     </label>
                     <input
                       placeholder={`Rate for ${num} person${num > 1 ? "s" : ""}`}
                       type="number"
+                      onWheel={(e) => e.target.blur()} 
                       min="0"
                       value={cat[`rate${num}`]}
                       onChange={(e) => handleChange(catIdx, `rate${num}`, e.target.value)}
-                      className="border rounded p-2 w-full"
+                      className=" no-spinner border rounded p-2 w-full"
                     />
                   </div>
                 ))}
@@ -350,9 +352,10 @@ const PerPersonPricingForm = () => {
                     placeholder="Amount"
                     value={cat.agentCommission.amount}
                     type="number"
+                    onWheel={(e) => e.target.blur()} 
                     min="0"
                     onChange={(e) => handleChange(catIdx, "agentCommission.amount", e.target.value)}
-                    className="border rounded p-2 w-full"
+                    className="no-spinner border rounded p-2 w-full"
                   />
                   <select
                     value={cat.agentCommission.percent ? "%" : "₹"}
@@ -373,9 +376,10 @@ const PerPersonPricingForm = () => {
                     placeholder="Amount"
                     type="number"
                     min="0"
+                    onWheel={(e) => e.target.blur()} 
                     value={cat.advance.amount}
                     onChange={(e) => handleChange(catIdx, "advance.amount", e.target.value)}
-                    className="border rounded p-2 w-full"
+                    className="no-spinner border rounded p-2 w-full"
                   />
                   <select
                     value={cat.advance.percent ? "%" : "₹"}

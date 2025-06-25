@@ -47,13 +47,20 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
   };
-  const handleSubmit = (e) => {
+ const handleSubmit = (e) => {
     e.preventDefault();
     const phoneError = validatePhone(formData.phone);
     const whatsappError = validatePhone(formData.whatsapp);
-    setErrors({ phone: phoneError, whatsapp: whatsappError });
+    const childCount = Number(formData.children);
+    const age0_5 = Number(formData.age_0_5);
+    const age6_10 = Number(formData.age_6_10);
+    let childError = "";
+    if (childCount != age0_5+age6_10){
+      childError = "Total children must match age 0–5 or  age 6–10";
+    }
+    setErrors({ phone: phoneError, whatsapp: whatsappError,child: childError });
 
-    if (!phoneError && !whatsappError) {
+    if (!phoneError && !whatsappError && !childError) {
       setSubmitted(true);
       setIsEditing(false);
     }
@@ -136,97 +143,97 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         advanceAmount: parseFloat(totalAdvance.toFixed(2)),
       };
     }
-    // PER PERSON PRICING LOGIC
-    if (hosthotel?.pay_per?.person) {
-      const selectedCats =
-        hosthotel.per_person_cat?.filter((cat) =>
-          cat.roomNumbers?.some((room) => selectedRooms.includes(room))
-        ) || [];
+     // PER PERSON PRICING LOGIC 
+  if (hosthotel?.pay_per?.person) {
+  const selectedCats = hosthotel.per_person_cat?.filter(cat =>
+    cat.roomNumbers?.some(room => selectedRooms.includes(room))
+  ) || [];
 
-      if (selectedCats.length === 0) {
-        return { totalPrice: 0, advanceAmount: 0 };
-      }
-      let totalBase = 0;
-      let totalAdvance = 0;
-      const allRate1s = [];
-      let remainingAdults = adults;
-      const roomPlan = [];
-      for (const cat of selectedCats) {
-        const matchedRooms = cat.roomNumbers.filter((r) =>
-          selectedRooms.includes(r)
-        );
-        const roomCount = matchedRooms.length;
-        const capacity = cat.capacity || 0;
-        allRate1s.push(cat.rate1 || 0);
+  if (selectedCats.length === 0) {
+    return { totalPrice: 0, advanceAmount: 0 }; 
+  }
+  let totalBase = 0;
+  let totalAdvance = 0;
+  const allRate1s = [];
+  let remainingAdults = adults;
+  const roomPlan = [];
+  for (const cat of selectedCats) {
+    const matchedRooms = cat.roomNumbers.filter(r => selectedRooms.includes(r));
+    const roomCount = matchedRooms.length;
+    const capacity = cat.capacity || 0;
+    allRate1s.push(cat.rate1 || 0);
 
-        for (let i = 0; i < roomCount && remainingAdults > 0; i++) {
-          const assign = Math.min(remainingAdults, capacity);
-          remainingAdults -= assign;
-          let rate = 0;
-          if (assign === 1) rate = cat.rate1 || 0;
-          else if (assign === 2) rate = cat.rate2 || 0;
-          else if (assign === 3) rate = cat.rate3 || 0;
-          else if (assign >= 4) rate = cat.rate4 || 0;
+    for (let i = 0; i < roomCount && remainingAdults > 0; i++) {
+      const assign = Math.min(remainingAdults, capacity);
+      remainingAdults -= assign;
+      let rate = 0;
+      if (assign === 1) rate = cat.rate1 || 0;
+      else if (assign === 2) rate = cat.rate2*2|| 0;
+      else if (assign === 3) rate = cat.rate3*3 || 0;
+      else if (assign >= 4) rate = cat.rate4*4 || 0;
 
-          totalBase += rate * nights;
-          if (assign <= capacity) {
-            if (cat.advance?.percent) {
-              totalAdvance += (cat.advance.amount / 100) * rate * nights;
-            } else {
-              totalAdvance += (cat.advance?.amount || 0) * nights;
-            }
-          }
-
-          roomPlan.push({ cat, assigned: assign, extra: 0 });
+      totalBase += rate * nights;
+      if (assign <= capacity) {
+        if (cat.advance?.percent) {
+          totalAdvance += (cat.advance.amount / 100) * rate * nights;
+        } else {
+          totalAdvance += (cat.advance?.amount || 0) * nights;
         }
       }
-      if (remainingAdults > 0) {
-        for (const plan of roomPlan) {
-          const cat = plan.cat;
-          const baseCap = cat.capacity || 0;
-          const extremeCap = baseCap < 4 ? baseCap + 1 : baseCap;
-          const canAdd = extremeCap - plan.assigned;
 
-          if (canAdd > 0 && remainingAdults > 0) {
-            const extra = Math.min(remainingAdults, canAdd);
-            remainingAdults -= extra;
-            totalBase += extra * (cat.rate1 || 0) * nights;
-            plan.extra += extra;
-          }
-          if (remainingAdults === 0) break;
-        }
-      }
-      if (remainingAdults > 0) {
-        const maxAdults = roomPlan.reduce((sum, r) => {
-          const cap = r.cat.capacity || 0;
-          const max = cap < 4 ? cap + 1 : cap;
-          return sum + max;
-        }, 0);
-        return {
-          error: `Only ${
-            adults - remainingAdults
-          } adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
-          totalPrice: 0,
-          advanceAmount: 0,
-        };
-      }
-      const minRate1 = allRate1s.length > 0 ? Math.min(...allRate1s) : 0;
-      const childCharge = age_6_10 * 0.5 * minRate1 * nights;
-      let total = totalBase + childCharge;
-  return {
-        totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
-        advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-      };
+      roomPlan.push({ cat, assigned: assign, extra: 0 });
     }
-    return { totalPrice: 0, advanceAmount: 0 };
-  }, [
-    hosthotel,
-    booking,
-    formData.adults,
-    formData.children,
-    formData.age_0_5,
-    formData.age_6_10,
-  ]);
+  }
+  if (remainingAdults > 0) {
+    for (const plan of roomPlan) {
+      const cat = plan.cat;
+      const baseCap = cat.capacity || 0;
+      const extremeCap = baseCap < 4 ? baseCap + 1 : baseCap;
+      const canAdd = extremeCap - plan.assigned;
+
+      if (canAdd > 0 && remainingAdults > 0) {
+        const extra = Math.min(remainingAdults, canAdd);
+        remainingAdults -= extra;
+        totalBase += extra * (cat.rate1 || 0) * nights;
+        plan.extra += extra;
+      }
+      if (remainingAdults === 0) break;
+    }
+  }
+  if (remainingAdults > 0) {
+    const maxAdults = roomPlan.reduce((sum, r) => {
+      const cap = r.cat.capacity || 0;
+      const max = cap < 4 ? cap + 1 : cap;
+      return sum + max;
+    }, 0);
+    return {
+      error: `Only ${adults - remainingAdults} adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
+      totalPrice: 0,
+      advanceAmount: 0
+    };
+  }
+  const maxCap = selectedCats.reduce((max, cat) => {
+  return Math.max(max, cat.capacity || 0);
+}, 0);
+
+let rateForChildren = 0;
+for (const cat of selectedCats) {
+  if ((cat.capacity || 0) === maxCap) {
+    if (maxCap === 1) rateForChildren = cat.rate1 || 0;
+    else if (maxCap === 2) rateForChildren = cat.rate2 || 0;
+    else if (maxCap === 3) rateForChildren = cat.rate3 || 0;
+    else if (maxCap >= 4) rateForChildren = cat.rate4 || 0;
+    break;
+  }
+}
+const childCharge = age_6_10 * rateForChildren * nights * 0.5;
+
+  return {
+    totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
+    advanceAmount: parseFloat(totalAdvance.toFixed(2))
+  };
+}return { totalPrice: 0, advanceAmount: 0 };
+}, [hosthotel, booking, formData.adults, formData.children, formData.age_0_5, formData.age_6_10]);
 
   const handlePayment = async () => {
     const bookingPayload = {
@@ -370,9 +377,10 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   name="adults"
                   value={formData.adults}
                   onChange={handleChange}
+                  onWheel={(e) => e.target.blur()} 
                   placeholder="Adults"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -382,11 +390,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 <input
                   type="number"
                   name="children"
+                  onWheel={(e) => e.target.blur()} 
                   value={formData.children}
                   onChange={handleChange}
                   placeholder="Children"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -397,10 +406,11 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   type="number"
                   name="age_0_5"
                   value={formData.age_0_5}
+                  onWheel={(e) => e.target.blur()} 
                   onChange={handleChange}
                   placeholder="0–5 yrs"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -410,11 +420,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 <input
                   type="number"
                   name="age_6_10"
+                  onWheel={(e) => e.target.blur()} 
                   value={formData.age_6_10}
                   onChange={handleChange}
                   placeholder="6–10 yrs"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>

@@ -356,87 +356,89 @@ const PerRoomPricingForm = () => {
               {problems.roomLimit && (
                 <p className="text-red-500 text-sm">{problems.roomLimit}</p>
               )}
-              <label className="font-medium">Capacity</label>
+              <label className="font-medium">Capacity:</label>
               <input
                 placeholder="Capacity"
                 type="number"
                 min={0}
+                onWheel={(e) => e.target.blur()} 
                 value={displayNumber(cat.capacity)}
                 onChange={(e) =>
                   handleChange(catIdx, "capacity", e.target.value)
                 }
-                className="input w-full"
+               className="no-spinner border rounded p-2 w-full"
               />
-              <label className="font-medium">Price</label>
+              <label className="font-medium">Price:</label>
               <input
                 placeholder="Price"
                 type="number"
                 min={0}
+                onWheel={(e) => e.target.blur()} 
                 value={displayNumber(cat.price)}
                 onChange={(e) => handleChange(catIdx, "price", e.target.value)}
-                className="input w-full"
+                className="no-spinner border rounded p-2 w-full"
               />
-              <label className="font-medium">Price for Extra Person</label>
+              <label className="font-medium">Price for Extra Person:</label>
               <input
                 placeholder="Price for Extra Person"
                 type="number"
                 min={0}
+                onWheel={(e) => e.target.blur()} 
                 value={displayNumber(cat.price_for_extra_person)}
                 onChange={(e) =>
                   handleChange(catIdx, "price_for_extra_person", e.target.value)
                 }
-                className="input w-full appearance-none"
+                className="no-spinner border rounded p-2 w-full"
               />
 
               {/* Agent Commission */}
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <label className="font-medium">Agent Commission</label>
-                <input
-                  placeholder="Agent Commission"
-                  type="number"
-                  min={0}
-                  value={displayNumber(cat.agent_com.amount)}
-                  onChange={(e) =>
-                    handleChange(catIdx, "agent_com.amount", e.target.value)
-                  }
-                  className="input w-full"
-                />
-                <select
-                  value={cat.agent_com.percent ? "%" : "₹"}
-                  onChange={(e) =>
-                    handleChange(catIdx, "agent_com.percent", e.target.value)
-                  }
-                  className="input"
-                >
-                  <option value="%">%</option>
-                  <option value="₹">₹</option>
-                </select>
+                <div className="flex gap-2">
+                  <input
+                    placeholder="Amount"
+                    value={cat.agent_com.amount}
+                    type="number"
+                    min="0"
+                    onWheel={(e) => e.target.blur()} 
+                    onChange={(e) => handleChange(catIdx, "agent_com.amount", e.target.value)}
+                    className="no-spinner border rounded p-2 w-full"
+                  />
+                  <select
+                    value={cat.agent_com.percent ? "%" : "₹"}
+                    onChange={(e) => handleChange(catIdx, "agent_com.percent", e.target.value)}
+                    className="border rounded p-2"
+                  >
+                    <option value="%">%</option>
+                    <option value="₹">₹</option>
+                  </select>
+                </div>
               </div>
 
               {/* Advance */}
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <label className="font-medium">Advance</label>
-                <input
-                  placeholder="Advance"
-                  type="number"
-                  min={0}
-                  value={displayNumber(cat.advance.amount)}
-                  onChange={(e) =>
-                    handleChange(catIdx, "advance.amount", e.target.value)
-                  }
-                  className="input w-full"
-                />
-                <select
-                  value={cat.advance.percent ? "%" : "₹"}
-                  onChange={(e) =>
-                    handleChange(catIdx, "advance.percent", e.target.value)
-                  }
-                  className="input"
-                >
-                  <option value="%">%</option>
-                  <option value="₹">₹</option>
-                </select>
+                <div className="flex gap-2">
+                  <input
+                    placeholder="Amount"
+                    type="number"
+                    min="0"
+                    value={cat.advance.amount}
+                    onWheel={(e) => e.target.blur()} 
+                    onChange={(e) => handleChange(catIdx, "advance.amount", e.target.value)}
+                    className="no-spinner border rounded p-2 w-full"
+                  />
+                  <select
+                    value={cat.advance.percent ? "%" : "₹"}
+                    onChange={(e) => handleChange(catIdx, "advance.percent", e.target.value)}
+                    className="border rounded p-2"
+                  >
+                    <option value="%">%</option>
+                    <option value="₹">₹</option>
+                  </select>
+                </div>
               </div>
+
 
               {/* Facilities */}
               <div>

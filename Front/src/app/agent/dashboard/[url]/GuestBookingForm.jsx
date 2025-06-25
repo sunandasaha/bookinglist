@@ -47,17 +47,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
   };
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const phoneError = validatePhone(formData.phone);
-    const whatsappError = validatePhone(formData.whatsapp);
-    setErrors({ phone: phoneError, whatsapp: whatsappError });
-
-    if (!phoneError && !whatsappError) {
-      setSubmitted(true);
-      setIsEditing(false);
-    }
-  };
+ 
   const { totalPrice, advanceAmount, agentCut } = useMemo(() => {
     if (
       !hosthotel ||
@@ -145,8 +135,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         agentCut: parseFloat(totalAgentCut.toFixed(2)),
       };
     }
-
-    // PER PERSON PRICING LOGIC
+   // PER PERSON PRICING LOGIC
     if (hosthotel?.pay_per?.person) {
       const selectedCats =
         hosthotel.per_person_cat?.filter((cat) =>
@@ -177,9 +166,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           remainingAdults -= assign;
           let rate = 0;
           if (assign === 1) rate = cat.rate1 || 0;
-          else if (assign === 2) rate = cat.rate2 || 0;
-          else if (assign === 3) rate = cat.rate3 || 0;
-          else if (assign >= 4) rate = cat.rate4 || 0;
+          else if (assign === 2) rate = cat.rate2*2 || 0;
+          else if (assign === 3) rate = cat.rate3*3 || 0;
+          else if (assign == 4) rate = cat.rate4*4 || 0;
 
           totalBase += rate * nights;
           if (assign <= capacity) {
@@ -226,9 +215,22 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           agentCut: 0,
         };
       }
+      const maxCap = selectedCats.reduce((max, cat) => {
+          return Math.max(max, cat.capacity || 0);
+        }, 0);
 
-      const minRate1 = allRate1s.length > 0 ? Math.min(...allRate1s) : 0;
-      const childCharge = age_6_10 * 0.5 * minRate1 * nights;
+        let rateForChildren = 0;
+        for (const cat of selectedCats) {
+          if ((cat.capacity || 0) === maxCap) {
+            if (maxCap === 1) rateForChildren = cat.rate1 || 0;
+            else if (maxCap === 2) rateForChildren = cat.rate2 || 0;
+            else if (maxCap === 3) rateForChildren = cat.rate3 || 0;
+            else if (maxCap >= 4) rateForChildren = cat.rate4 || 0;
+            break;
+          }
+        }
+        const childCharge = age_6_10 * rateForChildren * nights * 0.5;
+
       const total = totalBase + childCharge;
       for (const plan of roomPlan) {
         const cat = plan.cat;
@@ -237,9 +239,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         const assignedPeople = plan.assigned + plan.extra;
         let rate = 0;
         if (assignedPeople === 1) rate = cat.rate1 || 0;
-        else if (assignedPeople === 2) rate = cat.rate2 || 0;
-        else if (assignedPeople === 3) rate = cat.rate3 || 0;
-        else if (assignedPeople >= 4) rate = cat.rate4 || 0;
+        else if (assignedPeople === 2) rate = cat.rate2*2 || 0;
+        else if (assignedPeople === 3) rate = cat.rate3*3 || 0;
+        else if (assignedPeople >= 4) rate = cat.rate4*4 || 0;
 
         const catAgentCut = cat.agentCommission.percent
           ? (cat.agentCommission.amount / 100) * (rate * nights)
@@ -408,9 +410,10 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   name="adults"
                   value={formData.adults}
                   onChange={handleChange}
+                  onWheel={(e) => e.target.blur()} 
                   placeholder="Adults"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -420,11 +423,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 <input
                   type="number"
                   name="children"
+                  onWheel={(e) => e.target.blur()} 
                   value={formData.children}
                   onChange={handleChange}
                   placeholder="Children"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -435,10 +439,11 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   type="number"
                   name="age_0_5"
                   value={formData.age_0_5}
+                  onWheel={(e) => e.target.blur()} 
                   onChange={handleChange}
                   placeholder="0–5 yrs"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -449,10 +454,11 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   type="number"
                   name="age_6_10"
                   value={formData.age_6_10}
+                  onWheel={(e) => e.target.blur()} 
                   onChange={handleChange}
                   placeholder="6–10 yrs"
                   required
-                  className="w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className=" no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>

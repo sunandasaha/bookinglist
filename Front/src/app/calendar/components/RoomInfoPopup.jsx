@@ -136,15 +136,15 @@ export default function RoomInfoPopup({ roomName }) {
 
         {roomData.price.one && (
           <div>
-            <div className="font-bold mb-1">Rates (Per Person):</div>
+            <div className="font-bold mb-1">Rates (per person):</div>
             <div className="grid grid-cols-2 gap-1 text-xs">
-              <div>1 person:</div>
+              <div>1 occupancy:</div>
               <div className="text-right">₹{roomData.price.one}</div>
-              <div>2 persons:</div>
+              <div>2 occupancy:</div>
               <div className="text-right">₹{roomData.price.two}</div>
-              <div>3 persons:</div>
+              <div>3 occupancy:</div>
               <div className="text-right">₹{roomData.price.three}</div>
-              <div>4 persons:</div>
+              <div>4 occupancy:</div>
               <div className="text-right">₹{roomData.price.four}</div>
             </div>
           </div>

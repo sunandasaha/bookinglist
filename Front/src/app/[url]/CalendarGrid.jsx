@@ -243,7 +243,7 @@ export default function CalendarGrid({ startDate }) {
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
               onClick={() => setSelectedRoomName(room.name)}
             >
-              <div>{room.name}</div>
+              <div>Room: {room.name}</div>
               <div className="text-xs text-gray-500">
                 {room.price?.one
                   ? `₹${room.price.one}/person`
