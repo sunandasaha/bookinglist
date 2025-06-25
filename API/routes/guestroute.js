@@ -17,12 +17,13 @@ const {
   resheduleBooking,
   checkoutBooking,
 } = require("../controler/upbookingcon");
+const { bookingHold } = require("../middleware/bookingQue");
 
 const guestroute = express.Router();
 
-guestroute.post("/", authUser, chkHost, createBooking);
-guestroute.post("/agent", authUser, chkAgent, createBooking);
-guestroute.post("/guest", createBooking);
+guestroute.post("/", authUser, chkHost, bookingHold, createBooking);
+guestroute.post("/agent", authUser, chkAgent, bookingHold, createBooking);
+guestroute.post("/guest", bookingHold, createBooking);
 guestroute.delete("/:id", authUser, chkHost, deleteBooking);
 guestroute.get("/bookings", getBookings);
 guestroute.get("/bookingshost", authUser, chkHost, getBookings);

@@ -4,12 +4,11 @@ const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
 const { randomInt } = require("crypto");
 const { sendNewBook } = require("../sockets/global");
+const { setFalse } = require("../middleware/bookingQue");
 
 const createBooking = async (req, res) => {
   try {
     const data = req.body;
-    console.log(data.fromDate);
-
     const fromDate = new Date(data.fromDate.substring(0, 10));
     const toDate = new Date(data.toDate.substring(0, 10));
 
@@ -71,6 +70,8 @@ const createBooking = async (req, res) => {
       }).select(
         req.user ? "fromDate toDate room booking_id" : "fromDate toDate room"
       );
+
+      setFalse(data.hotelId);
 
       res.json({ status: "success", booking: newBooking, bookings: book });
     }
