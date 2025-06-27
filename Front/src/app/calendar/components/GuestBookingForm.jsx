@@ -31,6 +31,8 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [bookingId, setBookingId] = useState("");
   const [customAdvance, setCustomAdvance] = useState(null);
+  const [calcError, setCalcError] = useState("");
+
 
 
   const validatePhone = (number) => {
@@ -62,6 +64,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       childError = "Total children must match age 0–5 or  age 6–10";
     }
     setErrors({ phone: phoneError, whatsapp: whatsappError,child: childError });
+    if (calcError) {
+        return;
+      }
 
     if (!phoneError && !whatsappError && !childError) {
       setSubmitted(true);
@@ -198,11 +203,15 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       const max = cap < 4 ? cap + 1 : cap;
       return sum + max;
     }, 0);
-    return {
-      error: `Only ${adults - remainingAdults} adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
-      totalPrice: 0,
-      advanceAmount: 0
-    };
+     const errorMsg = `Only ${adults - remainingAdults} adult(s) can be accommodated. Max capacity is ${maxAdults}.`;
+      setCalcError(errorMsg); 
+      return { 
+        totalPrice: 0, 
+        advanceAmount: 0,
+        error: errorMsg
+      };
+  }else{
+    setCalcError("");
   }
   const maxCap = selectedCats.reduce((max, cat) => {
   return Math.max(max, cat.capacity || 0);
@@ -376,6 +385,13 @@ const handlePayment = async () => {
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              {calcError && (
+                  <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
+                    <strong className="font-bold">⚠️ Warning:</strong>
+                    <p>{calcError}</p>
+                  </div>
+                )}
+
               <div>
                 <label className="text-sm text-gray-600 ml-1">
                   👶 Children
@@ -506,7 +522,7 @@ const handlePayment = async () => {
               onClick={handlePayment}
               className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
             >
-              💸 Proceed to Payment
+              Confirm booking
             </button>
           </div>
         )}

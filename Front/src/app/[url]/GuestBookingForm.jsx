@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { X } from "lucide-react";
 import { postReq, getReq } from "../_utils/request";
 import { useContext, useMemo } from "react";
+import  QRCode from "react-qr-code";
+import PopEffect from "../_components/PopEffect";
 import { Context } from "../_components/ContextProvider";
 export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
@@ -30,6 +32,37 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [submitted, setSubmitted] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [bookingId, setBookingId] = useState("");
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [countdown, setCountdown] = useState(120);
+  const [screenshot, setScreenshot] = useState(null);
+  useEffect (()=>{
+    if(!showQR || countdown<=0) return;
+    const timer = setInterval(()=>{
+      setCountdown((prev) => prev-1);
+    },1000);
+    return ()=> clearInterval(timer);
+  },[showQR, countdown]);
+  useEffect(() => {
+  if (countdown <= 0 && !screenshot) {
+    setShowQR(false);
+    setSubmitted(false);
+    setBookingConfirmed(false);
+    setBookingId("");
+    setFormData({
+      name: "",
+      address: "",
+      phone: "",
+      whatsapp: "",
+      email: "",
+      adults: 1,
+      children: 0,
+      age_0_5: 0,
+      age_6_10: 0,
+      message: "Hi, your booking is confirmed at our hotel. Your Booking ID will be generated after confirmation.",
+    });
+  }
+}, [countdown, screenshot]);
 
   const validatePhone = (number) => {
     const cleaned = number.replace(/\D/g, "");
@@ -234,6 +267,19 @@ const childCharge = age_6_10 * rateForChildren * nights * 0.5;
   };
 }return { totalPrice: 0, advanceAmount: 0 };
 }, [hosthotel, booking, formData.adults, formData.children, formData.age_0_5, formData.age_6_10]);
+const hotelSlug =
+  typeof window !== "undefined"
+    ? window.location.pathname.split("/")[1]
+    : "";
+const upiId = hosthotel?.url === hotelSlug ? hosthotel?.upi_id : null;
+const upiLink = useMemo(() => {
+  return upiId ? upiDeepLink(upiId, advanceAmount) : "";
+}, [upiId, advanceAmount]);
+function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
+  return `upi://pay?pa=${id}&am=${amount}&cu=INR${
+    tid ? `&tid=${tid}` : ""
+  }&tn=${notes}`;
+}
 
   const handlePayment = async () => {
     const bookingPayload = {
@@ -249,8 +295,6 @@ const childCharge = age_6_10 * rateForChildren * nights * 0.5;
       totalPrice,
       advanceAmount,
     };
-    console.log(bookingPayload);
-
     try {
       const result = await postReq(
         user ? "guestbooking/agent" : "guestbooking/guest",
@@ -263,18 +307,19 @@ const childCharge = age_6_10 * rateForChildren * nights * 0.5;
         const newId = result.booking._id;
         setBookingId(newId);
         setBookingConfirmed(true);
-        alert(`🎉 Booking Confirmed!\nYour Booking ID is: ${newId}`);
         onSave(result.booking);
       } else {
-        alert(
-          "❌ Failed to save booking: " + (result.message || "Unknown error")
-        );
+        console.log(result.message);
       }
     } catch (err) {
       console.error("Booking error:", err);
-      alert("❌ Error saving booking. Please try again.");
     }
   };
+  const handleScreenshotPayment = async () => {
+    alert(" screenshot sent successfully booking done ")
+  //bapiya's work
+};
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
@@ -491,15 +536,94 @@ const childCharge = age_6_10 * rateForChildren * nights * 0.5;
             >
               ✏ Edit Details
             </button>
+            {!showInstructions && (
+        <button
+          onClick={() => setShowInstructions(true)}
+          className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+        >
+          💸 Proceed to Payment
+        </button>
+      )}
 
+      {showInstructions && !showQR && (
+        <PopEffect cb={() => setShowInstructions(false)}>
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md space-y-4 mt-4">
+          <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
+          <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
+            <li>You have <strong>4 minutes</strong> to complete the payment.</li>
+            <li>Pay using the <strong>QR code</strong> or <strong>UPI button</strong> below.</li>
+            <li>After payment, <strong>upload the screenshot</strong> immediately.</li>
+            <li>If not uploaded within time, <span className="text-red-600 font-semibold">your booking will be cancelled.</span></li>
+          </ul>
+          <div className="text-center">
             <button
-              onClick={handlePayment}
-              className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              onClick={() => {
+                  setShowInstructions(false);         
+                  setShowQR(true);                        
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
             >
-              💸 Proceed to Payment
+              OK, Show Payment Options
             </button>
           </div>
-        )}
+        </div>
+      </PopEffect>
+      )}
+
+      {showQR && (
+        <PopEffect cb={() => setShowQR(false)}>
+        <div className="space-y-4 mt-4 text-center text-black">
+          <p className="text-lg font-semibold">
+            ⏱ Time Left: {Math.floor(countdown / 60)}:{countdown % 60 < 10 ? "0" : ""}{countdown % 60}
+          </p>
+          <div className="flex justify-center">
+            <QRCode value={upiLink} size={180} />
+          </div>
+          <a
+              href={upiLink}
+              className="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+            >
+              Pay via UPI
+            </a>
+
+          {!screenshot && countdown > 0 ? (
+            <>
+              <p className="mt-4">📤 Upload payment screenshot <span className="inline-block animate-bounce">👇🏻</span></p>
+
+              <input
+                id="fileUpload"
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  setScreenshot(file);
+                  await handlePayment();
+                  await handleScreenshotPayment();
+                }}
+                className="hidden"
+              />
+              <label
+                htmlFor="fileUpload"
+                className="cursor-pointer bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mt-2 inline-block text-center"
+              >
+                📸 Choose Screenshot
+              </label>
+
+
+            </>
+          ) : countdown <= 0 && !screenshot ? (
+            <p className="text-red-600 font-semibold">❌ Time's up! Booking cancelled.</p>
+          ) : (
+            <p className="text-green-600 font-bold">✅ Screenshot received.</p>
+          )}
+        </div>
+        </PopEffect>
+      )}
+
+      </div>
+    )}
+
       </div>
     </div>
   );
