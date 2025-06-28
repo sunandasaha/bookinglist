@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { X } from "lucide-react";
-import { postReq, getReq } from "../_utils/request";
+import { postReq, site } from "../_utils/request";
 import { useContext, useMemo } from "react";
-import  QRCode from "react-qr-code";
+import QRCode from "react-qr-code";
 import PopEffect from "../_components/PopEffect";
 import { Context } from "../_components/ContextProvider";
 export default function GuestBookingForm({ booking, onSave, onClose }) {
@@ -36,33 +36,34 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [showQR, setShowQR] = useState(false);
   const [countdown, setCountdown] = useState(120);
   const [screenshot, setScreenshot] = useState(null);
-  useEffect (()=>{
-    if(!showQR || countdown<=0) return;
-    const timer = setInterval(()=>{
-      setCountdown((prev) => prev-1);
-    },1000);
-    return ()=> clearInterval(timer);
-  },[showQR, countdown]);
   useEffect(() => {
-  if (countdown <= 0 && !screenshot) {
-    setShowQR(false);
-    setSubmitted(false);
-    setBookingConfirmed(false);
-    setBookingId("");
-    setFormData({
-      name: "",
-      address: "",
-      phone: "",
-      whatsapp: "",
-      email: "",
-      adults: 1,
-      children: 0,
-      age_0_5: 0,
-      age_6_10: 0,
-      message: "Hi, your booking is confirmed at our hotel. Your Booking ID will be generated after confirmation.",
-    });
-  }
-}, [countdown, screenshot]);
+    if (!showQR || countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [showQR, countdown]);
+  useEffect(() => {
+    if (countdown <= 0 && !screenshot) {
+      setShowQR(false);
+      setSubmitted(false);
+      setBookingConfirmed(false);
+      setBookingId("");
+      setFormData({
+        name: "",
+        address: "",
+        phone: "",
+        whatsapp: "",
+        email: "",
+        adults: 1,
+        children: 0,
+        age_0_5: 0,
+        age_6_10: 0,
+        message:
+          "Hi, your booking is confirmed at our hotel. Your Booking ID will be generated after confirmation.",
+      });
+    }
+  }, [countdown, screenshot]);
 
   const validatePhone = (number) => {
     const cleaned = number.replace(/\D/g, "");
@@ -80,7 +81,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
   };
- const handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const phoneError = validatePhone(formData.phone);
     const whatsappError = validatePhone(formData.whatsapp);
@@ -88,10 +89,14 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     const age0_5 = Number(formData.age_0_5);
     const age6_10 = Number(formData.age_6_10);
     let childError = "";
-    if (childCount != age0_5+age6_10){
+    if (childCount != age0_5 + age6_10) {
       childError = "Total children must match age 0–5 or  age 6–10";
     }
-    setErrors({ phone: phoneError, whatsapp: whatsappError,child: childError });
+    setErrors({
+      phone: phoneError,
+      whatsapp: whatsappError,
+      child: childError,
+    });
 
     if (!phoneError && !whatsappError && !childError) {
       setSubmitted(true);
@@ -170,116 +175,129 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         allPerAdultRates.length > 0 ? Math.min(...allPerAdultRates) : 0;
       const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
 
-      let  total = totalBase + extraCharges + childCharge;
+      let total = totalBase + extraCharges + childCharge;
       return {
-        totalPrice: parseFloat((totalBase + extraCharges + childCharge).toFixed(2)),
+        totalPrice: parseFloat(
+          (totalBase + extraCharges + childCharge).toFixed(2)
+        ),
         advanceAmount: parseFloat(totalAdvance.toFixed(2)),
       };
     }
-     // PER PERSON PRICING LOGIC 
-  if (hosthotel?.pay_per?.person) {
-  const selectedCats = hosthotel.per_person_cat?.filter(cat =>
-    cat.roomNumbers?.some(room => selectedRooms.includes(room))
-  ) || [];
+    // PER PERSON PRICING LOGIC
+    if (hosthotel?.pay_per?.person) {
+      const selectedCats =
+        hosthotel.per_person_cat?.filter((cat) =>
+          cat.roomNumbers?.some((room) => selectedRooms.includes(room))
+        ) || [];
 
-  if (selectedCats.length === 0) {
-    return { totalPrice: 0, advanceAmount: 0 }; 
-  }
-  let totalBase = 0;
-  let totalAdvance = 0;
-  const allRate1s = [];
-  let remainingAdults = adults;
-  const roomPlan = [];
-  for (const cat of selectedCats) {
-    const matchedRooms = cat.roomNumbers.filter(r => selectedRooms.includes(r));
-    const roomCount = matchedRooms.length;
-    const capacity = cat.capacity || 0;
-    allRate1s.push(cat.rate1 || 0);
+      if (selectedCats.length === 0) {
+        return { totalPrice: 0, advanceAmount: 0 };
+      }
+      let totalBase = 0;
+      let totalAdvance = 0;
+      const allRate1s = [];
+      let remainingAdults = adults;
+      const roomPlan = [];
+      for (const cat of selectedCats) {
+        const matchedRooms = cat.roomNumbers.filter((r) =>
+          selectedRooms.includes(r)
+        );
+        const roomCount = matchedRooms.length;
+        const capacity = cat.capacity || 0;
+        allRate1s.push(cat.rate1 || 0);
 
-    for (let i = 0; i < roomCount && remainingAdults > 0; i++) {
-      const assign = Math.min(remainingAdults, capacity);
-      remainingAdults -= assign;
-      let rate = 0;
-      if (assign === 1) rate = cat.rate1 || 0;
-      else if (assign === 2) rate = cat.rate2*2|| 0;
-      else if (assign === 3) rate = cat.rate3*3 || 0;
-      else if (assign >= 4) rate = cat.rate4*4 || 0;
+        for (let i = 0; i < roomCount && remainingAdults > 0; i++) {
+          const assign = Math.min(remainingAdults, capacity);
+          remainingAdults -= assign;
+          let rate = 0;
+          if (assign === 1) rate = cat.rate1 || 0;
+          else if (assign === 2) rate = cat.rate2 * 2 || 0;
+          else if (assign === 3) rate = cat.rate3 * 3 || 0;
+          else if (assign >= 4) rate = cat.rate4 * 4 || 0;
 
-      totalBase += rate * nights;
-      if (assign <= capacity) {
-        if (cat.advance?.percent) {
-          totalAdvance += (cat.advance.amount / 100) * rate * nights;
-        } else {
-          totalAdvance += (cat.advance?.amount || 0) * nights;
+          totalBase += rate * nights;
+          if (assign <= capacity) {
+            if (cat.advance?.percent) {
+              totalAdvance += (cat.advance.amount / 100) * rate * nights;
+            } else {
+              totalAdvance += (cat.advance?.amount || 0) * nights;
+            }
+          }
+
+          roomPlan.push({ cat, assigned: assign, extra: 0 });
         }
       }
+      if (remainingAdults > 0) {
+        for (const plan of roomPlan) {
+          const cat = plan.cat;
+          const baseCap = cat.capacity || 0;
+          const extremeCap = baseCap < 4 ? baseCap + 1 : baseCap;
+          const canAdd = extremeCap - plan.assigned;
 
-      roomPlan.push({ cat, assigned: assign, extra: 0 });
-    }
-  }
-  if (remainingAdults > 0) {
-    for (const plan of roomPlan) {
-      const cat = plan.cat;
-      const baseCap = cat.capacity || 0;
-      const extremeCap = baseCap < 4 ? baseCap + 1 : baseCap;
-      const canAdd = extremeCap - plan.assigned;
-
-      if (canAdd > 0 && remainingAdults > 0) {
-        const extra = Math.min(remainingAdults, canAdd);
-        remainingAdults -= extra;
-        totalBase += extra * (cat.rate1 || 0) * nights;
-        plan.extra += extra;
+          if (canAdd > 0 && remainingAdults > 0) {
+            const extra = Math.min(remainingAdults, canAdd);
+            remainingAdults -= extra;
+            totalBase += extra * (cat.rate1 || 0) * nights;
+            plan.extra += extra;
+          }
+          if (remainingAdults === 0) break;
+        }
       }
-      if (remainingAdults === 0) break;
+      if (remainingAdults > 0) {
+        const maxAdults = roomPlan.reduce((sum, r) => {
+          const cap = r.cat.capacity || 0;
+          const max = cap < 4 ? cap + 1 : cap;
+          return sum + max;
+        }, 0);
+        return {
+          error: `Only ${
+            adults - remainingAdults
+          } adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
+          totalPrice: 0,
+          advanceAmount: 0,
+        };
+      }
+      const maxCap = selectedCats.reduce((max, cat) => {
+        return Math.max(max, cat.capacity || 0);
+      }, 0);
+
+      let rateForChildren = 0;
+      for (const cat of selectedCats) {
+        if ((cat.capacity || 0) === maxCap) {
+          if (maxCap === 1) rateForChildren = cat.rate1 || 0;
+          else if (maxCap === 2) rateForChildren = cat.rate2 || 0;
+          else if (maxCap === 3) rateForChildren = cat.rate3 || 0;
+          else if (maxCap >= 4) rateForChildren = cat.rate4 || 0;
+          break;
+        }
+      }
+      const childCharge = age_6_10 * rateForChildren * nights * 0.5;
+
+      return {
+        totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
+        advanceAmount: parseFloat(totalAdvance.toFixed(2)),
+      };
     }
+    return { totalPrice: 0, advanceAmount: 0 };
+  }, [
+    hosthotel,
+    booking,
+    formData.adults,
+    formData.children,
+    formData.age_0_5,
+    formData.age_6_10,
+  ]);
+  const hotelSlug =
+    typeof window !== "undefined" ? window.location.pathname.split("/")[1] : "";
+  const upiId = hosthotel?.url === hotelSlug ? hosthotel?.upi_id : null;
+  const upiLink = useMemo(() => {
+    return upiId ? upiDeepLink(upiId, advanceAmount) : "";
+  }, [upiId, advanceAmount]);
+  function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
+    return `upi://pay?pa=${id}&am=${amount}&cu=INR${
+      tid ? `&tid=${tid}` : ""
+    }&tn=${notes}`;
   }
-  if (remainingAdults > 0) {
-    const maxAdults = roomPlan.reduce((sum, r) => {
-      const cap = r.cat.capacity || 0;
-      const max = cap < 4 ? cap + 1 : cap;
-      return sum + max;
-    }, 0);
-    return {
-      error: `Only ${adults - remainingAdults} adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
-      totalPrice: 0,
-      advanceAmount: 0
-    };
-  }
-  const maxCap = selectedCats.reduce((max, cat) => {
-  return Math.max(max, cat.capacity || 0);
-}, 0);
-
-let rateForChildren = 0;
-for (const cat of selectedCats) {
-  if ((cat.capacity || 0) === maxCap) {
-    if (maxCap === 1) rateForChildren = cat.rate1 || 0;
-    else if (maxCap === 2) rateForChildren = cat.rate2 || 0;
-    else if (maxCap === 3) rateForChildren = cat.rate3 || 0;
-    else if (maxCap >= 4) rateForChildren = cat.rate4 || 0;
-    break;
-  }
-}
-const childCharge = age_6_10 * rateForChildren * nights * 0.5;
-
-  return {
-    totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
-    advanceAmount: parseFloat(totalAdvance.toFixed(2))
-  };
-}return { totalPrice: 0, advanceAmount: 0 };
-}, [hosthotel, booking, formData.adults, formData.children, formData.age_0_5, formData.age_6_10]);
-const hotelSlug =
-  typeof window !== "undefined"
-    ? window.location.pathname.split("/")[1]
-    : "";
-const upiId = hosthotel?.url === hotelSlug ? hosthotel?.upi_id : null;
-const upiLink = useMemo(() => {
-  return upiId ? upiDeepLink(upiId, advanceAmount) : "";
-}, [upiId, advanceAmount]);
-function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
-  return `upi://pay?pa=${id}&am=${amount}&cu=INR${
-    tid ? `&tid=${tid}` : ""
-  }&tn=${notes}`;
-}
 
   const handlePayment = async () => {
     const bookingPayload = {
@@ -306,8 +324,6 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
       if (result.status === "success" && result.booking?._id) {
         const newId = result.booking._id;
         setBookingId(newId);
-        setBookingConfirmed(true);
-        onSave(result.booking);
       } else {
         console.log(result.message);
       }
@@ -315,11 +331,25 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
       console.error("Booking error:", err);
     }
   };
-  const handleScreenshotPayment = async () => {
-    alert(" screenshot sent successfully booking done ")
-  //bapiya's work
-};
+  const handleScreenshotPayment = async (file) => {
+    alert(" screenshot sent successfully booking done ");
+    const fd = new FormData();
+    fd.append("bid", bookingId);
+    fd.append("images", file);
 
+    const res = await fetch(site + "guestbooking/guest/ss", {
+      method: "POST",
+      body: fd,
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      setBookingConfirmed(true);
+      onSave(result.booking);
+    } else {
+      console.error("Booking error:");
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
@@ -341,7 +371,8 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
             <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
               <p>
                 <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
-                <strong>Checkout:</strong>  {format(addDays((booking.to), 1), "MMM dd")}
+                <strong>Checkout:</strong>{" "}
+                {format(addDays(booking.to, 1), "MMM dd")}
               </p>
               <p>
                 <strong>Rooms:</strong> {booking.roomNames.join(", ")}
@@ -422,7 +453,7 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
                   name="adults"
                   value={formData.adults}
                   onChange={handleChange}
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => e.target.blur()}
                   placeholder="Adults"
                   required
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
@@ -435,7 +466,7 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
                 <input
                   type="number"
                   name="children"
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => e.target.blur()}
                   value={formData.children}
                   onChange={handleChange}
                   placeholder="Children"
@@ -451,7 +482,7 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
                   type="number"
                   name="age_0_5"
                   value={formData.age_0_5}
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => e.target.blur()}
                   onChange={handleChange}
                   placeholder="0–5 yrs"
                   required
@@ -465,7 +496,7 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
                 <input
                   type="number"
                   name="age_6_10"
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => e.target.blur()}
                   value={formData.age_6_10}
                   onChange={handleChange}
                   placeholder="6–10 yrs"
@@ -513,7 +544,8 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
             </p>
             <p>
               <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
-              <strong>Checkout:</strong>  {format(addDays((booking.to), 1), "MMM dd")}
+              <strong>Checkout:</strong>{" "}
+              {format(addDays(booking.to, 1), "MMM dd")}
             </p>
             <p>
               <strong>Rooms:</strong> {booking.roomNames.join(", ")}
@@ -537,93 +569,112 @@ function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
               ✏ Edit Details
             </button>
             {!showInstructions && (
-        <button
-          onClick={() => setShowInstructions(true)}
-          className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-        >
-          💸 Proceed to Payment
-        </button>
-      )}
-
-      {showInstructions && !showQR && (
-        <PopEffect cb={() => setShowInstructions(false)}>
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md space-y-4 mt-4">
-          <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
-          <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
-            <li>You have <strong>4 minutes</strong> to complete the payment.</li>
-            <li>Pay using the <strong>QR code</strong> or <strong>UPI button</strong> below.</li>
-            <li>After payment, <strong>upload the screenshot</strong> immediately.</li>
-            <li>If not uploaded within time, <span className="text-red-600 font-semibold">your booking will be cancelled.</span></li>
-          </ul>
-          <div className="text-center">
-            <button
-              onClick={() => {
-                  setShowInstructions(false);         
-                  setShowQR(true);                        
-                }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-            >
-              OK, Show Payment Options
-            </button>
-          </div>
-        </div>
-      </PopEffect>
-      )}
-
-      {showQR && (
-        <PopEffect cb={() => setShowQR(false)}>
-        <div className="space-y-4 mt-4 text-center text-black">
-          <p className="text-lg font-semibold">
-            ⏱ Time Left: {Math.floor(countdown / 60)}:{countdown % 60 < 10 ? "0" : ""}{countdown % 60}
-          </p>
-          <div className="flex justify-center">
-            <QRCode value={upiLink} size={180} />
-          </div>
-          <a
-              href={upiLink}
-              className="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-            >
-              Pay via UPI
-            </a>
-
-          {!screenshot && countdown > 0 ? (
-            <>
-              <p className="mt-4">📤 Upload payment screenshot <span className="inline-block animate-bounce">👇🏻</span></p>
-
-              <input
-                id="fileUpload"
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  setScreenshot(file);
-                  await handlePayment();
-                  await handleScreenshotPayment();
-                }}
-                className="hidden"
-              />
-              <label
-                htmlFor="fileUpload"
-                className="cursor-pointer bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mt-2 inline-block text-center"
+              <button
+                onClick={() => setShowInstructions(true)}
+                className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
               >
-                📸 Choose Screenshot
-              </label>
+                💸 Proceed to Payment
+              </button>
+            )}
 
+            {showInstructions && !showQR && (
+              <PopEffect cb={() => setShowInstructions(false)}>
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md space-y-4 mt-4">
+                  <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
+                  <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
+                    <li>
+                      You have <strong>4 minutes</strong> to complete the
+                      payment.
+                    </li>
+                    <li>
+                      Pay using the <strong>QR code</strong> or{" "}
+                      <strong>UPI button</strong> below.
+                    </li>
+                    <li>
+                      After payment, <strong>upload the screenshot</strong>{" "}
+                      immediately.
+                    </li>
+                    <li>
+                      If not uploaded within time,{" "}
+                      <span className="text-red-600 font-semibold">
+                        your booking will be cancelled.
+                      </span>
+                    </li>
+                  </ul>
+                  <div className="text-center">
+                    <button
+                      onClick={() => {
+                        setShowInstructions(false);
+                        handlePayment();
+                        setShowQR(true);
+                      }}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                    >
+                      OK, Show Payment Options
+                    </button>
+                  </div>
+                </div>
+              </PopEffect>
+            )}
 
-            </>
-          ) : countdown <= 0 && !screenshot ? (
-            <p className="text-red-600 font-semibold">❌ Time's up! Booking cancelled.</p>
-          ) : (
-            <p className="text-green-600 font-bold">✅ Screenshot received.</p>
-          )}
-        </div>
-        </PopEffect>
-      )}
+            {showQR && (
+              <PopEffect cb={() => setShowQR(false)}>
+                <div className="space-y-4 mt-4 text-center text-black">
+                  <p className="text-lg font-semibold">
+                    ⏱ Time Left: {Math.floor(countdown / 60)}:
+                    {countdown % 60 < 10 ? "0" : ""}
+                    {countdown % 60}
+                  </p>
+                  <div className="flex justify-center">
+                    <QRCode value={upiLink} size={180} />
+                  </div>
+                  <a
+                    href={upiLink}
+                    className="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+                  >
+                    Pay via UPI
+                  </a>
 
-      </div>
-    )}
+                  {!screenshot && countdown > 0 ? (
+                    <>
+                      <p className="mt-4">
+                        📤 Upload payment screenshot{" "}
+                        <span className="inline-block animate-bounce">👇🏻</span>
+                      </p>
 
+                      <input
+                        id="fileUpload"
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          setScreenshot(file);
+                          handleScreenshotPayment(file);
+                        }}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="fileUpload"
+                        className="cursor-pointer bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mt-2 inline-block text-center"
+                      >
+                        📸 Choose Screenshot
+                      </label>
+                    </>
+                  ) : countdown <= 0 && !screenshot ? (
+                    <p className="text-red-600 font-semibold">
+                      ❌ Time's up! Booking cancelled.
+                    </p>
+                  ) : (
+                    <p className="text-green-600 font-bold">
+                      ✅ Screenshot received.
+                    </p>
+                  )}
+                </div>
+              </PopEffect>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

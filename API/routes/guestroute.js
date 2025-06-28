@@ -7,6 +7,7 @@ const {
   getHotelBookings,
   getCheckedBookings,
   changeStatus,
+  uploadScreenShot,
 } = require("../controler/guestcon");
 
 const { authUser, chkHost, chkAgent } = require("../middleware/auth");
@@ -18,12 +19,19 @@ const {
   checkoutBooking,
 } = require("../controler/upbookingcon");
 const { bookingHold } = require("../middleware/bookingQue");
+const { uploadImages, resizeAndSaveImages } = require("../middleware/multer");
 
 const guestroute = express.Router();
 
 guestroute.post("/", authUser, chkHost, bookingHold, createBooking);
 guestroute.post("/agent", authUser, chkAgent, bookingHold, createBooking);
 guestroute.post("/guest", bookingHold, createBooking);
+guestroute.post(
+  "/guest/ss",
+  uploadImages,
+  resizeAndSaveImages,
+  uploadScreenShot
+);
 guestroute.delete("/:id", authUser, chkHost, deleteBooking);
 guestroute.get("/bookings", getBookings);
 guestroute.get("/bookingshost", authUser, chkHost, getBookings);
