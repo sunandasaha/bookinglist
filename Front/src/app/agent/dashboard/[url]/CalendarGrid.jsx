@@ -53,7 +53,7 @@ export default function CalendarGrid({ startDate }) {
         cat.roomNumbers.map((name) => ({
           name,
           category: cat.name,
-          price: { one: cat.rate1 },
+          price: { one: cat.rate1 , two: cat.rate2, three: cat.rate3, four: cat.rate4 , },
           capacity: cat.capacity,
         }))
       );
@@ -246,9 +246,15 @@ export default function CalendarGrid({ startDate }) {
             >
               <div>Room: {room.name}</div>
               <div className="text-xs text-gray-500">
-                {room.price?.one
-                  ? `₹${room.price.one}/person`
-                  : `₹${room.price?.rate}`}
+                 ₹
+                {room.price?.one ? (
+                  room.capacity === 1 ? `${room.price.one} / person`
+                  : room.capacity === 2 ? `${room.price.two} / person`
+                  : room.capacity === 3 ? `${room.price.three} / person`
+                  : `${room.price.four} per person`
+                ) : (
+                  `${room.price?.rate} per room`
+                )}
               </div>
             </div>
 
