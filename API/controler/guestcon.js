@@ -3,7 +3,7 @@ const HotelModel = require("../models/Hotel");
 const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
 const { randomInt } = require("crypto");
-const { sendNewBook } = require("../sockets/global");
+const { sendNewBook, sendSsBook } = require("../sockets/global");
 const { setFalse } = require("../middleware/bookingQue");
 
 const createBooking = async (req, res) => {
@@ -78,6 +78,19 @@ const createBooking = async (req, res) => {
   } catch (error) {
     console.error("Create Booking error:", error);
     res.status(500).json({ status: "failed", error: error.message });
+  }
+};
+
+const uploadScreenShot = async (req, res) => {
+  const bid = req.body.bid;
+  const booking = await GuestModel.findById(bid);
+  if (bid) {
+    booking.advance_ss = req.savedImages[0];
+    booking.save();
+    sendSsBook(booking.hotelId, booking);
+    res.json({ success: true });
+  } else {
+    res.json({ succuss: false });
   }
 };
 
@@ -209,4 +222,5 @@ module.exports = {
   getHotelBookings,
   getCheckedBookings,
   changeStatus,
+  uploadScreenShot,
 };

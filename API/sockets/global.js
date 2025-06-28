@@ -17,8 +17,16 @@ const sendNewBook = (id, bok) => {
   }
 };
 
+const sendSsBook = (id, bok) => {
+  const sid = hid.get(id);
+  if (io && sid) {
+    io.to(sid).emit("ss", bok);
+  }
+};
+
 module.exports = {
   setio,
   getio,
   sendNewBook,
+  sendSsBook,
 };
