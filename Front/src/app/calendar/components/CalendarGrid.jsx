@@ -30,7 +30,8 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
     return clsx(
       "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
       selected && "bg-blue-300",
-      booking && "bg-green-500 text-white",
+      (booking?.confirmed === true) && "bg-green-500 text-white",
+      (booking?.confirmed === false) && "bg-yellow-500 text-white",
       !booking && !selected && "hover:bg-blue-100"
     );
   };
@@ -93,7 +94,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
         cat.roomNumbers.map((name) => ({
           name,
           category: cat.name,
-          price: { one: cat.rate1 },
+          price: { one: cat.rate1 , two: cat.rate2, three: cat.rate3, four: cat.rate4 , },
           capacity: cat.capacity,
           isDummy: false,
         }))
@@ -307,9 +308,14 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
             >
               <div>Room: {room.name}</div>
               <div className="text-xs text-gray-500">
-                {room.price?.one
-                  ? `₹${room.price.one}/person`
-                  : `₹${room.price?.rate}`}
+                {room.price?.one ? (
+                  room.capacity === 1 ? `${room.price.one} /person`
+                  : room.capacity === 2 ? `${room.price.two} / person`
+                  : room.capacity === 3 ? `${room.price.three} / person`
+                  : `${room.price.four} per person`
+                ) : (
+                  `${room.price?.rate} per room`
+                )}
               </div>
             </div>
             {dates.map((date, dIdx) => {

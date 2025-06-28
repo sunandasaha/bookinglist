@@ -58,7 +58,7 @@ export default function RoomInfoPopup({ roomName }) {
 
   return (
     <div className="p-3 w-full max-w-[95vw] mx-auto bg-white rounded-xl shadow-lg space-y-3">
-      <div className="text-lg font-bold text-gray-800 truncate">{roomName}</div>
+      <div className="text-lg font-bold text-gray-800 truncate">Room :{roomName}</div>
       <div className="text-xs text-gray-500">
         Category: <span className="font-medium">{roomData.category}</span>
       </div>

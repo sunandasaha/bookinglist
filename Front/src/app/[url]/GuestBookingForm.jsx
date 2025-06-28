@@ -34,7 +34,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [bookingId, setBookingId] = useState("");
   const [showInstructions, setShowInstructions] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const [countdown, setCountdown] = useState(120);
+  const [countdown, setCountdown] = useState(30);
   const [screenshot, setScreenshot] = useState(null);
   useEffect (()=>{
     if(!showQR || countdown<=0) return;
@@ -49,18 +49,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     setSubmitted(false);
     setBookingConfirmed(false);
     setBookingId("");
-    setFormData({
-      name: "",
-      address: "",
-      phone: "",
-      whatsapp: "",
-      email: "",
-      adults: 1,
-      children: 0,
-      age_0_5: 0,
-      age_6_10: 0,
-      message: "Hi, your booking is confirmed at our hotel. Your Booking ID will be generated after confirmation.",
-    });
+    onClose(null);
   }
 }, [countdown, screenshot]);
 
