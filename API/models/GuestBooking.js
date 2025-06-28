@@ -64,6 +64,7 @@ const GuestSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    advance_ss: String,
     totalPrice: {
       type: Number,
       required: true,
