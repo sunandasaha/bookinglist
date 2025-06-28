@@ -116,14 +116,27 @@ export default function TopBar({
         setPending((p) => [...p, bok]);
       });
 
+      socket.on("clear-booking", (bid) => {
+        setPending((p) => p.filter((el) => el._id !== bid));
+      });
+
       socket.on("pen-success", ({ id }) => {
         setPending((p) => p.filter((el) => el._id !== id));
+      });
+
+      socket.on("ss", ({ id }) => {
+        setPending((p) => {
+          let copy = p.filter((el) => el._id !== id);
+          return [...copy, bok];
+        });
       });
     }
     return () => {
       if (socket) {
         socket.off("new-booking");
         socket.off("pen-success");
+        socket.off("ss");
+        socket.off("clear-booking");
       }
     };
   }, [socket]);
