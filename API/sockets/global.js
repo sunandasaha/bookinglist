@@ -19,6 +19,8 @@ const sendNewBook = (id, bok) => {
 
 const removeBookings = (id, bid) => {
   const sid = hid.get(id);
+  console.log(sid, "soc");
+
   if (io && sid) {
     io.to(sid).emit("clear-booking", bid);
   }
