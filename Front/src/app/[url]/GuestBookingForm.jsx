@@ -279,7 +279,14 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     typeof window !== "undefined" ? window.location.pathname.split("/")[1] : "";
   const upiId = hosthotel?.url === hotelSlug ? hosthotel?.upi_id : null;
   const upiLink = useMemo(() => {
-    return upiId ? buildUpiUri({ pa: upiId, am: advanceAmount }) : "";
+    return upiId
+      ? buildUpiUri({
+          pa: upiId,
+          am: advanceAmount,
+          tr: bookingId || "booking list",
+          pn: "booking list",
+        })
+      : "";
   }, [upiId, advanceAmount]);
   function buildUpiUri({
     pa,
