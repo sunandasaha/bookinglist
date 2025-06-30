@@ -52,6 +52,7 @@ export default function TopBar({
   const [showRoomsPricing, setShowRoomsPricing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNot, setShowNot] = useState(false);
+  const [showImage, setShowImage] = useState(false);
   const navigate = useRouter();
 
   const daysInMonth = eachDayOfInterval({
@@ -403,18 +404,30 @@ export default function TopBar({
                     <div className="text-sm text-gray-700">
                       agent_com: {bk.agentCut || 0}
                     </div>
-                    {bk.advance_ss ? (
-                      <div className="mt-2">
-                        <img
-                          src={bk.advance_ss}
-                          alt="Screenshot"
-                          className="w-full max-h-48 object-contain border rounded"
-                        />
-                      </div>
-                    ) : (
-                      <div className="text-sm text-red-500 mt-2">No screenshot uploaded</div>
-                    )}
+                   {bk.advance_ss ? (
+                        <div className="mt-2">
+                          <img
+                            src={site + "imgs/" + bk.advance_ss}
+                            alt="Screenshot"
+                            className="w-full max-h-48 object-contain border rounded cursor-pointer"
+                            onClick={() => setShowImage(true)}
+                          />
 
+                          {showImage && (
+                            <PopEffect cb={() => setShowImage(false)}>
+                              <div className="w-full h-full flex justify-center items-center p-4">
+                                <img
+                                  src={site + "imgs/" + bk.advance_ss}
+                                  alt="Full Screenshot"
+                                  className="max-h-[60vh] max-w-[80vw] object-contain rounded shadow-2xl"
+                                />
+                              </div>
+                            </PopEffect>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-red-500 mt-2">No screenshot uploaded</div>
+                      )}
                     <div className="flex gap-2 mt-2 flex-wrap">
                       <button
                         onClick={() => handleBookingDecision(bk._id, true)}

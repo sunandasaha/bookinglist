@@ -33,10 +33,11 @@ type booking = {
   amountPaid?: number;
   _id: string;
   name: string;
-  email?: String;
+  email?:string;
   phone?: Number;
   whatsapp: number;
   address: string;
+  advance_ss? : string;
   fromDate: string;
   toDate: string;
   rooms: string[];
