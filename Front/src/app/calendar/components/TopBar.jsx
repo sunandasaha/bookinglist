@@ -390,6 +390,18 @@ export default function TopBar({
                     <div className="text-sm text-gray-700">
                       agent_com: {bk.agentCut || 0}
                     </div>
+                    {bk.advance_ss ? (
+                      <div className="mt-2">
+                        <img
+                          src={bk.advance_ss}
+                          alt="Screenshot"
+                          className="w-full max-h-48 object-contain border rounded"
+                        />
+                      </div>
+                    ) : (
+                      <div className="text-sm text-red-500 mt-2">No screenshot uploaded</div>
+                    )}
+
                     <div className="flex gap-2 mt-2 flex-wrap">
                       <button
                         onClick={() => handleBookingDecision(bk._id, true)}
