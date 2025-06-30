@@ -18,8 +18,8 @@ const sendNewBook = (id, bok) => {
 };
 
 const removeBookings = (id, bid) => {
-  const sid = hid.get(id);
-  console.log(sid, "soc");
+  const sid = hid.get(id.toString());
+  console.log(id, bid, sid, "soc");
 
   if (io && sid) {
     io.to(sid).emit("clear-booking", bid);
@@ -27,7 +27,7 @@ const removeBookings = (id, bid) => {
 };
 
 const sendSsBook = (id, bok) => {
-  const sid = hid.get(id);
+  const sid = hid.get(id.toString());
   if (io && sid) {
     io.to(sid).emit("ss", bok);
   }
