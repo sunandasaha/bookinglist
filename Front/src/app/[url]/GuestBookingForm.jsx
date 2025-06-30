@@ -282,7 +282,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     return upiId ? upiDeepLink(upiId, advanceAmount) : "";
   }, [upiId, advanceAmount]);
   function upiDeepLink(id, amount, tid = bookingId, notes = "Booking Payment") {
-    return `upi://pay?pa=${id}&pn=&tr=${
+    return `upi://pay?pa=${id}&pn=booking_list&tr=${
       tid || ""
     }&am=${amount}&cu=INR&tn=${notes}`;
   }
