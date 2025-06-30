@@ -17,6 +17,13 @@ const sendNewBook = (id, bok) => {
   }
 };
 
+const removeBookings = (id, bid) => {
+  const sid = hid.get(id);
+  if (io && sid) {
+    io.to(sid).emit("clear-booking", bid);
+  }
+};
+
 const sendSsBook = (id, bok) => {
   const sid = hid.get(id);
   if (io && sid) {
@@ -29,4 +36,5 @@ module.exports = {
   getio,
   sendNewBook,
   sendSsBook,
+  removeBookings,
 };

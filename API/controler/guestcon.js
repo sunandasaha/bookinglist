@@ -5,6 +5,7 @@ const UpBookModel = require("../models/UpcomingBookings");
 const { randomInt } = require("crypto");
 const { sendNewBook, sendSsBook } = require("../sockets/global");
 const { setFalse } = require("../middleware/bookingQue");
+const { deleteTimeout, addTimeOut } = require("./timercon");
 
 const createBooking = async (req, res) => {
   try {
@@ -61,6 +62,7 @@ const createBooking = async (req, res) => {
       });
       if (req.user?.role !== "host") {
         sendNewBook(data.hotelId, newBooking);
+        addTimeOut(newBooking._id);
       }
 
       const book = await UpBookModel.find({
@@ -83,12 +85,13 @@ const createBooking = async (req, res) => {
 
 const uploadScreenShot = async (req, res) => {
   const bid = req.body.bid;
+  deleteTimeout(bid);
   const booking = await GuestModel.findById(bid);
-  if (bid) {
+  if (booking) {
     booking.advance_ss = req.savedImages[0];
-    booking.save();
+    await booking.save();
     sendSsBook(booking.hotelId, booking);
-    res.json({ success: true });
+    res.json({ success: true, booking });
   } else {
     res.json({ succuss: false });
   }
