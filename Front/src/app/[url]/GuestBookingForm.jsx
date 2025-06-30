@@ -279,12 +279,34 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     typeof window !== "undefined" ? window.location.pathname.split("/")[1] : "";
   const upiId = hosthotel?.url === hotelSlug ? hosthotel?.upi_id : null;
   const upiLink = useMemo(() => {
-    return upiId ? upiDeepLink(upiId, advanceAmount) : "";
+    return upiId
+      ? buildUpiUri({
+          pa: upiId,
+          am: advanceAmount,
+          tr: bookingId || "booking list",
+          pn: "booking list",
+        })
+      : "";
   }, [upiId, advanceAmount]);
-  function upiDeepLink(id, amount, tid = "", notes = "Booking Payment") {
-    return `upi://pay?pa=${id}&am=${amount}&cu=INR${
-      tid ? `&tid=${tid}` : ""
-    }&tn=${notes}`;
+  function buildUpiUri({
+    pa,
+    pn = "",
+    tr = "",
+    tn = "",
+    am,
+    mc = "",
+    cu = "INR",
+  }) {
+    const params = new URLSearchParams({
+      pa,
+      pn,
+      tr,
+      tn,
+      am: am.toString(),
+      cu,
+    });
+    if (mc) params.set("mc", mc);
+    return `upi://pay?${params.toString()}`;
   }
 
   const handlePayment = async () => {
