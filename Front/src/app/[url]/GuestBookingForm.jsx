@@ -3,7 +3,7 @@ import { format, addDays } from "date-fns";
 import { X } from "lucide-react";
 import { postReq, site } from "../_utils/request";
 import { useContext, useMemo } from "react";
-import QRCode from "react-qr-code";
+import { QRCodeCanvas } from "qrcode.react";
 import PopEffect from "../_components/PopEffect";
 import { Context } from "../_components/ContextProvider";
 export default function GuestBookingForm({ booking, onSave, onClose }) {
@@ -34,9 +34,11 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [bookingId, setBookingId] = useState("");
   const [showInstructions, setShowInstructions] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const [countdown, setCountdown] = useState(30);
+  const [countdown, setCountdown] = useState(300);
   const [screenshot, setScreenshot] = useState(null);
   const [calcError, setCalcError] = useState("");
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     if (!showQR || countdown <= 0) return;
     const timer = setInterval(() => {
@@ -614,62 +616,110 @@ return { totalPrice: 0, advanceAmount: 0 };
             )}
 
             {showQR && (
-              <PopEffect cb={() => setShowQR(false)}>
-                <div className="space-y-4 mt-4 text-center text-black">
-                  <p className="text-lg font-semibold">
-                    ⏱ Time Left: {Math.floor(countdown / 60)}:
-                    {countdown % 60 < 10 ? "0" : ""}
-                    {countdown % 60}
-                  </p>
-                  <div className="flex justify-center">
-                    <QRCode value={upiLink} size={180} />
-                  </div>
-                  <a
-                    href={upiLink}
-                    className="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-                  
-                  >
-                    Pay via UPI
-                  </a>
+            <PopEffect cb={() => setShowQR(false)}>
+              <div className="space-y-4 mt-4 text-center text-black">
+                {/* Countdown Timer */}
+                <p className="text-lg font-semibold">
+                  ⏱ Time Left: {Math.floor(countdown / 60)}:
+                  {countdown % 60 < 10 ? "0" : ""}
+                  {countdown % 60}
+                    </p>
+                     {/* Conditional Instruction Message */}
+                    <div className="mt-2 text-sm font-medium">
+                      {advanceAmount <= 2000 ? (
+                        <p>Download and scan the QR from gallery.</p>
+                      ) : (
+                        <p>
+                          📱 Scan QR from another phone.<br />
+                          Copy UPI ID and amount in your desired app.
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex justify-center">
+                      <div id="qr-container" className="bg-white p-2 rounded">
+                            <QRCodeCanvas value={upiLink} size={180} />
+                      </div>
 
-                  {!screenshot && countdown > 0 ? (
-                    <>
-                      <p className="mt-4">
-                        📤 Upload payment screenshot{" "}
-                        <span className="inline-block animate-bounce">👇🏻</span>
+                    </div>
+                    <button
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                      onClick={() => {
+                        const canvas = document.querySelector("#qr-container canvas");
+                        const url = canvas.toDataURL("image/png");
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = "upi_qr_code.png";
+                        link.click();
+                      }}
+                    >
+                      ⬇️ Download QR
+                    </button>
+                    <div className="text-left max-w-sm mx-auto space-y-1">
+                      
+                        <span>UPI ID:</span>
+                        <div className="relative inline-block">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(upiId);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 1500); 
+                            }}
+                            className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                          >
+                            Copy
+                          </button>
+
+                          {copied && (
+                            <span className="absolute left-full top-1/2 ml-2 transform -translate-y-1/2 text-green-600 text-xs font-semibold">
+                              Copied!
+                            </span>
+                          )}
+                        </div>
+                           <p className="font-mono">{upiId}  </p>
+                        <div className="flex justify-between items-center">
+                       <p className="font-mono"> <span>Amount:</span>₹{advanceAmount}</p>
+                        
+                      </div>
+                    </div>
+                    {!screenshot && countdown > 0 ? (
+                      <>
+                        <p className="mt-4">
+                          📤 Upload payment screenshot{" "}
+                          <span className="inline-block animate-bounce">👇🏻</span>
+                        </p>
+
+                        <input
+                          id="fileUpload"
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            setScreenshot(file);
+                            handleScreenshotPayment(file);
+                          }}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="fileUpload"
+                          className="cursor-pointer bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mt-2 inline-block text-center"
+                        >
+                          📸 Choose Screenshot
+                        </label>
+                      </>
+                    ) : countdown <= 0 && !screenshot ? (
+                      <p className="text-red-600 font-semibold">
+                        ❌ Time's up! Booking cancelled.
                       </p>
+                    ) : (
+                      <p className="text-green-600 font-bold">
+                        ✅ Screenshot received.
+                      </p>
+                    )}
+                  </div>
+                </PopEffect>
+              )}
 
-                      <input
-                        id="fileUpload"
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          setScreenshot(file);
-                          handleScreenshotPayment(file);
-                        }}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="fileUpload"
-                        className="cursor-pointer bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mt-2 inline-block text-center"
-                      >
-                        📸 Choose Screenshot
-                      </label>
-                    </>
-                  ) : countdown <= 0 && !screenshot ? (
-                    <p className="text-red-600 font-semibold">
-                      ❌ Time's up! Booking cancelled.
-                    </p>
-                  ) : (
-                    <p className="text-green-600 font-bold">
-                      ✅ Screenshot received.
-                    </p>
-                  )}
-                </div>
-              </PopEffect>
-            )}
           </div>
         )}
       </div>
