@@ -36,6 +36,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [showQR, setShowQR] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [screenshot, setScreenshot] = useState(null);
+  const [calcError, setCalcError] = useState("");
   useEffect(() => {
     if (!showQR || countdown <= 0) return;
     const timer = setInterval(() => {
@@ -77,14 +78,13 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     const age0_5 = Number(formData.age_0_5);
     const age6_10 = Number(formData.age_6_10);
     let childError = "";
-    if (childCount != age0_5 + age6_10) {
+    if (childCount != age0_5+age6_10){
       childError = "Total children must match age 0–5 or  age 6–10";
     }
-    setErrors({
-      phone: phoneError,
-      whatsapp: whatsappError,
-      child: childError,
-    });
+    setErrors({ phone: phoneError, whatsapp: whatsappError,child: childError });
+    if (calcError) {
+        return;
+      }
 
     if (!phoneError && !whatsappError && !childError) {
       setSubmitted(true);
@@ -116,157 +116,138 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     if (age_0_5 + age_6_10 !== children) {
       return { totalPrice: 0, advanceAmount: 0 };
     }
-
-    //  PER ROOM PRICING
-    if (hosthotel?.pay_per?.room) {
-      const selectedCats =
-        hosthotel.room_cat?.filter((cat) =>
-          cat.room_no?.some((room) => selectedRooms.includes(room))
+    // PER ROOM PRICING
+      if (hosthotel?.pay_per?.room) {
+        const selectedCats = hosthotel.room_cat?.filter(cat =>
+          cat.room_no?.some(room => selectedRooms.includes(room))
         ) || [];
 
-      if (selectedCats.length === 0) {
-        return { totalPrice: 0, advanceAmount: 0 };
-      }
+        if (!selectedCats.length) return { totalPrice: 0, advanceAmount: 0 };
 
-      let totalBase = 0;
-      let totalAdvance = 0;
-      let totalCapacity = 0;
-      const allPerAdultRates = [];
-      const allExtraPrices = [];
+        let totalBase = 0;
+        let totalAdvance = 0;
+        let totalCapacity = 0;
+        let totalMaxCapacity = 0;
+        const roomStats = [];
+        selectedCats.forEach(cat => {
+          const roomCount = cat.room_no.filter(r => selectedRooms.includes(r)).length;
+          if (!roomCount) return;
 
-      for (const cat of selectedCats) {
-        const roomCount = cat.room_no.filter((r) =>
-          selectedRooms.includes(r)
-        ).length;
-        if (roomCount === 0) continue;
+          const capacity = cat.capacity || 0;
+          const maxCap = capacity < 4 ? capacity + 1 : capacity;
+          const rate = cat.price || 0;
+          const extraRate = cat.price_for_extra_person || 0;
 
-        const capacity = cat.capacity || 0;
-        const rate = cat.price || 0;
-        const extra = cat.price_for_extra_person || 0;
+          totalCapacity += capacity * roomCount;
+          totalMaxCapacity += maxCap * roomCount;
+          totalBase += rate * roomCount * nights;
+          if (cat.advance?.percent) {
+            totalAdvance += rate * roomCount * nights * (cat.advance.amount / 100);
+          } else {
+            totalAdvance += (cat.advance?.amount || 0) * roomCount * nights;
+          }
 
-        totalCapacity += capacity * roomCount;
-        totalBase += rate * roomCount * nights;
-        allPerAdultRates.push(rate / capacity);
-        allExtraPrices.push(extra);
-
-        totalAdvance += cat.advance?.percent
-          ? (cat.advance.amount / 100) * cat.price * nights * roomCount
-          : (cat.advance.amount || 0) * nights * roomCount;
-      }
-
-      const extraAdults = Math.max(0, adults - totalCapacity);
-      const minExtraPrice =
-        allExtraPrices.length > 0 ? Math.min(...allExtraPrices) : 0;
-      const extraCharges = extraAdults * minExtraPrice * nights;
-
-      const minPerAdultRate =
-        allPerAdultRates.length > 0 ? Math.min(...allPerAdultRates) : 0;
-      const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
-
-      let total = totalBase + extraCharges + childCharge;
-      return {
-        totalPrice: parseFloat(
-          (totalBase + extraCharges + childCharge).toFixed(2)
-        ),
-        advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-      };
-    }
-    // PER PERSON PRICING LOGIC
-    if (hosthotel?.pay_per?.person) {
-      const selectedCats =
-        hosthotel.per_person_cat?.filter((cat) =>
-          cat.roomNumbers?.some((room) => selectedRooms.includes(room))
-        ) || [];
-
-      if (selectedCats.length === 0) {
-        return { totalPrice: 0, advanceAmount: 0 };
-      }
-      let totalBase = 0;
-      let totalAdvance = 0;
-      const allRate1s = [];
-      let remainingAdults = adults;
-      const roomPlan = [];
-      for (const cat of selectedCats) {
-        const matchedRooms = cat.roomNumbers.filter((r) =>
-          selectedRooms.includes(r)
+          roomStats.push({
+            capacity,
+            maxCap,
+            rate,
+            extraRate,
+            roomCount,
+            advance: cat.advance,
+          });
+        });
+        if (adults > totalMaxCapacity) {
+          return {
+            error: `Only ${totalMaxCapacity} adult(s) can be accommodated. ${adults - totalMaxCapacity} extra adult(s) cannot be accommodated.`,
+            totalPrice: 0,
+            advanceAmount: 0
+          };
+        }
+        let extraCharges = 0;
+        const extraAdults = Math.max(0, adults - totalCapacity);
+        if (extraAdults > 0) {
+          roomStats.sort((a, b) => a.extraRate - b.extraRate);
+          let remainingExtras = extraAdults;
+          for (const room of roomStats) {
+            const availableExtras = (room.maxCap - room.capacity) * room.roomCount;
+            const assign = Math.min(availableExtras, remainingExtras);
+            extraCharges += assign * room.extraRate * nights;
+            remainingExtras -= assign;
+            if (remainingExtras <= 0) break;
+          }
+        }
+        const minPerAdultRate = roomStats.length > 0
+          ? Math.min(...roomStats.map(r => r.rate / r.capacity))
+          : 0;
+        const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
+        const childRateRoom = roomStats.find(r =>
+          (r.rate / r.capacity) === minPerAdultRate
         );
-        const roomCount = matchedRooms.length;
-        const capacity = cat.capacity || 0;
-        allRate1s.push(cat.rate1 || 0);
-
-        for (let i = 0; i < roomCount && remainingAdults > 0; i++) {
-          const assign = Math.min(remainingAdults, capacity);
-          remainingAdults -= assign;
-          let rate = 0;
-          if (assign === 1) rate = cat.rate1 || 0;
-          else if (assign === 2) rate = cat.rate2 * 2 || 0;
-          else if (assign === 3) rate = cat.rate3 * 3 || 0;
-          else if (assign >= 4) rate = cat.rate4 * 4 || 0;
-
-          totalBase += rate * nights;
-          if (assign <= capacity) {
-            if (cat.advance?.percent) {
-              totalAdvance += (cat.advance.amount / 100) * rate * nights;
-            } else {
-              totalAdvance += (cat.advance?.amount || 0) * nights;
-            }
-          }
-
-          roomPlan.push({ cat, assigned: assign, extra: 0 });
+        if (childRateRoom) {
+          if (childRateRoom.advance?.percent) {
+            totalAdvance += childCharge * (childRateRoom.advance.amount / 100);
+          } 
         }
-      }
-      if (remainingAdults > 0) {
-        for (const plan of roomPlan) {
-          const cat = plan.cat;
-          const baseCap = cat.capacity || 0;
-          const extremeCap = baseCap < 4 ? baseCap + 1 : baseCap;
-          const canAdd = extremeCap - plan.assigned;
-
-          if (canAdd > 0 && remainingAdults > 0) {
-            const extra = Math.min(remainingAdults, canAdd);
-            remainingAdults -= extra;
-            totalBase += extra * (cat.rate1 || 0) * nights;
-            plan.extra += extra;
-          }
-          if (remainingAdults === 0) break;
-        }
-      }
-      if (remainingAdults > 0) {
-        const maxAdults = roomPlan.reduce((sum, r) => {
-          const cap = r.cat.capacity || 0;
-          const max = cap < 4 ? cap + 1 : cap;
-          return sum + max;
-        }, 0);
-        return {
-          error: `Only ${
-            adults - remainingAdults
-          } adult(s) can be accommodated. Max capacity is ${maxAdults}.`,
-          totalPrice: 0,
-          advanceAmount: 0,
+      return {
+          totalPrice: parseFloat((totalBase + extraCharges + childCharge).toFixed(2)),
+          advanceAmount: parseFloat(totalAdvance.toFixed(2))
         };
       }
-      const maxCap = selectedCats.reduce((max, cat) => {
-        return Math.max(max, cat.capacity || 0);
-      }, 0);
 
-      let rateForChildren = 0;
-      for (const cat of selectedCats) {
-        if ((cat.capacity || 0) === maxCap) {
-          if (maxCap === 1) rateForChildren = cat.rate1 || 0;
-          else if (maxCap === 2) rateForChildren = cat.rate2 || 0;
-          else if (maxCap === 3) rateForChildren = cat.rate3 || 0;
-          else if (maxCap >= 4) rateForChildren = cat.rate4 || 0;
-          break;
+  // PER PERSON PRICING LOGIC
+    if (hosthotel?.pay_per?.person) {
+      const selectedCats = hosthotel.per_person_cat?.filter(cat => 
+        cat.roomNumbers?.some(room => selectedRooms.includes(room))
+      ) || [];
+
+      if (selectedCats.length === 0) {
+        return { totalPrice: 0, advanceAmount: 0 };
+      }
+
+      let totalBase = 0;
+      let totalAdvance = 0;
+      const assignments = Array(selectedRooms.length).fill(0);
+      for (let i = 0; i < adults; i++) {
+        assignments[i % selectedRooms.length]++;
+      }
+      const rateDetails = [];
+      assignments.forEach((occupancy, index) => {
+        const cat = selectedCats.find(c => c.roomNumbers.includes(selectedRooms[index]));
+        if (!cat) return;
+        let rate;
+        if (occupancy === 1) rate = cat.rate1 || 0;
+        else if (occupancy === 2) rate = (cat.rate2 || 0) * 2;
+        else if (occupancy === 3) rate = (cat.rate3 || 0) * 3;
+        else if (occupancy === 4) rate = (cat.rate4 || 0) * 4;
+
+        totalBase += rate * nights;
+        if (cat.advance?.percent) {
+          totalAdvance += rate * nights * (cat.advance.amount / 100);
+        } else {
+          totalAdvance += (cat.advance?.amount || 0);
+        }
+        if (occupancy >= 1 && occupancy <= 4) {
+          const perPersonRate = [cat.rate1, cat.rate2, cat.rate3, cat.rate4][occupancy - 1] || 0;
+          rateDetails.push({ rate: perPersonRate, cat });
+        }
+      });
+      if (rateDetails.length > 0 && (age_6_10 || 0) > 0) {
+        const minDetail = rateDetails.reduce((min, curr) => 
+          curr.rate < min.rate ? curr : min, { rate: Infinity }
+        );
+        const childCharge = (age_6_10 || 0) * minDetail.rate * nights * 0.5;
+        totalBase += childCharge;
+        if (minDetail.cat.advance?.percent) {
+          totalAdvance += childCharge * (minDetail.cat.advance.amount / 100);
         }
       }
-      const childCharge = age_6_10 * rateForChildren * nights * 0.5;
-
       return {
-        totalPrice: parseFloat((totalBase + childCharge).toFixed(2)),
-        advanceAmount: parseFloat(totalAdvance.toFixed(2)),
+        totalPrice: parseFloat(totalBase.toFixed(2)),
+        advanceAmount: parseFloat(totalAdvance.toFixed(2))
       };
     }
-    return { totalPrice: 0, advanceAmount: 0 };
+
+return { totalPrice: 0, advanceAmount: 0 };
   }, [
     hosthotel,
     booking,
@@ -484,6 +465,11 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              {errors.child && (
+                  <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
+                    <p>{errors.child}</p>
+                  </div>
+                )}
             </div>
             <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
               <div>
@@ -641,6 +627,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   <a
                     href={upiLink}
                     className="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+                  
                   >
                     Pay via UPI
                   </a>
