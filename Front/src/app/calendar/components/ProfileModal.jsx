@@ -1,15 +1,24 @@
 "use client";
 
-import React, { useContext } from "react";
-import { X } from "lucide-react";
+import React, { useState } from "react";
+import { X, Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Context } from "../../_components/ContextProvider";
+import { site } from "../../_utils/request";
+
 
 export default function ProfileModal({ profile, onClose }) {
   if (!profile) return null;
+    const [copied, setCopied] = useState(false);
+    const handleCopy = () => {
+    if (profile.url) {
+      const Url = site +`${profile.url}`;
+      navigator.clipboard.writeText(Url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500); 
+    }
+  }
 
   const navigate = useRouter();
-  const { setUser, setHosthotel } = useContext(Context);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 px-4">
@@ -36,14 +45,24 @@ export default function ProfileModal({ profile, onClose }) {
             label="🌐 URL"
             value={
               profile.url ? (
-                <a
-                  href={profile.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline break-words max-w-[60%]"
-                >
-                  {profile.url}
-                </a>
+
+                <div className=" flex items-center flex-wrap gap-2">
+                  <a
+                    href={profile.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-words"
+                  >
+                    {profile.url}
+                  </a>
+                  <button
+                    onClick={handleCopy}
+                    className="text-sm text-gray-600 border px-2 py-1 rounded hover:bg-gray-100"
+                  >
+                    <Copy size={14} className="inline-block mr-1" />
+                    {copied ? "Copied!" : "Copy"}
+                  </button>
+                </div>
               ) : (
                 "N/A"
               )

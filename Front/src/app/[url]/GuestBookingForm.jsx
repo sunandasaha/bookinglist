@@ -9,6 +9,8 @@ import { Context } from "../_components/ContextProvider";
 export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
   const { user, hosthotel } = useContext(Context);
+  const [copiedAmount, setCopiedAmount] = useState(false);
+
   const [isEditing, setIsEditing] = useState(false);
 
   const token = user?.token;
@@ -325,7 +327,8 @@ return { totalPrice: 0, advanceAmount: 0 };
     }
   };
   const handleScreenshotPayment = async (file) => {
-    alert(" screenshot sent successfully booking done ");
+    alert(`Screenshot sent successfully. Booking done. Your booking ID is ${bookingId}`);
+
     const fd = new FormData();
     fd.append("bid", bookingId);
     fd.append("images", file);
@@ -581,19 +584,20 @@ return { totalPrice: 0, advanceAmount: 0 };
                   <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
                   <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
                     <li>
-                      You have <strong>4 minutes</strong> to complete the
-                      payment.
+                      You have <strong>5 minutes</strong> to complete the payment.
                     </li>
                     <li>
-                      Pay using the <strong>QR code</strong> or{" "}
-                      <strong>UPI button</strong> below.
+                      <strong>download the QR code</strong> to your gallery and scan it in any UPI app.
+                      
                     </li>
                     <li>
-                      After payment, <strong>upload the screenshot</strong>{" "}
-                      immediately.
+                      Another option <strong>copy the UPI ID and amount</strong> and pay manually.
                     </li>
                     <li>
-                      If not uploaded within time,{" "}
+                      After payment, <strong>upload the screenshot</strong> immediately.
+                    </li>
+                    <li>
+                      If the screenshot is not uploaded within time,{" "}
                       <span className="text-red-600 font-semibold">
                         your booking will be cancelled.
                       </span>
@@ -642,7 +646,7 @@ return { totalPrice: 0, advanceAmount: 0 };
 
                     </div>
                     <button
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                      className="bg-blue-600 hover:bg-green-700 text-white px-3 py-1 rounded"
                       onClick={() => {
                         const canvas = document.querySelector("#qr-container canvas");
                         const url = canvas.toDataURL("image/png");
@@ -664,7 +668,7 @@ return { totalPrice: 0, advanceAmount: 0 };
                               setCopied(true);
                               setTimeout(() => setCopied(false), 1500); 
                             }}
-                            className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                            className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-blue-300"
                           >
                             Copy
                           </button>
@@ -676,9 +680,27 @@ return { totalPrice: 0, advanceAmount: 0 };
                           )}
                         </div>
                            <p className="font-mono">{upiId}  </p>
-                        <div className="flex justify-between items-center">
-                       <p className="font-mono"> <span>Amount:</span>₹{advanceAmount}</p>
-                        
+                           <div className="flex mt-4">
+                          <p className="font-mono">
+                            <span>Amount:</span> ₹{advanceAmount}
+                          </p>
+                          <div className="relative inline-block ml-2">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(advanceAmount.toString());
+                                setCopiedAmount(true);
+                                setTimeout(() => setCopiedAmount(false), 1500);
+                              }}
+                              className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-blue-300"
+                            >
+                              Copy
+                            </button>
+                            {copiedAmount && (
+                              <span className="absolute left-full top-1/2 ml-2 transform -translate-y-1/2 text-green-600 text-xs font-semibold">
+                                Copied!
+                              </span>
+                            )}
+                          </div>
                       </div>
                     </div>
                     {!screenshot && countdown > 0 ? (
