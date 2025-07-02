@@ -127,7 +127,7 @@ export default function TopBar({
 
       socket.on("ss", (bok) => {
         setPending((p) => {
-          let copy = p.filter((el) => el._id !== id);
+          let copy = p.filter((el) => el._id !== bok._id);
           return [...copy, bok];
         });
       });
