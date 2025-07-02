@@ -15,7 +15,7 @@ const addTimeOut = (id) => {
       removeBookings(bok.hotelId, id);
       console.log("Booking: " + id + " deleted");
     }
-  }, 240000);
+  }, 300000);
   ids.set(id, sid);
 };
 

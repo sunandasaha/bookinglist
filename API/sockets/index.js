@@ -30,7 +30,7 @@ module.exports = (io, hid) => {
             }
             book.ub_ids = [];
             book.status = 2;
-            book.save();
+            await book.save();
           }
           io.to(soc.id).emit("pen-success", { id });
         }
