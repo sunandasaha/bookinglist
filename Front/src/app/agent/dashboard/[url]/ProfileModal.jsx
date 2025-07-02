@@ -30,8 +30,8 @@ export default function ProfileModal({ profile, onClose }) {
         <div className="space-y-3 text-sm text-black">
           <ProfileRow label="🏨 Property Name" value={profile.name} />
           <ProfileRow label="📍 Location" value={profile.location} />
-          <ProfileRow label="📞 Phone" value={profile.ph1} />
-          <ProfileRow label="📱 WhatsApp" value={profile.ph2} />
+          <ProfileRow label="📞 Phone" value={profile.ph2} />
+          <ProfileRow label="💬 WhatsApp" value={profile.ph1} />
           <ProfileRow label="🛏️ Rooms" value={roomsCount} />
         </div>
       </div>

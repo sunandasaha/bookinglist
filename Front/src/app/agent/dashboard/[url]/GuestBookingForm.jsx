@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { X } from "lucide-react";
-import { postReq, getReq } from "../../../_utils/request";
+import { postReq, site } from "../../../_utils/request";
 import { useContext, useMemo } from "react";
+import { QRCodeCanvas } from "qrcode.react";
+import PopEffect from "../../../_components/PopEffect";
 import { Context } from "../../../_components/ContextProvider";
 export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
   const { user, hosthotel } = useContext(Context);
+  const [copiedAmount, setCopiedAmount] = useState(false);
+
   const [isEditing, setIsEditing] = useState(false);
 
   const token = user?.token;
@@ -30,6 +34,29 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   const [submitted, setSubmitted] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [bookingId, setBookingId] = useState("");
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [countdown, setCountdown] = useState(300);
+  const [screenshot, setScreenshot] = useState(null);
+  const [calcError, setCalcError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!showQR || countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [showQR, countdown]);
+  useEffect(() => {
+    if (countdown <= 0 && !screenshot) {
+      setShowQR(false);
+      setSubmitted(false);
+      setBookingConfirmed(false);
+      setBookingId("");
+      onClose(null);
+    }
+  }, [countdown, screenshot]);
 
   const validatePhone = (number) => {
     const cleaned = number.replace(/\D/g, "");
@@ -47,7 +74,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
   };
-   const handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const phoneError = validatePhone(formData.phone);
     const whatsappError = validatePhone(formData.whatsapp);
@@ -59,13 +86,16 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       childError = "Total children must match age 0–5 or  age 6–10";
     }
     setErrors({ phone: phoneError, whatsapp: whatsappError,child: childError });
+    if (calcError) {
+        return;
+      }
 
     if (!phoneError && !whatsappError && !childError) {
       setSubmitted(true);
       setIsEditing(false);
     }
   };
- const { totalPrice, advanceAmount, agentCut, ActualPay } = useMemo(() => {
+  const { totalPrice, advanceAmount, agentCut, ActualPay } = useMemo(() => {
   if (
     !hosthotel ||
     !booking?.roomNames?.length ||
@@ -229,62 +259,60 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
           : (cat.agent_com.amount || 0) * nights;
         agentCut += commission;
       }
-      const commission = cat.agent_com
-  ? cat.agent_com.percent
-    ? rate * nights * (cat.agent_com.amount / 100)
-    : (cat.agent_com.amount || 0) * nights
-  : 0;
-const netRate = rate * nights - commission;
+            const commission = cat.agent_com
+        ? cat.agent_com.percent
+          ? rate * nights * (cat.agent_com.amount / 100)
+          : (cat.agent_com.amount || 0) * nights
+        : 0;
+      const netRate = rate * nights - commission;
 
-if (cat.advance?.percent) {
-  totalAdvance += netRate * (cat.advance.amount / 100);
-} else {
-  totalAdvance += (cat.advance?.amount || 0);
-}
-
-
+      if (cat.advance?.percent) {
+        totalAdvance += netRate * (cat.advance.amount / 100);
+      } else {
+        totalAdvance += (cat.advance?.amount || 0);
+      }
       if (occupancy >= 1 && occupancy <= 4) {
-        const perPersonRate = [cat.rate1, cat.rate2, cat.rate3, cat.rate4][occupancy - 1] || 0;
-        rateDetails.push({ rate: perPersonRate, cat });
-      }
-    });
-
-    if (rateDetails.length > 0 && age_6_10 > 0) {
-      const minDetail = rateDetails.reduce((min, curr) =>
-        curr.rate < min.rate ? curr : min, { rate: Infinity }
-      );
-      const childCharge = age_6_10 * minDetail.rate * nights * 0.5;
-      totalBase += childCharge;
-
-      if (minDetail.cat.advance?.percent) {
-        let childCommission = 0;
-        if (minDetail.cat.agent_com) {
-          childCommission = minDetail.cat.agent_com.percent
-            ? childCharge * (minDetail.cat.agent_com.amount / 100)
-            : (minDetail.cat.agent_com.amount || 0) * nights;
-        }
-        const netChildCharge = childCharge - childCommission;
-        totalAdvance += netChildCharge * (minDetail.cat.advance.amount / 100);
-      }
-
-            if (minDetail.cat.agent_com) {
-              agentCut += minDetail.cat.agent_com.percent
-                ? childCharge * (minDetail.cat.agent_com.amount / 100)
-                : (minDetail.cat.agent_com.amount || 0) * nights;
+              const perPersonRate = [cat.rate1, cat.rate2, cat.rate3, cat.rate4][occupancy - 1] || 0;
+              rateDetails.push({ rate: perPersonRate, cat });
             }
-          }
-          const y = totalPrice - agentCut;
+       });
 
-          return {
-            totalPrice: parseFloat(totalBase.toFixed(2)),
-            advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-            agentCut: parseFloat(agentCut.toFixed(2)),
-            ActualPay: parseFloat(y.toFixed(2))
-             
-          };
-        }
+          if (rateDetails.length > 0 && age_6_10 > 0) {
+            const minDetail = rateDetails.reduce((min, curr) =>
+              curr.rate < min.rate ? curr : min, { rate: Infinity }
+            );
+            const childCharge = age_6_10 * minDetail.rate * nights * 0.5;
+            totalBase += childCharge;
 
-  return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
+            if (minDetail.cat.advance?.percent) {
+              let childCommission = 0;
+              if (minDetail.cat.agent_com) {
+                childCommission = minDetail.cat.agent_com.percent
+                  ? childCharge * (minDetail.cat.agent_com.amount / 100)
+                  : (minDetail.cat.agent_com.amount || 0) * nights;
+              }
+              const netChildCharge = childCharge - childCommission;
+              totalAdvance += netChildCharge * (minDetail.cat.advance.amount / 100);
+            }
+
+                  if (minDetail.cat.agent_com) {
+                    agentCut += minDetail.cat.agent_com.percent
+                      ? childCharge * (minDetail.cat.agent_com.amount / 100)
+                      : (minDetail.cat.agent_com.amount || 0) * nights;
+                  }
+                }
+                const y = totalPrice - agentCut;
+
+                return {
+                  totalPrice: parseFloat(totalBase.toFixed(2)),
+                  advanceAmount: parseFloat(totalAdvance.toFixed(2)),
+                  agentCut: parseFloat(agentCut.toFixed(2)),
+                  ActualPay: parseFloat(y.toFixed(2))
+                  
+                };
+              }
+
+        return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
 }, [
   hosthotel,
   booking,
@@ -293,10 +321,40 @@ if (cat.advance?.percent) {
   formData.age_0_5,
   formData.age_6_10,
 ]);
-
-
-
-
+  
+  const hotelSlug =
+    typeof window !== "undefined" ? window.location.pathname.split("/")[3] : "";
+  const upiId = hosthotel?.url === hotelSlug ? hosthotel?.upi_id : null;
+  const upiLink = useMemo(() => {
+    return upiId
+      ? buildUpiUri({
+          pa: upiId,
+          am: advanceAmount,
+          tr: bookingId || "booking list",
+          pn: "booking list",
+        })
+      : "";
+  }, [upiId, advanceAmount]);
+  function buildUpiUri({
+    pa,
+    pn = "",
+    tr = "",
+    tn = "",
+    am,
+    mc = "",
+    cu = "INR",
+  }) {
+    const params = new URLSearchParams({
+      pa,
+      pn,
+      tr,
+      tn,
+      am: am.toString(),
+      cu,
+    });
+    if (mc) params.set("mc", mc);
+    return `upi://pay?${params.toString()}`;
+  }
 
   const handlePayment = async () => {
     const bookingPayload = {
@@ -313,8 +371,6 @@ if (cat.advance?.percent) {
       advanceAmount,
       agentCut,
     };
-    console.log(bookingPayload);
-
     try {
       const result = await postReq(
         user ? "guestbooking/agent" : "guestbooking/guest",
@@ -326,17 +382,31 @@ if (cat.advance?.percent) {
       if (result.status === "success" && result.booking?._id) {
         const newId = result.booking._id;
         setBookingId(newId);
-        setBookingConfirmed(true);
-        alert(`🎉 Booking Confirmed!\nYour Booking ID is: ${newId}`);
-        onSave(result.booking);
       } else {
-        alert(
-          "❌ Failed to save booking: " + (result.message || "Unknown error")
-        );
+        console.log(result.message);
       }
     } catch (err) {
       console.error("Booking error:", err);
-      alert("❌ Error saving booking. Please try again.");
+    }
+  };
+  const handleScreenshotPayment = async (file) => {
+    alert(`Screenshot sent successfully. Booking done. Your booking ID is ${bookingId}`);
+
+    const fd = new FormData();
+    fd.append("bid", bookingId);
+    fd.append("images", file);
+
+    const res = await fetch(site + "guestbooking/guest/ss", {
+      method: "POST",
+      body: fd,
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      setBookingConfirmed(true);
+      onSave(result.booking);
+    } else {
+      console.error("Booking error:");
     }
   };
 
@@ -360,7 +430,8 @@ if (cat.advance?.percent) {
             <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
               <p>
                 <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
-                <strong>Checkout:</strong>  {format(addDays((booking.to), 1), "MMM dd")} 
+                <strong>Checkout:</strong>{" "}
+                {format(addDays(booking.to, 1), "MMM dd")}
               </p>
               <p>
                 <strong>Rooms:</strong> {booking.roomNames.join(", ")}
@@ -441,7 +512,7 @@ if (cat.advance?.percent) {
                   name="adults"
                   value={formData.adults}
                   onChange={handleChange}
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => e.target.blur()}
                   placeholder="Adults"
                   required
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
@@ -454,7 +525,7 @@ if (cat.advance?.percent) {
                 <input
                   type="number"
                   name="children"
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => e.target.blur()}
                   value={formData.children}
                   onChange={handleChange}
                   placeholder="Children"
@@ -462,6 +533,11 @@ if (cat.advance?.percent) {
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              {errors.child && (
+                  <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
+                    <p>{errors.child}</p>
+                  </div>
+                )}
             </div>
             <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
               <div>
@@ -470,7 +546,7 @@ if (cat.advance?.percent) {
                   type="number"
                   name="age_0_5"
                   value={formData.age_0_5}
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => e.target.blur()}
                   onChange={handleChange}
                   placeholder="0–5 yrs"
                   required
@@ -484,12 +560,12 @@ if (cat.advance?.percent) {
                 <input
                   type="number"
                   name="age_6_10"
+                  onWheel={(e) => e.target.blur()}
                   value={formData.age_6_10}
-                  onWheel={(e) => e.target.blur()} 
                   onChange={handleChange}
                   placeholder="6–10 yrs"
                   required
-                  className=" no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -531,8 +607,9 @@ if (cat.advance?.percent) {
               <strong>6–10 yrs:</strong> {formData.age_6_10}
             </p>
             <p>
-              <strong>Checkin</strong> {format(booking.from, "MMM dd")} -{" "}
-              <strong>Checkout</strong>  {format(addDays((booking.to), 1), "MMM dd")}
+              <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
+              <strong>Checkout:</strong>{" "}
+              {format(addDays(booking.to, 1), "MMM dd")}
             </p>
             <p>
               <strong>Rooms:</strong> {booking.roomNames.join(", ")}
@@ -545,14 +622,12 @@ if (cat.advance?.percent) {
               {totalPrice ? totalPrice.toFixed(2) : 0}
             </p>
             <p>
-              <strong>PayByAgent: </strong>  ₹ {ActualPay ? ActualPay.toFixed(2): 0}
+              <strong>Agent Commission:</strong> ₹
+              {agentCut ? agentCut.toFixed(2) : 0}
             </p>
             <p>
               <strong>Advance to Pay:</strong> ₹
               {advanceAmount ? advanceAmount.toFixed(2) : 0}
-            </p>
-            <p>
-              <strong>Agent Commission: </strong>  ₹ {agentCut ? agentCut.toFixed(2): 0}
             </p>
 
             <button
@@ -561,13 +636,180 @@ if (cat.advance?.percent) {
             >
               ✏ Edit Details
             </button>
+            {!showInstructions && (
+              <button
+                onClick={() => setShowInstructions(true)}
+                className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                💸 Proceed to Payment
+              </button>
+            )}
 
-            <button
-              onClick={handlePayment}
-              className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-            >
-              💸 Proceed to Payment
-            </button>
+            {showInstructions && !showQR && (
+              <PopEffect cb={() => setShowInstructions(false)}>
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md space-y-4 mt-4">
+                  <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
+                  <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
+                    <li>
+                      You have <strong>5 minutes</strong> to complete the payment.
+                    </li>
+                    <li>
+                      <strong>download the QR code</strong> to your gallery and scan it in any UPI app.
+                      
+                    </li>
+                    <li>
+                      Another option <strong>copy the UPI ID and amount</strong> and pay manually.
+                    </li>
+                    <li>
+                      After payment, <strong>upload the screenshot</strong> immediately.
+                    </li>
+                    <li>
+                      If the screenshot is not uploaded within time,{" "}
+                      <span className="text-red-600 font-semibold">
+                        your booking will be cancelled.
+                      </span>
+                    </li>
+                  </ul>
+
+                  <div className="text-center">
+                    <button
+                      onClick={() => {
+                        setShowInstructions(false);
+                        handlePayment();
+                        setShowQR(true);
+                      }}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                    >
+                      OK, Show Payment Options
+                    </button>
+                  </div>
+                </div>
+              </PopEffect>
+            )}
+
+            {showQR && (
+            <PopEffect cb={() => setShowQR(false)}>
+              <div className="space-y-4 mt-4 text-center text-black">
+                {/* Countdown Timer */}
+                <p className="text-lg font-semibold">
+                  ⏱ Time Left: {Math.floor(countdown / 60)}:
+                  {countdown % 60 < 10 ? "0" : ""}
+                  {countdown % 60}
+                    </p>
+                     {/* Conditional Instruction Message */}
+                    <div className="mt-2 text-sm font-medium">
+                      {advanceAmount <= 2000 ? (
+                        <p>Download and scan the QR from gallery.</p>
+                      ) : (
+                        <p>
+                          📱 Scan QR from another phone.<br />
+                          Copy UPI ID and amount in your desired app.
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex justify-center">
+                      <div id="qr-container" className="bg-white p-2 rounded">
+                            <QRCodeCanvas value={upiLink} size={180} />
+                      </div>
+
+                    </div>
+                    <button
+                      className="bg-blue-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                      onClick={() => {
+                        const canvas = document.querySelector("#qr-container canvas");
+                        const url = canvas.toDataURL("image/png");
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = "upi_qr_code.png";
+                        link.click();
+                      }}
+                    >
+                      ⬇️ Download QR
+                    </button>
+                    <div className="text-left max-w-sm mx-auto space-y-1">
+                      
+                        <span>UPI ID:</span>
+                        <div className="relative inline-block">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(upiId);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 1500); 
+                            }}
+                            className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-blue-300"
+                          >
+                            Copy
+                          </button>
+
+                          {copied && (
+                            <span className="absolute left-full top-1/2 ml-2 transform -translate-y-1/2 text-green-600 text-xs font-semibold">
+                              Copied!
+                            </span>
+                          )}
+                        </div>
+                           <p className="font-mono">{upiId}  </p>
+                           <div className="flex mt-4">
+                          <p className="font-mono">
+                            <span>Amount:</span> ₹{advanceAmount}
+                          </p>
+                          <div className="relative inline-block ml-2">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(advanceAmount.toString());
+                                setCopiedAmount(true);
+                                setTimeout(() => setCopiedAmount(false), 1500);
+                              }}
+                              className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-blue-300"
+                            >
+                              Copy
+                            </button>
+                            {copiedAmount && (
+                              <span className="absolute left-full top-1/2 ml-2 transform -translate-y-1/2 text-green-600 text-xs font-semibold">
+                                Copied!
+                              </span>
+                            )}
+                          </div>
+                      </div>
+                    </div>
+                    {!screenshot && countdown > 0 ? (
+                      <>
+                        <p className="mt-4">
+                          📤 Upload payment screenshot{" "}
+                          <span className="inline-block animate-bounce">👇🏻</span>
+                        </p>
+
+                        <input
+                          id="fileUpload"
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            setScreenshot(file);
+                            handleScreenshotPayment(file);
+                          }}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="fileUpload"
+                          className="cursor-pointer bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mt-2 inline-block text-center"
+                        >
+                          📸 Choose Screenshot
+                        </label>
+                      </>
+                    ) : countdown <= 0 && !screenshot ? (
+                      <p className="text-red-600 font-semibold">
+                        ❌ Time's up! Booking cancelled.
+                      </p>
+                    ) : (
+                      <p className="text-green-600 font-bold">
+                        ✅ Screenshot received.
+                      </p>
+                    )}
+                  </div>
+                </PopEffect>
+              )}
+
           </div>
         )}
       </div>
