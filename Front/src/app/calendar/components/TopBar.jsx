@@ -117,11 +117,11 @@ export default function TopBar({
         setPending((p) => [...p, bok]);
       });
 
-      socket.on("clear-booking", (bid) => {
+      socket.on("clear-booking", ({ bid }) => {
         setPending((p) => p.filter((el) => el._id !== bid));
       });
 
-      socket.on("pen-success", ({ bid }) => {
+      socket.on("pen-success", ({ id }) => {
         setPending((p) => p.filter((el) => el._id !== id));
       });
 
