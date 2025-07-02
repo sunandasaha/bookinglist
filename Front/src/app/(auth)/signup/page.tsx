@@ -62,7 +62,7 @@ const Signup = () => {
       className="con"
       style={{ justifyContent: "space-evenly", height: 400 }}
     >
-      <h1>Booking List</h1>
+      <h1 className="text-2xl font-medium">Booking List</h1>
       <input
         type="email"
         className="pinput"

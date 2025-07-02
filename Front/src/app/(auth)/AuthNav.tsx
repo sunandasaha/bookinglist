@@ -1,16 +1,10 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import PopEffect from "../_components/PopEffect";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const AuthNav = () => {
-  const [pop, setPop] = useState({ tc: false, ab: false });
-
-  const clrPop = () => {
-    setPop({ tc: false, ab: false });
-  };
+  const navigate = useRouter();
 
   return (
     <div className="auth-navbar">
@@ -18,25 +12,26 @@ const AuthNav = () => {
       <div className="nav-elcon">
         <p
           onClick={() => {
-            setPop({ tc: true, ab: false });
+            navigate.push("/t&c");
           }}
         >
           Terms & Conditions
         </p>
-        <p>About Us</p>
+        <p
+          onClick={() => {
+            navigate.push("/about_us");
+          }}
+        >
+          About Us
+        </p>
+        <p
+          onClick={() => {
+            navigate.push("/contact_us");
+          }}
+        >
+          Contact Us
+        </p>
       </div>
-      <AnimatePresence>
-        {pop.tc && (
-          <PopEffect cb={clrPop}>
-            <div></div>
-          </PopEffect>
-        )}
-        {pop.ab && (
-          <PopEffect cb={clrPop}>
-            <div></div>
-          </PopEffect>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
