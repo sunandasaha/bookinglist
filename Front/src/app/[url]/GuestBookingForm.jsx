@@ -340,6 +340,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         setBookingId(newId);
         setShowQR(true);
       } else {
+        alert(
+          "❌ Failed to save booking: " + (result.message || "Unknown error")
+        );
         console.log(result.message);
       }
     } catch (err) {
