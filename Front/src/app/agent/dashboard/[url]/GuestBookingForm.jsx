@@ -301,13 +301,14 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                       : (minDetail.cat.agent_com.amount || 0) * nights;
                   }
                 }
-                const y = totalPrice - agentCut;
+                const finalTotal = parseFloat(totalBase.toFixed(2));
+                const actualPay = parseFloat((finalTotal - agentCut).toFixed(2));
 
                 return {
-                  totalPrice: parseFloat(totalBase.toFixed(2)),
+                  totalPrice: finalTotal,
                   advanceAmount: parseFloat(totalAdvance.toFixed(2)),
                   agentCut: parseFloat(agentCut.toFixed(2)),
-                  ActualPay: parseFloat(y.toFixed(2))
+                   ActualPay: actualPay,
                   
                 };
               }
@@ -404,7 +405,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     const result = await res.json();
     if (result.success) {
       setBookingConfirmed(true);
-      onSave(result.booking);
+      onSave(result.booking);2
     } else {
       console.error("Booking error:");
     }

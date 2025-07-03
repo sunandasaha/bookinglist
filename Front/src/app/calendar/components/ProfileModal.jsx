@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { X, Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { site } from "../../_utils/request";
 
 
 export default function ProfileModal({ profile, onClose }) {
@@ -11,6 +10,8 @@ export default function ProfileModal({ profile, onClose }) {
     const [copied, setCopied] = useState(false);
     const handleCopy = () => {
     if (profile.url) {
+      const site = "https://bookinglist-front.onrender.com/";
+
       const Url = site +`${profile.url}`;
       navigator.clipboard.writeText(Url);
       setCopied(true);
