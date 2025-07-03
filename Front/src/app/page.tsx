@@ -30,16 +30,24 @@ export default function Home() {
           navigate.push("/role");
         } else if (res.user.role === "host") {
           if (res.user.cred) {
-            if (setHosthotel) setHosthotel(addstuff(res.user.cred));
-            if (res.user.pending && setPending) setPending(res.user.pending);
-            navigate.push("/calendar");
+            if (res.user.status === 1) {
+              if (setHosthotel) setHosthotel(res.user.cred);
+              if (res.user.pending && setPending) setPending(res.user.pending);
+              navigate.push("/calendar");
+            } else {
+              navigate.push("/status");
+            }
           } else {
             navigate.push("/hotel");
           }
         } else if (res.user.role === "agent") {
           if (res.user.cred) {
-            if (setAgent) setAgent(res.user.cred);
-            navigate.push("/agent/dashboard");
+            if (res.user.status === 1) {
+              if (setAgent) setAgent(res.user.cred);
+              navigate.push("/agent/dashboard");
+            } else {
+              navigate.push("/status");
+            }
           } else {
             navigate.push("/agent");
           }

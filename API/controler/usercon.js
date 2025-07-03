@@ -61,7 +61,7 @@ const glogin = async (req, res) => {
       email: gres.email,
       password: "google",
       role: "",
-      status: 1,
+      status: 0,
     });
   }
   if (user._id) {
