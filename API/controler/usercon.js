@@ -149,7 +149,7 @@ const signup = async (req, res) => {
       email,
       password: hpass,
       role: "",
-      status: 1,
+      status: 0,
     });
     const tok = jwt.sign(
       { id: user._id, role: user.role },

@@ -1,22 +1,33 @@
 "use client";
 import { useState } from "react";
 import Superdashboard from "./Superdashboard";
+import { postReq } from "../_utils/request";
 
 export default function SuperAdminLogin() {
   const [uid, setUid] = useState("");
   const [pwd, setPwd] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [admin, setAdmin] = useState(null);
 
-  const handleLogin = () => {
-    if (uid === "admin" && pwd === "admin123") {
-      setIsLoggedIn(true);
+  const handleLogin = async () => {
+    if (uid.length > 3 && pwd.length > 3) {
+      const res = await postReq(
+        "user/login",
+        { email: uid, password: pwd },
+        ""
+      );
+      if (res.status === "success") {
+        if (res.user.role === "sadmin") setAdmin(res.user);
+        else alert("Unauthorised accsess");
+      } else {
+        alert(res.status);
+      }
     } else {
       alert("Invalid credentials");
     }
   };
 
-  if (isLoggedIn) {
-    return <Superdashboard />;
+  if (admin) {
+    return <Superdashboard admin={admin} />;
   }
 
   return (

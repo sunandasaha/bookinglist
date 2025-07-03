@@ -41,5 +41,13 @@ const chkAgent = (req, res, next) => {
     res.json({ status: "Unauthorised Access" });
   }
 };
+const chkSadmin = (req, res, next) => {
+  // checking for Admin
+  if (req.user.role === "sadmin") {
+    next();
+  } else {
+    res.json({ status: "Unauthorised Access" });
+  }
+};
 
-module.exports = { authUser, chkHost, chkAgent };
+module.exports = { authUser, chkHost, chkAgent, chkSadmin };

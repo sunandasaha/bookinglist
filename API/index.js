@@ -5,6 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 const { Server } = require("socket.io");
 const userroute = require("./routes/userroute");
+const sadminroute = require("./routes/sadminroute");
 const hotelroute = require("./routes/hotelroute");
 const guestRoute = require("./routes/guestroute");
 const categoryroute = require("./routes/categoryroute");
@@ -30,6 +31,7 @@ app.use("/imgs", express.static("./uploads/"));
 
 //routes
 app.use("/user", userroute);
+app.use("/sadmin", sadminroute);
 app.use("/hotel", hotelroute);
 app.use("/agent", agentroute);
 app.use("/guestbooking", guestRoute);

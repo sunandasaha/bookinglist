@@ -3,16 +3,25 @@
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
 import PopEffect from "../_components/PopEffect";
+import { getReq } from "../_utils/request";
 
-export default function SuperAdminDashboard() {
+export default function SuperAdminDashboard({ admin }) {
   const [search, setSearch] = useState("");
   const [showNot, setShowNot] = useState(false);
   const [viewType, setViewType] = useState("host");
   const [pendingUsers, setPendingUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
+  const getData = async () => {
+    const res1 = await getReq("sadmin/pending", admin?.token);
+    if (res1.success) setPendingUsers(res1.users);
+    const res2 = await getReq("sadmin/users", admin?.token);
+    if (res2.success) setAllUsers(res2.users);
+  };
+
   useEffect(() => {
-    // Backend integration 
+    getData();
   }, []);
 
   const handleDecision = async (id, res) => {
@@ -24,7 +33,8 @@ export default function SuperAdminDashboard() {
   };
 
   const filtered = pendingUsers.filter(
-    (u) => u.type === viewType &&
+    (u) =>
+      u.type === viewType &&
       (u.name || u.hotelName || u.agencyName || "")
         .toLowerCase()
         .includes(search.toLowerCase())
@@ -117,16 +127,30 @@ export default function SuperAdminDashboard() {
 
             {selectedUser.type === "host" ? (
               <>
-                <p><strong>Hotel:</strong> {selectedUser.hotelName}</p>
-                <p><strong>Location:</strong> {selectedUser.location}</p>
-                <p><strong>Phone:</strong> {selectedUser.phone}</p>
+                <p>
+                  <strong>Hotel:</strong> {selectedUser.hotelName}
+                </p>
+                <p>
+                  <strong>Location:</strong> {selectedUser.location}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {selectedUser.phone}
+                </p>
               </>
             ) : (
               <>
-                <p><strong>Name:</strong> {selectedUser.name}</p>
-                <p><strong>Agency:</strong> {selectedUser.agencyName}</p>
-                <p><strong>Location:</strong> {selectedUser.location}</p>
-                <p><strong>Phone:</strong> {selectedUser.phone}</p>
+                <p>
+                  <strong>Name:</strong> {selectedUser.name}
+                </p>
+                <p>
+                  <strong>Agency:</strong> {selectedUser.agencyName}
+                </p>
+                <p>
+                  <strong>Location:</strong> {selectedUser.location}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {selectedUser.phone}
+                </p>
               </>
             )}
 
