@@ -260,8 +260,8 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                     }`}
                   >
                     {selectedApprovedUser.status === 3
-                      ? "Deactivate"
-                      : "Activate"}
+                      ? "Activate"
+                      : "Deactivate"}
                   </button>
                   <button
                     onClick={() => {
