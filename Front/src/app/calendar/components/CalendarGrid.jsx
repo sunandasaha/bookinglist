@@ -114,7 +114,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
     const total = hosthotel.rooms || 0;
     const missing = total - actualRooms.length;
     const dummyRooms = Array.from({ length: missing }, (_, i) => ({
-      name: `Room-${actualRooms.length + i + 1}`,
+      name: `${actualRooms.length + i + 1}`,
       category: "Unavailable",
       isDummy: true,
     }));

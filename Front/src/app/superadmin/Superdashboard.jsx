@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
 import PopEffect from "../_components/PopEffect";
-import { getReq } from "../_utils/request";
+import { getReq, postReq, site } from "../_utils/request"; // Use postReq for API actions
 
 export default function SuperAdminDashboard({ admin }) {
   const [search, setSearch] = useState("");
@@ -11,11 +11,12 @@ export default function SuperAdminDashboard({ admin }) {
   const [viewType, setViewType] = useState("host");
   const [pendingUsers, setPendingUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedApprovedUser, setSelectedApprovedUser] = useState(null);
 
   const getData = async () => {
     const res1 = await getReq("sadmin/pending", admin?.token);
     if (res1.success) setPendingUsers(res1.users);
+
     const res2 = await getReq("sadmin/users", admin?.token);
     if (res2.success) setAllUsers(res2.users);
   };
@@ -23,22 +24,41 @@ export default function SuperAdminDashboard({ admin }) {
   useEffect(() => {
     getData();
   }, []);
+  const parseSID = (sidString) => {
+  if (typeof sidString !== "string") return null;
 
-  const handleDecision = async (id, res) => {
-    //  Send accept/reject to backend
-
-    console.log("Decision for", id, res);
-    setPendingUsers((prev) => prev.filter((u) => u._id !== id));
-    setSelectedUser(null);
+  const extract = (key) => {
+    const regex = new RegExp(`${key}:\\s*'([^']+)'`);
+    const match = sidString.match(regex);
+    return match?.[1] || "";
   };
 
-  const filtered = pendingUsers.filter(
-    (u) =>
-      u.type === viewType &&
-      (u.name || u.hotelName || u.agencyName || "")
-        .toLowerCase()
-        .includes(search.toLowerCase())
-  );
+  const roomsMatch = sidString.match(/rooms:\s*(\d+)/);
+  const rooms = roomsMatch ? parseInt(roomsMatch[1]) : null;
+
+  const visitingCardMatch = sidString.match(/visiting_card:\s*'([^']+)'/);
+  const visiting_card = visitingCardMatch?.[1] || "";
+
+  return {
+    name: extract("name"),
+    url: extract("url"),
+    location: extract("location"),
+    agency: extract("agency"),
+    phone: extract("ph1"),
+    upi_id: extract("upi_id"),
+    rooms,
+    visiting_card,
+  };
+};
+
+
+  const handleDeactivate = async (id) => {
+    //code
+  };
+
+  const handleDelete = async (id) => {
+    //code
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -81,6 +101,109 @@ export default function SuperAdminDashboard({ admin }) {
           </div>
         </div>
       </div>
+      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {allUsers.length > 0 ? (
+          allUsers
+            .filter((u) => u.status === 1 &&  u.role === viewType)
+            .filter((u) => {
+                const parsed = parseSID(u.sid);
+                const name = parsed?.name?.toLowerCase() || "";
+                const agency = parsed?.agency?.toLowerCase() || "";
+                const location = parsed?.location?.toLowerCase() || "";
+
+                return (
+                  name.includes(search.toLowerCase()) ||
+                  agency.includes(search.toLowerCase()) ||
+                  location.includes(search.toLowerCase())
+                );
+              })
+            .map((u) => {
+              const parsed = parseSID(u.sid);
+              return (
+                <div
+                  key={u._id}
+                  onClick={() => setSelectedApprovedUser({ ...u, parsed })}
+                  className="bg-white border rounded p-3 shadow-sm cursor-pointer hover:bg-gray-100"
+                >
+                  <p className="font-semibold text-sm sm:text-base">{parsed?.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {u.role === "host" ? parsed?.location : parsed?.agency}
+                  </p>
+                </div>
+              );
+            })
+        ) : (
+          <p className="text-sm text-gray-500">No approved users found.</p>
+        )}
+      </div>
+      {selectedApprovedUser && (
+        <PopEffect cb={() => setSelectedApprovedUser(null)}>
+          <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-md p-6 space-y-4 text-black">
+            <h2 className="text-xl font-bold mb-4 text-center text-green-600 border-b pb-2">
+              {selectedApprovedUser.role === "host" ? "🏨 Host Profile" : "🧑‍💼 Agent Profile"}
+            </h2>
+
+            <div className="space-y-3 text-sm text-black">
+              <ProfileRow
+                label={selectedApprovedUser.role === "host" ? "🏨 Hotel" : "👤 Name"}
+                value={selectedApprovedUser.parsed?.name}
+              />
+              {selectedApprovedUser.role === "agent" && (
+                  <ProfileRow label="🏢 Agency" value={selectedApprovedUser.parsed?.agency} />
+              )}
+              <ProfileRow label="📍 Location" value={selectedApprovedUser.parsed?.location} />
+              <ProfileRow label="📧 Email" value={selectedApprovedUser.email} />
+              <ProfileRow label="💬 Whatsapp" value={selectedApprovedUser.parsed?.phone} />
+              {selectedApprovedUser.role === "agent" && (
+                <>
+                  {selectedApprovedUser.parsed?.visiting_card && (
+                    <div className="flex justify-between items-start gap-4 border-b pb-2">
+                      <span className="font-medium text-gray-700 whitespace-nowrap">🖼️ Visiting Card:</span>
+                      <img
+                        src={site + "imgs/" + selectedApprovedUser.parsed.visiting_card}
+                        alt="Visiting Card"
+                        className="w-40 h-auto rounded border"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              {selectedApprovedUser.role === "host" && (
+                <>
+                  <ProfileRow label="💰 UPI ID" value={selectedApprovedUser.parsed?.upi_id} />
+                  <ProfileRow label="🌐 URL" value={selectedApprovedUser.parsed?.url&&(
+                     <a
+                    href={selectedApprovedUser.parsed.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-words"
+                  >
+                    {selectedApprovedUser.parsed.url}
+                  </a>
+                  )} />
+                  <ProfileRow label="🛏️ Rooms" value={selectedApprovedUser.parsed?.rooms} />
+
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-center gap-4 pt-4">
+              <button
+                onClick={() => handleDeactivate(selectedApprovedUser._id)}
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+              >
+                Deactivate
+              </button>
+              <button
+                onClick={() => handleDelete(selectedApprovedUser._id)}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </PopEffect>
+      )}
       {showNot && (
         <div className="fixed inset-0 z-50 bg-black/40 flex justify-end">
           <div className="w-full sm:w-[90%] md:w-[400px] bg-white p-4 overflow-y-auto">
@@ -88,28 +211,18 @@ export default function SuperAdminDashboard({ admin }) {
               <h2 className="text-lg font-semibold">Pending Approvals</h2>
               <button onClick={() => setShowNot(false)}>✕</button>
             </div>
-
-            {filtered.length > 0 ? (
-              filtered.map((u) => (
+            {pendingUsers.length > 0 ? (
+              pendingUsers.map((u) => (
                 <div
                   key={u._id}
-                  onClick={() => setSelectedUser(u)}
                   className="bg-gray-50 border rounded p-3 mb-3 shadow-sm cursor-pointer hover:bg-gray-100"
                 >
-                  {u.type === "host" ? (
-                    <>
-                      <p className="font-semibold">{u.hotelName}</p>
-                      <p className="text-sm text-gray-600">📍 {u.location}</p>
-                      <p className="text-sm text-gray-600">📞 {u.phone}</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-semibold">{u.name}</p>
-                      <p className="text-sm text-gray-600">🏢 {u.agencyName}</p>
-                      <p className="text-sm text-gray-600">📍 {u.location}</p>
-                      <p className="text-sm text-gray-600">📞 {u.phone}</p>
-                    </>
-                  )}
+                  <p className="font-semibold">{u.email}</p>
+                  <p className="text-sm text-gray-600">Role: {u.role}</p>
+                  <div className="flex gap-3 mt-4">
+                    <button className="flex-1 bg-green-600 text-white py-2 rounded">Approve</button>
+                    <button className="flex-1 bg-red-600 text-white py-2 rounded">Reject</button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -120,57 +233,16 @@ export default function SuperAdminDashboard({ admin }) {
           </div>
         </div>
       )}
-      {selectedUser && (
-        <PopEffect cb={() => setSelectedUser(null)}>
-          <div className="bg-white rounded-lg shadow-xl w-[90vw] sm:w-[400px] p-5 space-y-3">
-            <h3 className="text-lg font-bold">Details</h3>
-
-            {selectedUser.type === "host" ? (
-              <>
-                <p>
-                  <strong>Hotel:</strong> {selectedUser.hotelName}
-                </p>
-                <p>
-                  <strong>Location:</strong> {selectedUser.location}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {selectedUser.phone}
-                </p>
-              </>
-            ) : (
-              <>
-                <p>
-                  <strong>Name:</strong> {selectedUser.name}
-                </p>
-                <p>
-                  <strong>Agency:</strong> {selectedUser.agencyName}
-                </p>
-                <p>
-                  <strong>Location:</strong> {selectedUser.location}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {selectedUser.phone}
-                </p>
-              </>
-            )}
-
-            <div className="flex gap-3 mt-4">
-              <button
-                className="flex-1 bg-green-600 text-white py-2 rounded"
-                onClick={() => handleDecision(selectedUser._id, true)}
-              >
-                Approve
-              </button>
-              <button
-                className="flex-1 bg-red-600 text-white py-2 rounded"
-                onClick={() => handleDecision(selectedUser._id, false)}
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        </PopEffect>
-      )}
+    </div>
+  );
+}
+function ProfileRow({ label, value }) {
+  return (
+    <div className="flex justify-between items-start gap-4 border-b pb-2">
+      <span className="font-medium text-gray-700 whitespace-nowrap">{label}:</span>
+      <span className="text-blue-600 font-semibold text-right break-words max-w-[60%]">
+        {value || "N/A"}
+      </span>
     </div>
   );
 }

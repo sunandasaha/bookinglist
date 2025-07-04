@@ -242,139 +242,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       };
     }
 
-<<<<<<< HEAD
-    let extraCharges = 0;
-    const extraAdults = Math.max(0, adults - totalCapacity);
-    if (extraAdults > 0) {
-      roomStats.sort((a, b) => a.extraRate - b.extraRate);
-      let remainingExtras = extraAdults;
-      for (const room of roomStats) {
-        const availableExtras = (room.maxCap - room.capacity) * room.roomCount;
-        const assign = Math.min(availableExtras, remainingExtras);
-        extraCharges += assign * room.extraRate * nights;
-        remainingExtras -= assign;
-        if (remainingExtras <= 0) break;
-      }
-    }
-
-    const minPerAdultRate = roomStats.length > 0
-      ? Math.min(...roomStats.map(r => r.rate / r.capacity))
-      : 0;
-    const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
-
-    const childRateRoom = roomStats.find(r =>
-      (r.rate / r.capacity) === minPerAdultRate
-    );
-    if (childRateRoom && childRateRoom.advance?.percent) {
-  const childCommission = childRateRoom.agent_com
-    ? childCharge * (childRateRoom.agent_com.amount / 100)
-    : 0;
-  totalAdvance += (childCharge - childCommission) * (childRateRoom.advance.amount / 100);
-}
-
-    return {
-      totalPrice: parseFloat((totalBase + extraCharges + childCharge).toFixed(2)),
-      advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-      agentCut: parseFloat(agentCut.toFixed(2)),
-       ActualPay: parseFloat(((totalBase + extraCharges + childCharge) - agentCut).toFixed(2))
-      
-    };
-  }
-
-  // PER PERSON PRICING LOGIC
-  if (hosthotel?.pay_per?.person) {
-    const selectedCats = hosthotel.per_person_cat?.filter(cat =>
-      cat.roomNumbers?.some(room => selectedRooms.includes(room))
-    ) || [];
-
-    if (selectedCats.length === 0) {
-      return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
-    }
-
-    let totalBase = 0;
-    let totalAdvance = 0;
-    const assignments = Array(selectedRooms.length).fill(0);
-    for (let i = 0; i < adults; i++) {
-      assignments[i % selectedRooms.length]++;
-    }
-    const rateDetails = [];
-    assignments.forEach((occupancy, index) => {
-      const cat = selectedCats.find(c => c.roomNumbers.includes(selectedRooms[index]));
-      if (!cat) return;
-      let rate;
-      if (occupancy === 1) rate = cat.rate1 || 0;
-      else if (occupancy === 2) rate = (cat.rate2 || 0) * 2;
-      else if (occupancy === 3) rate = (cat.rate3 || 0) * 3;
-      else if (occupancy === 4) rate = (cat.rate4 || 0) * 4;
-
-      totalBase += rate * nights;
-      if (cat.agent_com) {
-        const commission = cat.agent_com.percent
-          ? rate * nights * (cat.agent_com.amount / 100)
-          : (cat.agent_com.amount || 0) * nights;
-        agentCut += commission;
-      }
-            const commission = cat.agent_com
-        ? cat.agent_com.percent
-          ? rate * nights * (cat.agent_com.amount / 100)
-          : (cat.agent_com.amount || 0) * nights
-        : 0;
-      const netRate = rate * nights - commission;
-
-      if (cat.advance?.percent) {
-        totalAdvance += netRate * (cat.advance.amount / 100);
-      } else {
-        totalAdvance += (cat.advance?.amount || 0);
-      }
-      if (occupancy >= 1 && occupancy <= 4) {
-              const perPersonRate = [cat.rate1, cat.rate2, cat.rate3, cat.rate4][occupancy - 1] || 0;
-              rateDetails.push({ rate: perPersonRate, cat });
-            }
-       });
-
-          if (rateDetails.length > 0 && age_6_10 > 0) {
-            const minDetail = rateDetails.reduce((min, curr) =>
-              curr.rate < min.rate ? curr : min, { rate: Infinity }
-            );
-            const childCharge = age_6_10 * minDetail.rate * nights * 0.5;
-            totalBase += childCharge;
-
-            if (minDetail.cat.advance?.percent) {
-              let childCommission = 0;
-              if (minDetail.cat.agent_com) {
-                childCommission = minDetail.cat.agent_com.percent
-                  ? childCharge * (minDetail.cat.agent_com.amount / 100)
-                  : (minDetail.cat.agent_com.amount || 0) * nights;
-              }
-              const netChildCharge = childCharge - childCommission;
-              totalAdvance += netChildCharge * (minDetail.cat.advance.amount / 100);
-            }
-
-                  if (minDetail.cat.agent_com) {
-                    agentCut += minDetail.cat.agent_com.percent
-                      ? childCharge * (minDetail.cat.agent_com.amount / 100)
-                      : (minDetail.cat.agent_com.amount || 0) * nights;
-                  }
-                }
-                const finalTotal = parseFloat(totalBase.toFixed(2));
-                const actualPay = parseFloat((finalTotal - agentCut).toFixed(2));
-
-                return {
-                  totalPrice: finalTotal,
-                  advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-                  agentCut: parseFloat(agentCut.toFixed(2)),
-                   ActualPay: actualPay,
-                  
-                };
-              }
-=======
     // PER PERSON PRICING LOGIC
     if (hosthotel?.pay_per?.person) {
       const selectedCats =
         hosthotel.per_person_cat?.filter((cat) =>
           cat.roomNumbers?.some((room) => selectedRooms.includes(room))
         ) || [];
->>>>>>> 0c8d8019a23da5411a3d5d55878eedfc51c7ceed
 
       if (selectedCats.length === 0) {
         return { totalPrice: 0, advanceAmount: 0, agentCut: 0 };
@@ -449,7 +322,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
             : (minDetail.cat.agent_com.amount || 0) * nights;
         }
       }
-      const y = totalPrice - agentCut;
+      let y = totalBase - agentCut;
 
       return {
         totalPrice: parseFloat(totalBase.toFixed(2)),
