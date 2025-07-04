@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
 import PopEffect from "../_components/PopEffect";
-import { getReq, putReq, site } from "../_utils/request"; 
+import { getReq, putReq, site } from "../_utils/request";
 
-export default function SuperAdminDashboard({ admin }) {
+export default function SuperAdminDashboard({ admin, setAdmin }) {
   const [search, setSearch] = useState("");
   const [showNot, setShowNot] = useState(false);
   const [viewType, setViewType] = useState("host");
@@ -53,7 +53,7 @@ export default function SuperAdminDashboard({ admin }) {
     const res = await putReq("sadmin/status", { status, uid }, admin.token);
     console.log(res);
     if (res.success) {
-     getData();
+      getData();
     }
   };
 
@@ -66,7 +66,14 @@ export default function SuperAdminDashboard({ admin }) {
       {/* Top Bar */}
       <div className="sticky top-0 z-10 bg-white shadow-md px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src="/svgs/logo.png" className="h-8 w-auto" alt="logo" />
+          <img
+            src="/svgs/logo.png"
+            onClick={() => {
+              setAdmin(null);
+            }}
+            className="h-8 w-auto"
+            alt="logo"
+          />
         </div>
         <div className="flex items-center flex-1 max-w-md mx-4 relative">
           <Search className="absolute left-3 text-gray-400 h-4 w-4" />
@@ -105,7 +112,7 @@ export default function SuperAdminDashboard({ admin }) {
       <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {allUsers.length > 0 ? (
           allUsers
-            .filter((u) =>  u.role === viewType)
+            .filter((u) => u.role === viewType)
             .filter((u) => {
               const parsed = parseSID(u.sid);
               const name = parsed?.name?.toLowerCase() || "";
@@ -219,51 +226,53 @@ export default function SuperAdminDashboard({ admin }) {
               )}
             </div>
             <div className="flex justify-center gap-4 pt-4">
-                  {selectedApprovedUser.status === 0 ? (
-                    <>
-                      <button
-                      className="flex-1 bg-green-600 text-white py-2 rounded"
-                      onClick={() => {
-                        handleNot(1, u._id);
-                      }}
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleNot(2, u._id);
-                      }}
-                      className="flex-1 bg-red-600 text-white py-2 rounded"
-                    >
-                      Reject
-                    </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={async () => {
-                          const newS = selectedApprovedUser.status === 3 ? 1 : 3;
-                          await handleNot(newS, selectedApprovedUser._id);
-                          setSelectedApprovedUser(null);
-                        }}
-                        className={`px-4 py-2 text-white rounded hover:bg-opacity-80 ${
-                          selectedApprovedUser.status === 3
-                            ? "bg-yellow-500 hover:bg-yellow-600"
-                            : "bg-green-500 hover:bg-green-600"
-                        }`}
-                      >
-                        {selectedApprovedUser.status === 3 ? "Deactivate" : "Activate"}
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleDelete(selectedApprovedUser._id);
-                        }}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
+              {selectedApprovedUser.status === 0 ? (
+                <>
+                  <button
+                    className="flex-1 bg-green-600 text-white py-2 rounded"
+                    onClick={() => {
+                      handleNot(1, u._id);
+                    }}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleNot(2, u._id);
+                    }}
+                    className="flex-1 bg-red-600 text-white py-2 rounded"
+                  >
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={async () => {
+                      const newS = selectedApprovedUser.status === 3 ? 1 : 3;
+                      await handleNot(newS, selectedApprovedUser._id);
+                      setSelectedApprovedUser(null);
+                    }}
+                    className={`px-4 py-2 text-white rounded hover:bg-opacity-80 ${
+                      selectedApprovedUser.status === 3
+                        ? "bg-yellow-500 hover:bg-yellow-600"
+                        : "bg-green-500 hover:bg-green-600"
+                    }`}
+                  >
+                    {selectedApprovedUser.status === 3
+                      ? "Deactivate"
+                      : "Activate"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleDelete(selectedApprovedUser._id);
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </PopEffect>
@@ -279,9 +288,9 @@ export default function SuperAdminDashboard({ admin }) {
               pendingUsers.map((u) => (
                 <div
                   key={u._id}
-                  onClick = {()=>{
+                  onClick={() => {
                     const parsed = parseSID(u.sid);
-                    setSelectedApprovedUser({...u, parsed});
+                    setSelectedApprovedUser({ ...u, parsed });
                     setShowNot(false);
                   }}
                   className="bg-gray-50 border rounded p-3 mb-3 shadow-sm cursor-pointer hover:bg-gray-100"

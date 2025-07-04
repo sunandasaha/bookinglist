@@ -27,7 +27,7 @@ export default function SuperAdminLogin() {
   };
 
   if (admin) {
-    return <Superdashboard admin={admin} />;
+    return <Superdashboard admin={admin} setAdmin={setAdmin} />;
   }
 
   return (
