@@ -39,8 +39,12 @@ const Hotel = () => {
       res = await result.json();
     }
     if (res.status === "success") {
-      setAgent(res.agent);
-      navigate.push("/agent/dashboard");
+      if (user.status === 1) {
+        setAgent(res.agent);
+        navigate.push("/agent/dashboard");
+      } else {
+        navigate.push("/status");
+      }
     } else {
       console.log(res);
     }
