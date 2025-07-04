@@ -13,6 +13,7 @@ export default function CalendarGrid({ startDate }) {
   const [startCell, setStartCell] = useState(null);
   const [endCell, setEndCell] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [tappedCells, setTappedCells] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
@@ -91,33 +92,40 @@ export default function CalendarGrid({ startDate }) {
       return cellDate >= fromDate && cellDate <= toDate;
     });
   };
-
   const selectedCells = useMemo(() => {
-    if (!startCell || !endCell) return [];
+  const dragCells = [];
+
+  if (startCell && endCell) {
     const [r1, d1] = startCell;
     const [r2, d2] = endCell;
-    const rMin = Math.min(r1, r2),
-      rMax = Math.max(r1, r2);
-    const dMin = Math.min(d1, d2),
-      dMax = Math.max(d1, d2);
-
-    let hasBookings = false;
-    const cells = [];
+    const rMin = Math.min(r1, r2);
+    const rMax = Math.max(r1, r2);
+    const dMin = Math.min(d1, d2);
+    const dMax = Math.max(d1, d2);
 
     for (let r = rMin; r <= rMax; r++) {
       for (let d = dMin; d <= dMax; d++) {
-        cells.push([r, d]);
-        const roomName = rooms[r]?.name;
-        const date = dates[d];
-        if (getBookingForCell(roomName, date)) {
-          hasBookings = true;
-        }
+        dragCells.push([r, d]);
       }
     }
+  }
 
-    setHasBookedCellsInSelection(hasBookings);
-    return cells;
-  }, [startCell, endCell, bookings, rooms, dates]);
+  const all = [...dragCells, ...tappedCells];
+
+  // Remove duplicates
+  const unique = all.filter(
+    ([r, d], idx, arr) => arr.findIndex(([x, y]) => x === r && y === d) === idx
+  );
+
+  // Detect if any selected cells are already booked
+  const hasBookings = unique.some(([r, d]) =>
+    getBookingForCell(rooms[r]?.name, dates[d])
+  );
+  setHasBookedCellsInSelection(hasBookings);
+
+  return unique;
+}, [startCell, endCell, tappedCells, bookings, rooms, dates]);
+
 
   const isSelected = (r, d) =>
     selectedCells.some(([x, y]) => x === r && y === d);
@@ -182,6 +190,7 @@ export default function CalendarGrid({ startDate }) {
     setSelectedBooking(null);
     setStartCell(null);
     setEndCell(null);
+    setTappedCells([]);
     await getBookings(); 
   };
 
@@ -268,17 +277,29 @@ export default function CalendarGrid({ startDate }) {
                     booking && "bg-green-500 text-white  cursor-not-allowed",
                     !booking && !selected && "hover:bg-blue-100"
                   )}
-                  onClick={() => {
-                    if (booking) {
-                      alert("Hey!! it's booked already");
-                    } else {
-                      handleMouseDown(rIdx, dIdx);
-                    }
-                  }}
-                  onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
-                  data-room={rIdx}
-                  data-date={dIdx}
-                >
+                   onClick={() => {
+        if (booking) {
+          alert("Hey!! it's booked already");
+          return;
+        }
+
+        const isSelected = selectedCells.some(([x, y]) => x === rIdx && y === dIdx);
+
+        if (!isDragging) {
+          // Toggle tapped cell
+          setTappedCells((prev) => {
+            const exists = prev.some(([x, y]) => x === rIdx && y === dIdx);
+            return exists
+              ? prev.filter(([x, y]) => !(x === rIdx && y === dIdx))
+              : [...prev, [rIdx, dIdx]];
+          });
+        } else {
+          handleMouseDown(rIdx, dIdx);
+        }
+      }}
+      onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+    >
+                
                   {booking ? (
                     <div className="text-center">
                       <div className="font-medium">Booked</div>

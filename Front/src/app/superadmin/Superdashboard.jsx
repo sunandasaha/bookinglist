@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
 import PopEffect from "../_components/PopEffect";
-import { getReq, putReq, site } from "../_utils/request"; // Use postReq for API actions
+import { getReq, putReq, site } from "../_utils/request"; 
 
 export default function SuperAdminDashboard({ admin }) {
   const [search, setSearch] = useState("");
@@ -32,10 +32,8 @@ export default function SuperAdminDashboard({ admin }) {
       const match = sidString.match(regex);
       return match?.[1] || "";
     };
-
     const roomsMatch = sidString.match(/rooms:\s*(\d+)/);
     const rooms = roomsMatch ? parseInt(roomsMatch[1]) : null;
-
     const visitingCardMatch = sidString.match(/visiting_card:\s*'([^']+)'/);
     const visiting_card = visitingCardMatch?.[1] || "";
 
@@ -52,9 +50,10 @@ export default function SuperAdminDashboard({ admin }) {
   };
 
   const handleNot = async (status, uid) => {
-    const res = putReq("sadmin/status", { status, uid }, admin.token);
+    const res = await putReq("sadmin/status", { status, uid }, admin.token);
+    console.log(res);
     if (res.success) {
-      getData();
+     getData();
     }
   };
 
@@ -106,7 +105,7 @@ export default function SuperAdminDashboard({ admin }) {
       <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {allUsers.length > 0 ? (
           allUsers
-            .filter((u) => u.status === 1 && u.role === viewType)
+            .filter((u) =>  u.role === viewType)
             .filter((u) => {
               const parsed = parseSID(u.sid);
               const name = parsed?.name?.toLowerCase() || "";
@@ -219,24 +218,52 @@ export default function SuperAdminDashboard({ admin }) {
                 </>
               )}
             </div>
-
             <div className="flex justify-center gap-4 pt-4">
-              <button
-                onClick={() => {
-                  handleNot(3, selectedApprovedUser._id);
-                }}
-                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-              >
-                Deactivate
-              </button>
-              <button
-                onClick={() => {
-                  handleDelete(selectedApprovedUser._id);
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
+                  {selectedApprovedUser.status === 0 ? (
+                    <>
+                      <button
+                      className="flex-1 bg-green-600 text-white py-2 rounded"
+                      onClick={() => {
+                        handleNot(1, u._id);
+                      }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleNot(2, u._id);
+                      }}
+                      className="flex-1 bg-red-600 text-white py-2 rounded"
+                    >
+                      Reject
+                    </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={async () => {
+                          const newS = selectedApprovedUser.status === 3 ? 1 : 3;
+                          await handleNot(newS, selectedApprovedUser._id);
+                          setSelectedApprovedUser(null);
+                        }}
+                        className={`px-4 py-2 text-white rounded hover:bg-opacity-80 ${
+                          selectedApprovedUser.status === 3
+                            ? "bg-yellow-500 hover:bg-yellow-600"
+                            : "bg-green-500 hover:bg-green-600"
+                        }`}
+                      >
+                        {selectedApprovedUser.status === 3 ? "Deactivate" : "Activate"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDelete(selectedApprovedUser._id);
+                        }}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
             </div>
           </div>
         </PopEffect>
@@ -252,10 +279,17 @@ export default function SuperAdminDashboard({ admin }) {
               pendingUsers.map((u) => (
                 <div
                   key={u._id}
+                  onClick = {()=>{
+                    const parsed = parseSID(u.sid);
+                    setSelectedApprovedUser({...u, parsed});
+                    setShowNot(false);
+                  }}
                   className="bg-gray-50 border rounded p-3 mb-3 shadow-sm cursor-pointer hover:bg-gray-100"
                 >
                   <p className="font-semibold">{u.email}</p>
                   <p className="text-sm text-gray-600">Role: {u.role}</p>
+                  <p className="text-sm text-gray-600">Name: {u.name}</p>
+
                   <div className="flex gap-3 mt-4">
                     <button
                       className="flex-1 bg-green-600 text-white py-2 rounded"
