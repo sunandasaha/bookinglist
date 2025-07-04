@@ -73,7 +73,7 @@ const glogin = async (req, res) => {
     const pending = await getPending(user?.role, user?.sid);
     res.json({
       status: "success",
-      user: { role: user.role, token: tok, cred, pending },
+      user: { role: user.role, token: tok, cred, pending, status: user.status },
     });
   } else {
     res.json({ status: "failed" });
@@ -119,7 +119,13 @@ const login = async (req, res) => {
         const pending = await getPending(chk?.role, chk?.sid);
         res.json({
           status: "success",
-          user: { role: chk.role, token: tok, cred, pending },
+          user: {
+            role: chk.role,
+            token: tok,
+            cred,
+            pending,
+            status: chk.status,
+          },
         });
       } else if (chk.password === "google") {
         res.json({ status: "Login with Google" });
@@ -178,7 +184,13 @@ const logTok = async (req, res) => {
         const pending = await getPending(user?.role, user?.sid);
         res.json({
           status: "success",
-          user: { role: user.role, token: tok, cred, pending },
+          user: {
+            role: user.role,
+            token: tok,
+            cred,
+            pending,
+            status: user.status,
+          },
         });
       }
     }
