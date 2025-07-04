@@ -8,6 +8,7 @@ type user = {
   token: string;
   role: string;
   email?: string;
+  status: number;
 } | null;
 
 export type hostHotel = {
@@ -33,11 +34,11 @@ type booking = {
   amountPaid?: number;
   _id: string;
   name: string;
-  email?:string;
+  email?: string;
   phone?: Number;
   whatsapp: number;
   address: string;
-  advance_ss? : string;
+  advance_ss?: string;
   fromDate: string;
   toDate: string;
   rooms: string[];

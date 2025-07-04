@@ -28,8 +28,14 @@ const Hotel = () => {
       res = await postReq("hotel/", info, user.token);
     }
     if (res.status === "success") {
-      setHosthotel(res.hotel);
-      navigate.push("/calendar");
+      if (user.status === 1) {
+        setHosthotel(res.hotel);
+        navigate.push("/calendar");
+      } else {
+        navigate.push("/status");
+      }
+    } else {
+      console.log(res);
     }
   };
 

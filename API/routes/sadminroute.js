@@ -9,6 +9,6 @@ const sadminroute = require("express").Router();
 
 sadminroute.get("/pending", authUser, chkSadmin, pendingUser);
 sadminroute.get("/users", authUser, chkSadmin, allUsers);
-sadminroute.put("/users", authUser, chkSadmin, statusUpdate);
+sadminroute.put("/status", authUser, chkSadmin, statusUpdate);
 
 module.exports = sadminroute;

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
 import PopEffect from "../_components/PopEffect";
-import { getReq, postReq, site } from "../_utils/request"; // Use postReq for API actions
+import { getReq, putReq, site } from "../_utils/request"; // Use postReq for API actions
 
 export default function SuperAdminDashboard({ admin }) {
   const [search, setSearch] = useState("");
@@ -25,35 +25,37 @@ export default function SuperAdminDashboard({ admin }) {
     getData();
   }, []);
   const parseSID = (sidString) => {
-  if (typeof sidString !== "string") return null;
+    if (typeof sidString !== "string") return null;
 
-  const extract = (key) => {
-    const regex = new RegExp(`${key}:\\s*'([^']+)'`);
-    const match = sidString.match(regex);
-    return match?.[1] || "";
+    const extract = (key) => {
+      const regex = new RegExp(`${key}:\\s*'([^']+)'`);
+      const match = sidString.match(regex);
+      return match?.[1] || "";
+    };
+
+    const roomsMatch = sidString.match(/rooms:\s*(\d+)/);
+    const rooms = roomsMatch ? parseInt(roomsMatch[1]) : null;
+
+    const visitingCardMatch = sidString.match(/visiting_card:\s*'([^']+)'/);
+    const visiting_card = visitingCardMatch?.[1] || "";
+
+    return {
+      name: extract("name"),
+      url: extract("url"),
+      location: extract("location"),
+      agency: extract("agency"),
+      phone: extract("ph1"),
+      upi_id: extract("upi_id"),
+      rooms,
+      visiting_card,
+    };
   };
 
-  const roomsMatch = sidString.match(/rooms:\s*(\d+)/);
-  const rooms = roomsMatch ? parseInt(roomsMatch[1]) : null;
-
-  const visitingCardMatch = sidString.match(/visiting_card:\s*'([^']+)'/);
-  const visiting_card = visitingCardMatch?.[1] || "";
-
-  return {
-    name: extract("name"),
-    url: extract("url"),
-    location: extract("location"),
-    agency: extract("agency"),
-    phone: extract("ph1"),
-    upi_id: extract("upi_id"),
-    rooms,
-    visiting_card,
-  };
-};
-
-
-  const handleDeactivate = async (id) => {
-    //code
+  const handleNot = async (status, uid) => {
+    const res = putReq("sadmin/status", { status, uid }, admin.token);
+    if (res.success) {
+      getData();
+    }
   };
 
   const handleDelete = async (id) => {
@@ -104,19 +106,19 @@ export default function SuperAdminDashboard({ admin }) {
       <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {allUsers.length > 0 ? (
           allUsers
-            .filter((u) => u.status === 1 &&  u.role === viewType)
+            .filter((u) => u.status === 1 && u.role === viewType)
             .filter((u) => {
-                const parsed = parseSID(u.sid);
-                const name = parsed?.name?.toLowerCase() || "";
-                const agency = parsed?.agency?.toLowerCase() || "";
-                const location = parsed?.location?.toLowerCase() || "";
+              const parsed = parseSID(u.sid);
+              const name = parsed?.name?.toLowerCase() || "";
+              const agency = parsed?.agency?.toLowerCase() || "";
+              const location = parsed?.location?.toLowerCase() || "";
 
-                return (
-                  name.includes(search.toLowerCase()) ||
-                  agency.includes(search.toLowerCase()) ||
-                  location.includes(search.toLowerCase())
-                );
-              })
+              return (
+                name.includes(search.toLowerCase()) ||
+                agency.includes(search.toLowerCase()) ||
+                location.includes(search.toLowerCase())
+              );
+            })
             .map((u) => {
               const parsed = parseSID(u.sid);
               return (
@@ -125,7 +127,9 @@ export default function SuperAdminDashboard({ admin }) {
                   onClick={() => setSelectedApprovedUser({ ...u, parsed })}
                   className="bg-white border rounded p-3 shadow-sm cursor-pointer hover:bg-gray-100"
                 >
-                  <p className="font-semibold text-sm sm:text-base">{parsed?.name}</p>
+                  <p className="font-semibold text-sm sm:text-base">
+                    {parsed?.name}
+                  </p>
                   <p className="text-xs text-gray-500">
                     {u.role === "host" ? parsed?.location : parsed?.agency}
                   </p>
@@ -140,27 +144,46 @@ export default function SuperAdminDashboard({ admin }) {
         <PopEffect cb={() => setSelectedApprovedUser(null)}>
           <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-md p-6 space-y-4 text-black">
             <h2 className="text-xl font-bold mb-4 text-center text-green-600 border-b pb-2">
-              {selectedApprovedUser.role === "host" ? "🏨 Host Profile" : "🧑‍💼 Agent Profile"}
+              {selectedApprovedUser.role === "host"
+                ? "🏨 Host Profile"
+                : "🧑‍💼 Agent Profile"}
             </h2>
 
             <div className="space-y-3 text-sm text-black">
               <ProfileRow
-                label={selectedApprovedUser.role === "host" ? "🏨 Hotel" : "👤 Name"}
+                label={
+                  selectedApprovedUser.role === "host" ? "🏨 Hotel" : "👤 Name"
+                }
                 value={selectedApprovedUser.parsed?.name}
               />
               {selectedApprovedUser.role === "agent" && (
-                  <ProfileRow label="🏢 Agency" value={selectedApprovedUser.parsed?.agency} />
+                <ProfileRow
+                  label="🏢 Agency"
+                  value={selectedApprovedUser.parsed?.agency}
+                />
               )}
-              <ProfileRow label="📍 Location" value={selectedApprovedUser.parsed?.location} />
+              <ProfileRow
+                label="📍 Location"
+                value={selectedApprovedUser.parsed?.location}
+              />
               <ProfileRow label="📧 Email" value={selectedApprovedUser.email} />
-              <ProfileRow label="💬 Whatsapp" value={selectedApprovedUser.parsed?.phone} />
+              <ProfileRow
+                label="💬 Whatsapp"
+                value={selectedApprovedUser.parsed?.phone}
+              />
               {selectedApprovedUser.role === "agent" && (
                 <>
                   {selectedApprovedUser.parsed?.visiting_card && (
                     <div className="flex justify-between items-start gap-4 border-b pb-2">
-                      <span className="font-medium text-gray-700 whitespace-nowrap">🖼️ Visiting Card:</span>
+                      <span className="font-medium text-gray-700 whitespace-nowrap">
+                        🖼️ Visiting Card:
+                      </span>
                       <img
-                        src={site + "imgs/" + selectedApprovedUser.parsed.visiting_card}
+                        src={
+                          site +
+                          "imgs/" +
+                          selectedApprovedUser.parsed.visiting_card
+                        }
                         alt="Visiting Card"
                         className="w-40 h-auto rounded border"
                       />
@@ -170,32 +193,46 @@ export default function SuperAdminDashboard({ admin }) {
               )}
               {selectedApprovedUser.role === "host" && (
                 <>
-                  <ProfileRow label="💰 UPI ID" value={selectedApprovedUser.parsed?.upi_id} />
-                  <ProfileRow label="🌐 URL" value={selectedApprovedUser.parsed?.url&&(
-                     <a
-                    href={selectedApprovedUser.parsed.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline break-words"
-                  >
-                    {selectedApprovedUser.parsed.url}
-                  </a>
-                  )} />
-                  <ProfileRow label="🛏️ Rooms" value={selectedApprovedUser.parsed?.rooms} />
-
+                  <ProfileRow
+                    label="💰 UPI ID"
+                    value={selectedApprovedUser.parsed?.upi_id}
+                  />
+                  <ProfileRow
+                    label="🌐 URL"
+                    value={
+                      selectedApprovedUser.parsed?.url && (
+                        <a
+                          href={selectedApprovedUser.parsed.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline break-words"
+                        >
+                          {selectedApprovedUser.parsed.url}
+                        </a>
+                      )
+                    }
+                  />
+                  <ProfileRow
+                    label="🛏️ Rooms"
+                    value={selectedApprovedUser.parsed?.rooms}
+                  />
                 </>
               )}
             </div>
 
             <div className="flex justify-center gap-4 pt-4">
               <button
-                onClick={() => handleDeactivate(selectedApprovedUser._id)}
+                onClick={() => {
+                  handleNot(3, selectedApprovedUser._id);
+                }}
                 className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
               >
                 Deactivate
               </button>
               <button
-                onClick={() => handleDelete(selectedApprovedUser._id)}
+                onClick={() => {
+                  handleDelete(selectedApprovedUser._id);
+                }}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
                 Delete
@@ -220,8 +257,22 @@ export default function SuperAdminDashboard({ admin }) {
                   <p className="font-semibold">{u.email}</p>
                   <p className="text-sm text-gray-600">Role: {u.role}</p>
                   <div className="flex gap-3 mt-4">
-                    <button className="flex-1 bg-green-600 text-white py-2 rounded">Approve</button>
-                    <button className="flex-1 bg-red-600 text-white py-2 rounded">Reject</button>
+                    <button
+                      className="flex-1 bg-green-600 text-white py-2 rounded"
+                      onClick={() => {
+                        handleNot(1, u._id);
+                      }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleNot(2, u._id);
+                      }}
+                      className="flex-1 bg-red-600 text-white py-2 rounded"
+                    >
+                      Reject
+                    </button>
                   </div>
                 </div>
               ))
@@ -239,7 +290,9 @@ export default function SuperAdminDashboard({ admin }) {
 function ProfileRow({ label, value }) {
   return (
     <div className="flex justify-between items-start gap-4 border-b pb-2">
-      <span className="font-medium text-gray-700 whitespace-nowrap">{label}:</span>
+      <span className="font-medium text-gray-700 whitespace-nowrap">
+        {label}:
+      </span>
       <span className="text-blue-600 font-semibold text-right break-words max-w-[60%]">
         {value || "N/A"}
       </span>
