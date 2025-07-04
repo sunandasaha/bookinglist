@@ -30,4 +30,16 @@ const allUsers = async (req, res) => {
   res.json({ success: true, users });
 };
 
-module.exports = { pendingUser, allUsers };
+const statusUpdate = async (req, res) => {
+  const { uid, status } = req.body;
+  const user = await Usermodel.findById(uid);
+  if (user) {
+    user.status = status;
+    await user.save();
+    res.json({ success: true });
+  } else {
+    res.json({ success: false });
+  }
+};
+
+module.exports = { pendingUser, allUsers, statusUpdate };
