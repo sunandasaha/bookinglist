@@ -193,7 +193,7 @@ export default function CalendarGrid({ startDate }) {
       onMouseLeave={handleMouseUp}
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
-        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
+        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-600 text-white font-semibold">
           <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
           {dates.map((date, i) => (
             <div key={i} className="p-2 text-center border-r">
@@ -202,7 +202,8 @@ export default function CalendarGrid({ startDate }) {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-100 text-sm text-gray-800 font-medium">
+        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-green-100 text-sm text-gray-800 font-medium">
+
           <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
             {dates.map((date, i) => {
               const dateStart = new Date(date).setHours(0, 0, 0, 0);
@@ -229,7 +230,7 @@ export default function CalendarGrid({ startDate }) {
 
             return (
               <div key={i} className="p-2 bg-green-100 text-center border-r">
-                {free} available
+                {free} 
               </div>
             );
           })}
@@ -237,7 +238,7 @@ export default function CalendarGrid({ startDate }) {
         {rooms.map((room, rIdx) => (
           <div
             key={room.name}
-            className="grid grid-cols-[120px_repeat(7,1fr)] border-t grid-row"
+            className="grid border-t grid-row grid-cols-[120px_repeat(7,70px)]"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
@@ -263,7 +264,7 @@ export default function CalendarGrid({ startDate }) {
                 <div
                   key={dIdx}
                   className={clsx(
-                    "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
+                    "border-r border-b px-1 py-2 text-[12px] flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
                     booking && "bg-green-500 text-white  cursor-not-allowed",
                     !booking && !selected && "hover:bg-blue-100"
