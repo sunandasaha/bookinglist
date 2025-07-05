@@ -154,30 +154,6 @@ export default function CalendarGrid({ startDate }) {
       roomNames: uniqueRooms.map((i) => rooms[i].name),
     });
   };
-
-  const bookBtnPosition = useMemo(() => {
-    if (!containerRef.current || selectedCells.length === 0) return null;
-    const gridRows = containerRef.current.querySelectorAll(".grid-row");
-    const rows = selectedCells.map(([r]) => r);
-    const cols = selectedCells.map(([_, c]) => c);
-    const minRow = Math.min(...rows);
-    const maxRow = Math.max(...rows);
-    const minCol = Math.min(...cols);
-    const maxCol = Math.max(...cols);
-    const firstCell = gridRows[minRow]?.querySelectorAll(".grid-cell")[minCol];
-    const lastCell = gridRows[maxRow]?.querySelectorAll(".grid-cell")[maxCol];
-    if (!firstCell || !lastCell) return null;
-    const gridBox = containerRef.current.getBoundingClientRect();
-    const startBox = firstCell.getBoundingClientRect();
-    const endBox = lastCell.getBoundingClientRect();
-    return {
-      top: startBox.top - gridBox.top + containerRef.current.scrollTop,
-      left: startBox.left - gridBox.left + containerRef.current.scrollLeft,
-      width: endBox.right - startBox.left,
-      height: endBox.bottom - startBox.top,
-    };
-  }, [selectedCells]);
-
   const handleBookingSave = async () => {
     setSelectedBooking(null);
     setStartCell(null);
@@ -193,7 +169,7 @@ export default function CalendarGrid({ startDate }) {
       onMouseLeave={handleMouseUp}
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
-        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-blue-600 text-white font-semibold">
+        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-600 text-white font-semibold">
           <div className="p-2 border-r sticky left-0 bg-blue-600">Room / Date</div>
           {dates.map((date, i) => (
             <div key={i} className="p-2 text-center border-r">
@@ -202,7 +178,7 @@ export default function CalendarGrid({ startDate }) {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-green-100 text-sm text-gray-800 font-medium">
+        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-green-100 text-sm text-gray-800 font-medium">
           <div className="p-2 border-r sticky left-0 bg-gray-100">Availability</div>
             {dates.map((date, i) => {
               const dateStart = new Date(date).setHours(0, 0, 0, 0);
@@ -238,7 +214,7 @@ export default function CalendarGrid({ startDate }) {
         {rooms.map((room, rIdx) => (
           <div
             key={room.name}
-            className="grid grid-cols-[120px_repeat(7,1fr)] border-t grid-row"
+            className="grid grid-cols-[120px_repeat(7,70px)] border-t grid-row"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
@@ -293,29 +269,19 @@ export default function CalendarGrid({ startDate }) {
             })}
           </div>
         ))}
-
-        {selectedCells.length > 0 && bookBtnPosition && !selectedBooking && (
-          <button
-            style={{
-              position: "absolute",
-              top: bookBtnPosition.top + bookBtnPosition.height - 30,
-              left: bookBtnPosition.left + bookBtnPosition.width - 80,
-              zIndex: 1000,
-              backgroundColor: "#2563eb",
-              color: "white",
-              padding: "6px 12px",
-              borderRadius: "6px",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-              whiteSpace: "nowrap",
-              opacity: hasBookedCellsInSelection ? 0.5 : 1,
-              cursor: hasBookedCellsInSelection ? "not-allowed" : "pointer",
-            }}
-            onClick={hasBookedCellsInSelection ? null : handleBookClick}
-            disabled={hasBookedCellsInSelection}
-          >
-            Book
-          </button>
-        )}
+        {selectedCells.length > 0 && !selectedBooking && (
+            <div className="fixed bottom-4 left-0 w-full flex text-center z-50 px-20">
+                <button
+                  onClick={handleBookClick}
+                  disabled={hasBookedCellsInSelection}
+                  className={clsx("w-full max-w-sm py-3 px-10 rounded-lg text-center  text-white font-semibold shadow-md",
+                    hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
+                   )}
+                >
+                Book
+                </button>
+              </div>
+          )}
       </div>
 
       {selectedBooking && (

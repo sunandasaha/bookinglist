@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && next dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -21,3 +22,4 @@
     "socket.io": "^4.8.1"
   }
 }
+
