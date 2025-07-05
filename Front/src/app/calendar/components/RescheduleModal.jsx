@@ -40,6 +40,7 @@ export default function RescheduleModal({ booking, onClose }) {
       onClose();
     } else {
       console.log(res);
+      if (res.status) alert(res.status);
     }
   };
 
@@ -75,99 +76,96 @@ export default function RescheduleModal({ booking, onClose }) {
             {format(new Date(booking.fromDate), "dd MMM yyyy")}
           </div>
           <div>
-             <strong>Checkout:</strong>{" "}
-
-            {format(addDays(new Date(booking.toDate), 1) , "dd MMM yyyy")}
+            <strong>Checkout:</strong>{" "}
+            {format(addDays(new Date(booking.toDate), 1), "dd MMM yyyy")}
           </div>
         </div>
         {!showForm ? (
-            booking.status === 4 ? (
-              <div className="flex justify-center">
-                <button
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-                  onClick={() => setShowForm(true)}
-                >
-                  Reschedule Now
-                </button>
-              </div>
-            ) : (
-              <div className="flex justify-center gap-4">
-                <button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-                  onClick={async () => {
-                    console.log("Hold action");
-                    const res = await putReq(
-                      "guestbooking/status",
-                      {
-                        id: booking._id,
-                        can: false,
-                      },
-                      user.token
-                    );
-                    if (res.success) {
-                      setPending((p) => [...p]);
-                      onClose();
-                    }
-                  }}
-                >
-                  Hold
-                </button>
-                <button
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-                  onClick={() => setShowForm(true)}
-                >
-                  Reschedule Now
-                </button>
-              </div>
-            )
+          booking.status === 4 ? (
+            <div className="flex justify-center">
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                onClick={() => setShowForm(true)}
+              >
+                Reschedule Now
+              </button>
+            </div>
           ) : (
-            <form className="space-y-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium">From Date:</label>
-                <input
-                  type="date"
-                  value={dates.from}
-                  className="border px-3 py-1 rounded w-full"
-                  onChange={(e) => {
-                    setDates((p) => ({ ...p, from: e.target.value }));
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">To Date:</label>
-                <input
-                  type="date"
-                  value={dates.to}
-                  className="border px-3 py-1 rounded w-full"
-                  onChange={(e) => {
-                    setDates((p) => ({ ...p, to: e.target.value }));
-                  }}
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                  onClick={() => setShowForm(false)}
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    reschedule();
-                  }}
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          )}
-
-        
-</div>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+                onClick={async () => {
+                  console.log("Hold action");
+                  const res = await putReq(
+                    "guestbooking/status",
+                    {
+                      id: booking._id,
+                      can: false,
+                    },
+                    user.token
+                  );
+                  if (res.success) {
+                    setPending((p) => [...p]);
+                    onClose();
+                  }
+                }}
+              >
+                Hold
+              </button>
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                onClick={() => setShowForm(true)}
+              >
+                Reschedule Now
+              </button>
+            </div>
+          )
+        ) : (
+          <form className="space-y-4 mt-4">
+            <div>
+              <label className="block text-sm font-medium">From Date:</label>
+              <input
+                type="date"
+                value={dates.from}
+                className="border px-3 py-1 rounded w-full"
+                onChange={(e) => {
+                  setDates((p) => ({ ...p, from: e.target.value }));
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">To Date:</label>
+              <input
+                type="date"
+                value={dates.to}
+                className="border px-3 py-1 rounded w-full"
+                onChange={(e) => {
+                  setDates((p) => ({ ...p, to: e.target.value }));
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                onClick={() => setShowForm(false)}
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                onClick={(e) => {
+                  e.preventDefault();
+                  reschedule();
+                }}
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
