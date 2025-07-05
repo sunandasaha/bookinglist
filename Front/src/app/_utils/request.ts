@@ -1,4 +1,4 @@
-const site = "http://localhost:8080/";
+const site = "https://bookinglist-API.onrender.com/";
 const postReq = async (surl: string, data: {}, tok: string) => {
   const res = await fetch(site + surl, {
     method: "POST",
