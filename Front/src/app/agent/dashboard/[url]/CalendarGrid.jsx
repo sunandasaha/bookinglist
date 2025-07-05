@@ -247,6 +247,14 @@ export default function CalendarGrid({ startDate }) {
                     !booking && !selected && "hover:bg-blue-100"
                   )}
                   onClick={() => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const cellDate = new Date(date);
+                    cellDate.setHours(0, 0, 0, 0);
+                    if (cellDate < today) {
+                      alert("Invalid date selection");
+                      return;
+                    }
                     if (booking) {
                       alert("Hey!! it's booked already");
                     } else {

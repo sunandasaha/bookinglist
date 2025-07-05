@@ -302,6 +302,14 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
                   )}
                   onClick={() => {
                     if (isDummy) return;
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const cellDate = new Date(date);
+                    cellDate.setHours(0, 0, 0, 0);
+                    if (cellDate < today) {
+                      alert("Invalid date selection");
+                      return;
+                    }
                     if (booking) {
                       fetchBookingDetails(booking.booking_id);
                     } else {

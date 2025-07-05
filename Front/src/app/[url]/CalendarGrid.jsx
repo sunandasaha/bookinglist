@@ -243,14 +243,23 @@ export default function CalendarGrid({ startDate }) {
                     "border-r border-b px-1 py-2 text-[12px] flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
                     booking && "bg-green-500 text-white  cursor-not-allowed",
-                    !booking && !selected && "hover:bg-blue-100"
-                  )}
-                  onClick={() => {
+                    !booking && !selected && "hover:bg-blue-100",
+                   )}
+                   onClick={() => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const cellDate = new Date(date);
+                    cellDate.setHours(0, 0, 0, 0);
+                    if (cellDate < today) {
+                      alert("Invalid date selection");
+                      return;
+                    }
                     if (booking) {
                       alert("Hey!! it's booked already");
-                    } else {
-                      handleMouseDown(rIdx, dIdx);
+                      return;
                     }
+
+                    handleMouseDown(rIdx, dIdx);
                   }}
                   onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
                   data-room={rIdx}
