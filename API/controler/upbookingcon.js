@@ -123,57 +123,68 @@ const checkoutBooking = async (req, res) => {
 const resheduleBooking = async (req, res) => {
   const data = req.body;
   const bok = await GuestModel.findById(data.bid);
-
-  if (bok.ub_ids.length > 0) {
-    for (let i = 0; i < bok.ub_ids.length; i++) {
-      await UpBookModel.findByIdAndDelete(bok.ub_ids[i]);
-    }
-  }
-  bok.ub_ids = [];
-
-  const chk = await UpBookModel.find({
-    hotelId: req.user.sid,
-    room: { $in: data.catrooms },
-    fromDate: { $lte: data.toDate },
-    toDate: { $gte: data.fromDate },
-  });
-
-  if (chk.length + data.nrooms > data.catrooms.length) {
-    bok.status = 4;
-    bok.save();
-    res.json({
-      success: false,
-      status: "rooms not available, currently reschedule is on hold",
-    });
+  const fromdate = new Date(
+    new Date(data.fromDate).toISOString().substring(0, 10)
+  );
+  const todate = new Date(
+    new Date(new Date().setDate(new Date(data.toDate).getDate() - 1))
+      .toISOString()
+      .substring(0, 10)
+  );
+  if (todate < fromdate) {
+    res.json({ success: false, status: "Invalid date" });
   } else {
-    if (bok) {
-      const temp = [];
-      const troom = [];
-      for (let i = 0; data.nrooms > 0 && i < data.catrooms.length; i++) {
-        if (!chk.some((e) => e.room === data.catrooms[i])) {
-          const up = await UpBookModel.create({
-            hotelId: req.user.sid,
-            room: data.catrooms[i],
-            booking_id: data.bid,
-            fromDate: data.fromDate,
-            toDate: data.toDate,
-            confirmed: true,
-          });
-          temp.push(up._id);
-          troom.push(data.catrooms[i]);
-          data.nrooms -= 1;
-        }
+    if (bok.ub_ids.length > 0) {
+      for (let i = 0; i < bok.ub_ids.length; i++) {
+        await UpBookModel.findByIdAndDelete(bok.ub_ids[i]);
       }
-      bok.ub_ids = temp;
-      bok.fromDate = data.fromDate;
-      bok.toDate = data.toDate;
-      bok.rooms = troom;
-      bok.status = 1;
-      bok.save();
+    }
+    bok.ub_ids = [];
 
-      res.json({ success: true, status: "reshedule successful" });
+    const chk = await UpBookModel.find({
+      hotelId: req.user.sid,
+      room: { $in: data.catrooms },
+      fromDate: { $lte: todate },
+      toDate: { $gte: data.fromDate },
+    });
+
+    if (chk.length + data.nrooms > data.catrooms.length) {
+      bok.status = 4;
+      bok.save();
+      res.json({
+        success: false,
+        status: "rooms not available, currently reschedule is on hold",
+      });
     } else {
-      res.json({ success: false, status: "booking not found" });
+      if (bok) {
+        const temp = [];
+        const troom = [];
+        for (let i = 0; data.nrooms > 0 && i < data.catrooms.length; i++) {
+          if (!chk.some((e) => e.room === data.catrooms[i])) {
+            const up = await UpBookModel.create({
+              hotelId: req.user.sid,
+              room: data.catrooms[i],
+              booking_id: data.bid,
+              fromDate: data.fromDate,
+              toDate: todate,
+              confirmed: true,
+            });
+            temp.push(up._id);
+            troom.push(data.catrooms[i]);
+            data.nrooms -= 1;
+          }
+        }
+        bok.ub_ids = temp;
+        bok.fromDate = data.fromDate;
+        bok.toDate = todate;
+        bok.rooms = troom;
+        bok.status = 1;
+        bok.save();
+
+        res.json({ success: true, status: "reshedule successful" });
+      } else {
+        res.json({ success: false, status: "booking not found" });
+      }
     }
   }
 };

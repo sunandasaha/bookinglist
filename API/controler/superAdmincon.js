@@ -21,7 +21,6 @@ const allUsers = async (req, res) => {
   });
   for (let i = 0; i < users.length; i++) {
     if (users[i].role === "host") {
-      console.log(users[i]);
       users[i].sid = await Hotelmodel.findById(users[i].sid);
     } else {
       users[i].sid = await Agentmodel.findById(users[i].sid);
@@ -42,4 +41,22 @@ const statusUpdate = async (req, res) => {
   }
 };
 
-module.exports = { pendingUser, allUsers, statusUpdate };
+const deleteId = async (req, res) => {
+  const id = req.body?.id || req.params?.id;
+  const usr = await Usermodel.findById(id);
+  console.log("yolo", id, usr);
+
+  if (usr) {
+    if (usr.role === "host") {
+      if (usr.sid) await Hotelmodel.findByIdAndDelete(usr.sid);
+    } else {
+      if (usr.sid) await Agentmodel.findByIdAndDelete(usr.sid);
+    }
+    await Usermodel.findByIdAndDelete(usr._id);
+    res.json({ success: true });
+  } else {
+    res.json({ success: false });
+  }
+};
+
+module.exports = { pendingUser, allUsers, statusUpdate, deleteId };

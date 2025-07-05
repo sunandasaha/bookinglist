@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
 import PopEffect from "../_components/PopEffect";
-import { getReq, putReq, site } from "../_utils/request";
+import { delReq, getReq, putReq, site } from "../_utils/request";
+import { AnimatePresence } from "framer-motion";
 
 export default function SuperAdminDashboard({ admin, setAdmin }) {
   const [search, setSearch] = useState("");
@@ -51,14 +52,17 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
 
   const handleNot = async (status, uid) => {
     const res = await putReq("sadmin/status", { status, uid }, admin.token);
-    console.log(res);
     if (res.success) {
       getData();
     }
   };
 
   const handleDelete = async (id) => {
-    //code
+    const res = await delReq("sadmin/user", { id }, admin.token);
+    if (res.success) {
+      setSelectedApprovedUser(null);
+      getData();
+    }
   };
 
   return (
@@ -146,137 +150,144 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
           <p className="text-sm text-gray-500">No approved users found.</p>
         )}
       </div>
-      {selectedApprovedUser && (
-        <PopEffect cb={() => setSelectedApprovedUser(null)}>
-          <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-md p-6 space-y-4 text-black">
-            <h2 className="text-xl font-bold mb-4 text-center text-green-600 border-b pb-2">
-              {selectedApprovedUser.role === "host"
-                ? "🏨 Host Profile"
-                : "🧑‍💼 Agent Profile"}
-            </h2>
+      <AnimatePresence>
+        {selectedApprovedUser && (
+          <PopEffect cb={() => setSelectedApprovedUser(null)}>
+            <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-md p-6 space-y-4 text-black">
+              <h2 className="text-xl font-bold mb-4 text-center text-green-600 border-b pb-2">
+                {selectedApprovedUser.role === "host"
+                  ? "🏨 Host Profile"
+                  : "🧑‍💼 Agent Profile"}
+              </h2>
 
-            <div className="space-y-3 text-sm text-black">
-              <ProfileRow
-                label={
-                  selectedApprovedUser.role === "host" ? "🏨 Hotel" : "👤 Name"
-                }
-                value={selectedApprovedUser.parsed?.name}
-              />
-              {selectedApprovedUser.role === "agent" && (
+              <div className="space-y-3 text-sm text-black">
                 <ProfileRow
-                  label="🏢 Agency"
-                  value={selectedApprovedUser.parsed?.agency}
+                  label={
+                    selectedApprovedUser.role === "host"
+                      ? "🏨 Hotel"
+                      : "👤 Name"
+                  }
+                  value={selectedApprovedUser.parsed?.name}
                 />
-              )}
-              <ProfileRow
-                label="📍 Location"
-                value={selectedApprovedUser.parsed?.location}
-              />
-              <ProfileRow label="📧 Email" value={selectedApprovedUser.email} />
-              <ProfileRow
-                label="💬 Whatsapp"
-                value={selectedApprovedUser.parsed?.phone}
-              />
-              {selectedApprovedUser.role === "agent" && (
-                <>
-                  {selectedApprovedUser.parsed?.visiting_card && (
-                    <div className="flex justify-between items-start gap-4 border-b pb-2">
-                      <span className="font-medium text-gray-700 whitespace-nowrap">
-                        🖼️ Visiting Card:
-                      </span>
-                      <img
-                        src={
-                          site +
-                          "imgs/" +
-                          selectedApprovedUser.parsed.visiting_card
-                        }
-                        alt="Visiting Card"
-                        className="w-40 h-auto rounded border"
-                      />
-                    </div>
-                  )}
-                </>
-              )}
-              {selectedApprovedUser.role === "host" && (
-                <>
+                {selectedApprovedUser.role === "agent" && (
                   <ProfileRow
-                    label="💰 UPI ID"
-                    value={selectedApprovedUser.parsed?.upi_id}
+                    label="🏢 Agency"
+                    value={selectedApprovedUser.parsed?.agency}
                   />
-                  <ProfileRow
-                    label="🌐 URL"
-                    value={
-                      selectedApprovedUser.parsed?.url && (
-                        <a
-                          href={selectedApprovedUser.parsed.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline break-words"
-                        >
-                          {selectedApprovedUser.parsed.url}
-                        </a>
-                      )
-                    }
-                  />
-                  <ProfileRow
-                    label="🛏️ Rooms"
-                    value={selectedApprovedUser.parsed?.rooms}
-                  />
-                </>
-              )}
+                )}
+                <ProfileRow
+                  label="📍 Location"
+                  value={selectedApprovedUser.parsed?.location}
+                />
+                <ProfileRow
+                  label="📧 Email"
+                  value={selectedApprovedUser.email}
+                />
+                <ProfileRow
+                  label="💬 Whatsapp"
+                  value={selectedApprovedUser.parsed?.phone}
+                />
+                {selectedApprovedUser.role === "agent" && (
+                  <>
+                    {selectedApprovedUser.parsed?.visiting_card && (
+                      <div className="flex justify-between items-start gap-4 border-b pb-2">
+                        <span className="font-medium text-gray-700 whitespace-nowrap">
+                          🖼️ Visiting Card:
+                        </span>
+                        <img
+                          src={
+                            site +
+                            "imgs/" +
+                            selectedApprovedUser.parsed.visiting_card
+                          }
+                          alt="Visiting Card"
+                          className="w-40 h-auto rounded border"
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+                {selectedApprovedUser.role === "host" && (
+                  <>
+                    <ProfileRow
+                      label="💰 UPI ID"
+                      value={selectedApprovedUser.parsed?.upi_id}
+                    />
+                    <ProfileRow
+                      label="🌐 URL"
+                      value={
+                        selectedApprovedUser.parsed?.url && (
+                          <a
+                            href={selectedApprovedUser.parsed.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline break-words"
+                          >
+                            {selectedApprovedUser.parsed.url}
+                          </a>
+                        )
+                      }
+                    />
+                    <ProfileRow
+                      label="🛏️ Rooms"
+                      value={selectedApprovedUser.parsed?.rooms}
+                    />
+                  </>
+                )}
+              </div>
+              <div className="flex justify-center gap-4 pt-4">
+                {selectedApprovedUser.status === 0 ? (
+                  <>
+                    <button
+                      className="flex-1 bg-green-600 text-white py-2 rounded"
+                      onClick={() => {
+                        handleNot(1, u._id);
+                      }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDelete(u._id);
+                      }}
+                      className="flex-1 bg-red-600 text-white py-2 rounded"
+                    >
+                      Reject
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={async () => {
+                        const newS = selectedApprovedUser.status === 3 ? 1 : 3;
+                        await handleNot(newS, selectedApprovedUser._id);
+                        setSelectedApprovedUser(null);
+                      }}
+                      className={`px-4 py-2 text-white rounded hover:bg-opacity-80 ${
+                        selectedApprovedUser.status === 3
+                          ? "bg-green-500 hover:bg-green-600"
+                          : "bg-yellow-500 hover:bg-yellow-600"
+                      }`}
+                    >
+                      {selectedApprovedUser.status === 3
+                        ? "Activate"
+                        : "Deactivate"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDelete(selectedApprovedUser._id);
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex justify-center gap-4 pt-4">
-              {selectedApprovedUser.status === 0 ? (
-                <>
-                  <button
-                    className="flex-1 bg-green-600 text-white py-2 rounded"
-                    onClick={() => {
-                      handleNot(1, u._id);
-                    }}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleNot(2, u._id);
-                    }}
-                    className="flex-1 bg-red-600 text-white py-2 rounded"
-                  >
-                    Reject
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={async () => {
-                      const newS = selectedApprovedUser.status === 3 ? 1 : 3;
-                      await handleNot(newS, selectedApprovedUser._id);
-                      setSelectedApprovedUser(null);
-                    }}
-                    className={`px-4 py-2 text-white rounded hover:bg-opacity-80 ${
-                      selectedApprovedUser.status === 3
-                        ? "bg-green-500 hover:bg-green-600"
-                        :  "bg-yellow-500 hover:bg-yellow-600"
-                    }`}
-                  >
-                    {selectedApprovedUser.status === 3
-                      ? "Activate"
-                      : "Deactivate"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleDelete(selectedApprovedUser._id);
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </PopEffect>
-      )}
+          </PopEffect>
+        )}
+      </AnimatePresence>
       {showNot && (
         <div className="fixed inset-0 z-50 bg-black/40 flex justify-end">
           <div className="w-full sm:w-[90%] md:w-[400px] bg-white p-4 overflow-y-auto">
@@ -297,7 +308,9 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                 >
                   <p className="font-semibold">{u.email}</p>
                   <p className="text-sm text-gray-600">Role: {u.role}</p>
-                  <p className="text-sm text-gray-600">Name: {u.name}</p>
+                  <p className="text-sm text-gray-600">
+                    Tap to see the details
+                  </p>
 
                   <div className="flex gap-3 mt-4">
                     <button
@@ -310,7 +323,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                     </button>
                     <button
                       onClick={() => {
-                        handleNot(2, u._id);
+                        handleDelete(u._id);
                       }}
                       className="flex-1 bg-red-600 text-white py-2 rounded"
                     >
