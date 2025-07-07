@@ -10,16 +10,12 @@ import RoomInfoPopup from "./RoomInfoPopup";
 export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [startCell, setStartCell] = useState(null);
-  const [endCell, setEndCell] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [tappedCells, setTappedCells] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
-
   const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
-
   const getBookings = async () => {
     try {
       const res = await fetch(site + "guestbooking/bookings", {
@@ -29,10 +25,8 @@ export default function CalendarGrid({ startDate }) {
           "Content-Type": "application/json",
         },
       });
-
       const data = await res.json();
       const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
-
       setBookings(
         bookingsData.map((b) => ({
           ...b,
@@ -70,7 +64,6 @@ export default function CalendarGrid({ startDate }) {
     }
     return [];
   }, [hosthotel]);
-
   useEffect(() => {
     if (startDate) {
       const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
@@ -91,82 +84,96 @@ export default function CalendarGrid({ startDate }) {
       return cellDate >= fromDate && cellDate <= toDate;
     });
   };
+  const toggleCell = (r, d) => {
+  const roomName = rooms[r]?.name;
+  const date = dates[d];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const cellDate = new Date(date);
+  cellDate.setHours(0, 0, 0, 0);
+  if (cellDate < today) {
+    alert("Invalid date selection");
+    return;
+  }
 
-  const selectedCells = useMemo(() => {
-    if (!startCell || !endCell) return [];
-    const [r1, d1] = startCell;
-    const [r2, d2] = endCell;
-    const rMin = Math.min(r1, r2),
-      rMax = Math.max(r1, r2);
-    const dMin = Math.min(d1, d2),
-      dMax = Math.max(d1, d2);
+  if (getBookingForCell(roomName, date)) {
+    alert("Hey!! it is already booked");
+    return;
+  }
+  setTappedCells((prev) => {
+    const alreadySelected = prev.some(([x, y]) => x === r && y === d);
+    const next = alreadySelected
+      ? prev.filter(([x, y]) => !(x === r && y === d))
+      : [...prev, [r, d]];
 
-    let hasBookings = false;
-    const cells = [];
+    const selectedDates = next
+      .filter(([x]) => x === r)
+      .map(([_, y]) => y)
+      .sort((a, b) => a - b);
 
-    for (let r = rMin; r <= rMax; r++) {
-      for (let d = dMin; d <= dMax; d++) {
-        cells.push([r, d]);
-        const roomName = rooms[r]?.name;
-        const date = dates[d];
-        if (getBookingForCell(roomName, date)) {
-          hasBookings = true;
+    if (selectedDates.length > 1) {
+      const min = selectedDates[0];
+      const max = selectedDates[selectedDates.length - 1];
+      for (let i = min; i <= max; i++) {
+        const isSelected = selectedDates.includes(i);
+        const isBooked = getBookingForCell(roomName, dates[i]);
+
+        if (!isSelected || isBooked) {
+          alert("Dates Selection must be continuous and unbooked.");
+          return prev;
         }
       }
     }
+    const anyBooked = next.some(([x, y]) =>
+      getBookingForCell(rooms[x].name, dates[y])
+    );
 
-    setHasBookedCellsInSelection(hasBookings);
-    return cells;
-  }, [startCell, endCell, bookings, rooms, dates]);
-
-  const isSelected = (r, d) =>
-    selectedCells.some(([x, y]) => x === r && y === d);
-
-  const handleMouseDown = (r, d) => {
-    if (isSelected(r, d)) {
-      setStartCell(null);
-      setEndCell(null);
-      setIsDragging(false);
-    } else {
-      setStartCell([r, d]);
-      setEndCell([r, d]);
-      setIsDragging(true);
-    }
-  };
-
-  const handleMouseEnter = (r, d) => {
-    if (isDragging) setEndCell([r, d]);
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-
-  const handleBookClick = () => {
+    setHasBookedCellsInSelection(anyBooked);
+    return next;
+  });
+};
+const selectedCells = tappedCells;
+const isSelected = (r, d) =>
+    tappedCells.some(([x, y]) => x === r && y === d);
+const handleBookClick = () => {
     if (selectedCells.length === 0) return;
-    const uniqueRooms = [...new Set(selectedCells.map(([r]) => r))];
-    const dateIndices = selectedCells.map(([_, d]) => d);
-    const fromDate = dates[Math.min(...dateIndices)];
-    const toDate = dates[Math.max(...dateIndices)];
-    const from = format(fromDate, "yyyy-MM-dd");
-    const to = format(toDate, "yyyy-MM-dd");
-    setSelectedBooking({
-      from,
-      to,
-      roomNames: uniqueRooms.map((i) => rooms[i].name),
+    const roomToDates = new Map();
+    selectedCells.forEach(([rIdx, dIdx]) => {
+      if (!roomToDates.has(rIdx)) roomToDates.set(rIdx, []);
+      roomToDates.get(rIdx).push(dIdx);
     });
-  };
+    const fromToSet = new Set();
+    for (const [rIdx, dateList] of roomToDates.entries()) {
+      const sorted = dateList.sort((a, b) => a - b);
+      const fromIdx = sorted[0];
+      const toIdx = sorted[sorted.length - 1];
+      fromToSet.add(`${fromIdx}-${toIdx}`);
+    }
+    if (fromToSet.size !== 1) {
+      alert("All rooms must have same from and to dates.");
+      return;
+    }
+    const [firstRoomIdx] = roomToDates.keys();
+    const dateList = roomToDates.get(firstRoomIdx).sort((a, b) => a - b);
+    const fromIdx = dateList[0];
+    const toIdx = dateList[dateList.length - 1];
+    const roomNames = [...roomToDates.keys()].map((rIdx) => rooms[rIdx].name);
+    setSelectedBooking({
+      from: format(dates[fromIdx], "yyyy-MM-dd"),
+      to: format(dates[toIdx], "yyyy-MM-dd"),
+      roomNames,
+    });
+};
   const handleBookingSave = async () => {
     setSelectedBooking(null);
     setStartCell(null);
     setEndCell(null);
     await getBookings(); 
   };
-
   return (
     <div
       className="relative overflow-x-auto w-full bg-white"
       ref={containerRef}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-600 text-white font-semibold">
@@ -246,22 +253,7 @@ export default function CalendarGrid({ startDate }) {
                     booking && "bg-green-500 text-white  cursor-not-allowed",
                     !booking && !selected && "hover:bg-blue-100"
                   )}
-                  onClick={() => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const cellDate = new Date(date);
-                    cellDate.setHours(0, 0, 0, 0);
-                    if (cellDate < today) {
-                      alert("Invalid date selection");
-                      return;
-                    }
-                    if (booking) {
-                      alert("Hey!! it's booked already");
-                    } else {
-                      handleMouseDown(rIdx, dIdx);
-                    }
-                  }}
-                  onMouseEnter={() => handleMouseEnter(rIdx, dIdx)}
+                  onClick={() => toggleCell(rIdx, dIdx)}
                   data-room={rIdx}
                   data-date={dIdx}
                 >
