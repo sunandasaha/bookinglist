@@ -166,8 +166,7 @@ const handleBookClick = () => {
 };
   const handleBookingSave = async () => {
     setSelectedBooking(null);
-    setStartCell(null);
-    setEndCell(null);
+    setTappedCells([]);
     await getBookings(); 
   };
   return (
@@ -274,7 +273,7 @@ const handleBookClick = () => {
                 <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("w-full max-w-sm py-3 px-10 rounded-lg text-center  text-white font-semibold shadow-md",
+                  className={clsx("w-full max-w-sm py-3 px-10 rounded-full text-center  text-white font-semibold shadow-md",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                    )}
                 >

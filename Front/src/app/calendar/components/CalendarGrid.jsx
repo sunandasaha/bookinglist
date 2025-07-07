@@ -15,16 +15,13 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [fetchedBooking, setFetchedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
-  const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =
-    useState(false);
+  const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-
   const { hosthotel, user, pending, setPending } = useContext(Context);
   const containerRef = useRef(null);
   const getCellClass = (roomName, date, rIdx, dIdx) => {
     const booking = getBookingForCell(roomName, date);
     const selected = isSelected(rIdx, dIdx);
-
     return clsx(
       "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
       selected && "bg-blue-300",
@@ -153,11 +150,12 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
     alert("Invalid date selection");
     return;
   }
+  const booking = getBookingForCell(roomName, date);
+if (booking) {
+  fetchBookingDetails(booking.b_ID); 
+  return;
+}
 
-  if (getBookingForCell(roomName, date)) {
-    alert("Hey!! it is already booked");
-    return;
-  }
 
   setTappedCells((prev) => {
     const alreadySelected = prev.some(([x, y]) => x === r && y === d);
@@ -225,8 +223,7 @@ const handleBookClick = () => {
 };
   const handleBookingSave = async () => {
     setSelectedBooking(null);
-    setStartCell(null);
-    setEndCell(null);
+    setTappedCells([]);
     await getBookings();
   };
 
@@ -338,7 +335,7 @@ const handleBookClick = () => {
               <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("w-full max-w-sm py-3 px-10 rounded-lg text-center  text-white font-semibold shadow-md",
+                  className={clsx("w-full max-w-sm py-3 px-10 rounded-full text-center  text-white font-semibold shadow-md",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                   )}
               >
