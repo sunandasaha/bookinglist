@@ -1,0 +1,71 @@
+.img-con {
+  width: 100%;
+  padding: 20px;
+  border-radius: 20px;
+  position: relative;
+  height: 90%;
+}
+
+.land-img {
+  width: 100%;
+  object-fit: cover;
+}
+
+.land-con {
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  height: 100%;
+}
+
+.land-btn-con {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  max-width: 450px;
+}
+
+.land-btns {
+  display: flex;
+  flex-direction: column;
+  width: 70%;
+  gap: 8px;
+  margin: 10px;
+}
+
+.scnd-btn {
+  color: #262626;
+  background-color: #7f7f7f;
+  border-color: #7f7f7f;
+}
+
+.land-btn-con p,
+h1 {
+  font-weight: 500;
+  font-size: 1rem;
+  text-align: center;
+  color: #262626;
+}
+
+.land-btn-con h1 {
+  font-size: 2rem;
+}
+
+.land-btn-con p {
+  transition: 0.5s;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.land-btn-con p:hover {
+  color: #000;
+}
+
+@media (max-width: 450px) {
+  .land-con {
+    flex-direction: column;
+  }
+}

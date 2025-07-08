@@ -19,42 +19,49 @@ export default function Home() {
   };
 
   const logtok = async () => {
-    const tok = localStorage.getItem("tok");
-    if (tok) {
-      localStorage.removeItem("tok");
-      const res = await postReq("user/logtok", { tok }, "");
-      if (res.status === "success") {
-        if (setUser) setUser(res.user);
-        localStorage.setItem("tok", res.user.token);
-        if (res.user.role === "") {
-          navigate.push("/role");
-        } else if (res.user.role === "host") {
-          if (res.user.cred) {
-            if (res.user.status === 1) {
-              if (setHosthotel) setHosthotel(res.user.cred);
-              if (res.user.pending && setPending) setPending(res.user.pending);
-              navigate.push("/calendar");
+    try {
+      const tok = localStorage.getItem("tok");
+      if (tok) {
+        localStorage.removeItem("tok");
+        const res = await postReq("user/logtok", { tok }, "");
+        if (res.status === "success") {
+          if (setUser) setUser(res.user);
+          localStorage.setItem("tok", res.user.token);
+          if (res.user.role === "") {
+            navigate.push("/role");
+          } else if (res.user.role === "host") {
+            if (res.user.cred) {
+              if (res.user.status === 1) {
+                if (setHosthotel) setHosthotel(res.user.cred);
+                if (res.user.pending && setPending)
+                  setPending(res.user.pending);
+                navigate.push("/calendar");
+              } else {
+                navigate.push("/status");
+              }
             } else {
-              navigate.push("/status");
+              navigate.push("/hotel");
             }
-          } else {
-            navigate.push("/hotel");
-          }
-        } else if (res.user.role === "agent") {
-          if (res.user.cred) {
-            if (res.user.status === 1) {
-              if (setAgent) setAgent(res.user.cred);
-              navigate.push("/agent/dashboard");
+          } else if (res.user.role === "agent") {
+            if (res.user.cred) {
+              if (res.user.status === 1) {
+                if (setAgent) setAgent(res.user.cred);
+                navigate.push("/agent/dashboard");
+              } else {
+                navigate.push("/status");
+              }
             } else {
-              navigate.push("/status");
+              navigate.push("/agent");
             }
-          } else {
-            navigate.push("/agent");
           }
+        } else {
+          navigate.push("/landing");
         }
+      } else {
+        navigate.push("/landing");
       }
-    } else {
-      navigate.push("/login");
+    } catch (error) {
+      navigate.push("/landing");
     }
   };
 

@@ -4,7 +4,7 @@ import "./auth.css";
 const authLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
-      <AuthNav />
+      {/*<AuthNav />*/}
       {children}
     </div>
   );
