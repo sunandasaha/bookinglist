@@ -1,9 +1,8 @@
 .img-con {
   width: 100%;
-  padding: 20px;
   border-radius: 20px;
   position: relative;
-  height: 90%;
+  max-height: 90%;
 }
 
 .land-img {
@@ -51,7 +50,7 @@ h1 {
 }
 
 .land-btn-con h1 {
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .land-btn-con p {
