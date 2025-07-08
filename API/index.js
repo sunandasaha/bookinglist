@@ -12,7 +12,7 @@ const categoryroute = require("./routes/categoryroute");
 const agentroute = require("./routes/agentroute");
 const socetHandler = require("./sockets");
 const { setio } = require("./sockets/global");
-mongoose.connect(process.env.API_URI);
+mongoose.connect(process.env.API_URIS);
 
 const hid = new Map();
 const PORT = process.env.PORT || 8080;
