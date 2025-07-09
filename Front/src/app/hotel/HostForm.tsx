@@ -13,6 +13,8 @@ const HostForm = ({ info, setInfo }: props) => {
       setInfo((p) => ({ ...p, name: e.target.value }));
     if (e.target.id === "hloc")
       setInfo((p) => ({ ...p, location: e.target.value }));
+     if (e.target.id === "hacc")
+      setInfo((p) => ({ ...p, accountName: e.target.value }));
     if (e.target.id === "hupi")
       setInfo((p) => ({ ...p, upi_id: e.target.value }));
     if (e.target.id === "hph1") setInfo((p) => ({ ...p, ph1: e.target.value }));
@@ -47,6 +49,16 @@ const HostForm = ({ info, setInfo }: props) => {
           value={info.location}
           id="hloc"
           placeholder="Location"
+          onChange={handleChange}
+        />
+        <label htmlFor="haccount"> AccountName : </label>
+        <input
+          type="text"
+          name="accountName"
+          className="pinput"
+          value={info.accountName || ""}
+          id="hacc"
+          placeholder="AccountName"
           onChange={handleChange}
         />
         <label htmlFor="hupi"> UPI ID : </label>

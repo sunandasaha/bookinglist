@@ -40,6 +40,7 @@ export default function ProfileModal({ profile, onClose }) {
           <ProfileRow label="📍 Location" value={profile.location} />
           <ProfileRow label="📞 Phone" value={profile.ph1} />
           <ProfileRow label="📱 WhatsApp" value={profile.ph2} />
+          <ProfileRow label="AccountName" value={profile.accountName} />
           <ProfileRow label="💰 UPI ID" value={profile.upi_id} />
           <ProfileRow label="🛏️ Rooms" value={profile.rooms} />
           <ProfileRow

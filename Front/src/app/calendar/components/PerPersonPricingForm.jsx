@@ -332,14 +332,14 @@ const PerPersonPricingForm = () => {
                      {num} occupancy
                     </label>
                     <input
-                      placeholder={`Rate for ${num} person${num > 1 ? "s" : ""}`}
+                      placeholder="Enter rate per person"
                       type="number"
                       onWheel={(e) => e.target.blur()} 
                       min="0"
-                      value={cat[`rate${num}`]}
+                      value={cat[`rate${num}`] === 0 ? '' : cat[`rate${num}`]}
                       onChange={(e) => handleChange(catIdx, `rate${num}`, e.target.value)}
-                      className=" no-spinner border rounded p-2 w-full"
-                    />
+                      className="no-spinner border rounded p-2 w-full"
+                      />
                   </div>
                 ))}
               </div>

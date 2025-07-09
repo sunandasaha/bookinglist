@@ -15,6 +15,12 @@ const HotelSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  accountName: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   upi_id: {
     type: String,
     required: true,

@@ -15,6 +15,7 @@ export type hostHotel = {
   _id?: string;
   name: string;
   location: string;
+  accountName: string;
   upi_id: string;
   url?: string;
   ph1: string;
