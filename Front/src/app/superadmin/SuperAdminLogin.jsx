@@ -9,7 +9,7 @@ export default function SuperAdminLogin() {
   const [admin, setAdmin] = useState(null);
 
   const handleLogin = async () => {
-    if (uid.length > 3 && pwd.length > 3) {
+    if (uid.length >= 3 && pwd.length >= 3) {
       const res = await postReq(
         "user/login",
         { email: uid, password: pwd },
