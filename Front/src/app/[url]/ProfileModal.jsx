@@ -1,20 +1,16 @@
 "use client";
 
-import React, { useContext } from "react";
+import React from "react";
 import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Context } from "../_components/ContextProvider";
 
 export default function ProfileModal({ profile, onClose }) {
   if (!profile) return null;
 
-  const navigate = useRouter();
-  const { user } = useContext(Context); 
-
-  const roomsCount = profile.rooms || 
-    (profile.room_cat?.flatMap((cat) => cat.room_no).length || 
-     profile.per_person_cat?.flatMap((cat) => cat.roomNumbers).length || 
-     "N/A");
+  const roomsCount =
+    profile.rooms ||
+    profile.room_cat?.flatMap((cat) => cat.room_no).length ||
+    profile.per_person_cat?.flatMap((cat) => cat.roomNumbers).length ||
+    "N/A";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 px-4">
@@ -36,6 +32,7 @@ export default function ProfileModal({ profile, onClose }) {
           <ProfileRow label="📞 Phone" value={profile.ph2} />
           <ProfileRow label="💬 WhatsApp" value={profile.ph1} />
           <ProfileRow label="🛏️ Rooms" value={roomsCount} />
+          <ProfileRow label="AccountName" value={profile.accountName} />
         </div>
       </div>
     </div>
@@ -45,7 +42,9 @@ export default function ProfileModal({ profile, onClose }) {
 function ProfileRow({ label, value }) {
   return (
     <div className="flex justify-between items-start gap-4 border-b pb-2">
-      <span className="font-medium text-gray-700 whitespace-nowrap">{label}:</span>
+      <span className="font-medium text-gray-700 whitespace-nowrap">
+        {label}:
+      </span>
       <span className="text-blue-600 font-semibold text-right break-words max-w-[60%]">
         {value || "N/A"}
       </span>

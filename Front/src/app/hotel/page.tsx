@@ -11,6 +11,7 @@ const def = {
   location: "",
   accountName : "",
   upi_id: "",
+  accountName: "",
   ph1: "",
   rooms: 5,
   pay_per: { person: false, room: true },
