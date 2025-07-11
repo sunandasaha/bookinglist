@@ -10,7 +10,7 @@ export default function ProfileModal({ profile, onClose }) {
     const [copied, setCopied] = useState(false);
     const handleCopy = () => {
     if (profile.url) {
-      const site = "https://bookinglist-front.onrender.com/";
+      const site = "https://www.bookinglist.in/";
 
       const Url = site +`${profile.url}`;
       navigator.clipboard.writeText(Url);

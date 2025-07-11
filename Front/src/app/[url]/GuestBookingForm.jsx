@@ -125,7 +125,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       return { totalPrice: 0, advanceAmount: 0 };
     }
     // PER ROOM PRICING
-    if (hosthotel?.pay_per?.room) {
+    if (hosthotel?.pay_per?.room) { 
       const selectedCats =
         hosthotel.room_cat?.filter((cat) =>
           cat.room_no?.some((room) => selectedRooms.includes(room))

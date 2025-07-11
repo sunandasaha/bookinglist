@@ -1,6 +1,7 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { hostHotel } from "../_components/ContextProvider";
+import {ArrowLeft} from "lucide-react";
 
 type props = {
   info: hostHotel;
@@ -8,6 +9,7 @@ type props = {
 };
 
 const HostForm = ({ info, setInfo }: props) => {
+  const navigate = useRouter();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.id === "hname")
       setInfo((p) => ({ ...p, name: e.target.value }));
@@ -30,6 +32,12 @@ const HostForm = ({ info, setInfo }: props) => {
 
   return (
     <div className="p-5">
+      <button
+        onClick={() => navigate.back()}
+        className="mb-4 flex items-center gap-2 text-black-600 hover:text-indigo-800"
+      >
+        <ArrowLeft size={24} />
+      </button>
       <div className="grid2">
         <label htmlFor="hname"> Name : </label>
         <input

@@ -16,6 +16,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
   const [fetchedBooking, setFetchedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] =useState(false);
+  const [showNoRoomModal, setShowNoRoomModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const { hosthotel, user, pending, setPending } = useContext(Context);
   const containerRef = useRef(null);
@@ -123,6 +124,15 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
   useEffect(() => {
     if (hosthotel?._id && startDate) getBookings();
   }, [hosthotel, startDate, pending]);
+  useEffect(() => {
+  const hasRoomData =
+    hosthotel?.room_cat?.length > 0 || hosthotel?.per_person_cat?.length > 0;
+
+  if (hosthotel && !hasRoomData) {
+    setShowNoRoomModal(true);
+  }
+}, [hosthotel]);
+
   useEffect(() => {
     if (!searchBID) return;
     fetchBookingDetails(searchBID);
@@ -280,7 +290,7 @@ const handleBookClick = () => {
         </div>
         {rooms.map((room, rIdx) => (
           <div
-            key={room.name}
+            key={`room-${room.name}-${rIdx}`}
             className="grid grid-cols-[120px_repeat(7,70px)] border-t grid-row"
           >
             <div
@@ -497,6 +507,22 @@ const handleBookClick = () => {
           </div>
         </div>
       )}
+      {showNoRoomModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-lg text-center">
+                <h2 className="text-lg font-semibold text-red-600 mb-2">Missing Room Details</h2>
+                <p className="text-gray-700 mb-4">
+                  ⚠️ You haven’t added your rooms and pricing details yet. Please go to the <strong>'Rooms & Pricing'</strong> section from the sidebar.
+                </p>
+                <button
+                  onClick={() => setShowNoRoomModal(false)}
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          )}
     </div>
   );
 }

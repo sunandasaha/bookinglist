@@ -2,6 +2,7 @@
 
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { useRouter } from "next/navigation";
+import {ArrowLeft} from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { Context, hostHotel } from "../../_components/ContextProvider";
 import { postReq } from "../../_utils/request";
@@ -132,7 +133,13 @@ const Login = () => {
       className="con"
       style={{ justifyContent: "space-evenly", height: 400 }}
     >
-      <h1 className="text-2xl font-medium">Booking List</h1>
+    <button
+    onClick={() => navigate.back()}
+    className="absolute top-4 left-4 text-black-600 hover:text-blue-800 font-semibold"
+    >
+     <ArrowLeft size={24} />
+    </button>
+    <h1 className="text-2xl font-medium">Booking List</h1>
       <input
         type="email"
         className="pinput"

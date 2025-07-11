@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Context } from "../../_components/ContextProvider";
 import { postReq } from "../../_utils/request";
 import Image from "next/image";
@@ -58,10 +59,17 @@ const Signup = () => {
   };
 
   return (
+  
     <div
       className="con"
       style={{ justifyContent: "space-evenly", height: 400 }}
     >
+    <button
+    onClick={() => navigate.back()}
+    className="absolute top-4 left-4 text-black-600 hover:text-blue-800 font-semibold"
+    >
+     <ArrowLeft size={24} />
+    </button>
       <h1 className="text-2xl font-medium">Booking List</h1>
       <input
         type="email"
