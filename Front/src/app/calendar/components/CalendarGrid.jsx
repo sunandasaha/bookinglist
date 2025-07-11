@@ -165,6 +165,10 @@ if (booking) {
   fetchBookingDetails(booking.b_ID); 
   return;
 }
+if (rooms[r]?.isDummy) {
+  alert("This room is not available for booking.");
+  return;
+}
 
 
   setTappedCells((prev) => {

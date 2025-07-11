@@ -299,7 +299,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
       alert("❌ Error saving booking. Please try again.");
     }
   };
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
       <div className="bg-white rounded-lg p-6 w-full max-w-sm max-h-[85vh] overflow-auto mx-auto">
@@ -327,7 +326,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 <strong>Rooms:</strong> {booking.roomNames.join(", ")}
               </p>
             </div>
-
             <input
               type="text"
               name="name"
@@ -337,7 +335,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               required
               className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
             />
-
             <input
               type="text"
               name="address"
@@ -347,7 +344,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               required
               className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
             />
-
             <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
               <input
                 type="tel"

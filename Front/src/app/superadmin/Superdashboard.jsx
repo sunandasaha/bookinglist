@@ -254,6 +254,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                     >
                       Reject
                     </button>
+<<<<<<< Updated upstream
                   </>
                 ) : (
                   <>
@@ -284,6 +285,35 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                   </>
                 )}
               </div>
+=======
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={async () => {
+                          const newS = selectedApprovedUser.status === 3 ? 1 : 3;
+                          await handleNot(newS, selectedApprovedUser._id);
+                          setSelectedApprovedUser(null);
+                        }}
+                        className={`px-4 py-2 text-white rounded hover:bg-opacity-80 ${
+                          selectedApprovedUser.status === 3
+                            ? "bg-yellow-500 hover:bg-yellow-600"
+                            : "bg-green-500 hover:bg-green-600"
+                        }`}
+                      >
+                        {selectedApprovedUser.status === 3 ? "Activate" : "Deactivate"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDelete(selectedApprovedUser._id);
+                        }}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
+>>>>>>> Stashed changes
             </div>
           </PopEffect>
         )}
