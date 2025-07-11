@@ -3,7 +3,7 @@ import "./auth.css";
 
 const authLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div>
+    <div style={{ height: "100%" }}>
       {/*<AuthNav />*/}
       {children}
     </div>

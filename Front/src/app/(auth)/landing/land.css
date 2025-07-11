@@ -18,6 +18,8 @@
   max-width: 1500px;
   margin: auto;
   align-items: center;
+  flex-grow: 1;
+  width: 100%;
 }
 
 .land-btn-con {
