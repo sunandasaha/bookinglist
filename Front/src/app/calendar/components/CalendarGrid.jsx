@@ -429,6 +429,10 @@ const handleBookClick = () => {
               <strong className="text-blue-500">Advance:</strong> ₹
               {fetchedBooking.advanceAmount}
             </div>
+            <div>
+              <strong className="text-blue-500">Balance:</strong> ₹
+              {fetchedBooking.totalPrice -fetchedBooking.advanceAmount }
+            </div>
             {fetchedBooking.agent_Id && (
               <>
                 <div className="border-t border-black-200 ">

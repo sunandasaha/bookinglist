@@ -183,10 +183,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         roomStats.sort((a, b) => a.extraRate - b.extraRate);
         let remainingExtras = extraAdults;
         for (const room of roomStats) {
-          const availableExtras =
-            (room.maxCap - room.capacity) * room.roomCount;
+          const availableExtras =(room.maxCap - room.capacity) * room.roomCount;
           const assign = Math.min(availableExtras, remainingExtras);
           extraCharges += assign * room.extraRate * nights;
+          if (room.advance?.percent) {
+            totalAdvance += assign * room.extraRate * nights * (room.advance.amount / 100);
+          }
           remainingExtras -= assign;
           if (remainingExtras <= 0) break;
         }
@@ -211,7 +213,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
         advanceAmount: parseFloat(totalAdvance.toFixed(2)),
       };
     }
-
     // PER PERSON PRICING LOGIC
     if (hosthotel?.pay_per?.person) {
       const selectedCats =
