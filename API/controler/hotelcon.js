@@ -5,7 +5,7 @@ const Usermodel = require("../models/Users");
 const createHotel = async (req, res) => {
   const data = req.body;
   try {
-    let url = data.name.toLowerCase().replace(" ", "_");
+    let url = data.name.toLowerCase().replaceAll(" ", "_");
     const chk = await Hotelmodel.findOne({ url: url });
     if (chk?._id) {
       url += randomInt(100).toString();
