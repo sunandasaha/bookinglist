@@ -107,7 +107,6 @@ export default function CalendarGrid({ startDate }) {
     alert("Hey!! it is already booked");
     return;
   }
-
   setTappedCells((prev) => {
     const alreadySelected = prev.some(([x, y]) => x === r && y === d);
     const next = alreadySelected
