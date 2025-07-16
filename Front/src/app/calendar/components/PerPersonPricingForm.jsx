@@ -57,7 +57,15 @@ const PerPersonPricingForm = () => {
     else {
       updated[index][field] = value;
     }
-    
+    const cap = updated[index].capacity;
+    const baseRate = updated[index][`rate${cap}`];
+      if (cap && baseRate) {
+        setErrorMsg(prev => {
+          const copy = { ...prev };
+          delete copy[index];
+          return copy;
+        });
+      }
     setCategories(updated);
   };
 
@@ -66,8 +74,7 @@ const PerPersonPricingForm = () => {
     updated[index].amenities = selectedOptions;
     setCategories(updated);
   };
-
-  const toggleEdit = async (index) => {
+   const toggleEdit = async (index) => {
     const updated = [...categories];
     const cat = updated[index];
 
@@ -76,13 +83,19 @@ const PerPersonPricingForm = () => {
       setCategories(updated);
       return;
     }
+
+    const baseRate = cat[`rate${cat.capacity}`];
+    if (!cat.capacity || !baseRate) {
+        setErrorMsg(prev => ({ ...prev, [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.` }));
+        return;
+      }
     setLoadingIndex(index);
     try {
       if (cat._id) {
         const result = await putReq("category/perperson", cat, user.token);
         if (result.success) {
           setHosthotel(result.hotel);
-          setCategories(result.hotel.per_person_cat.map(c => ({ ...c, isEditing: false })));
+          setCategories(result.hotel.per_person_cat);
         }
       } else {
         const fd = new FormData();
@@ -95,78 +108,79 @@ const PerPersonPricingForm = () => {
           body: fd,
         });
         const result = await res.json();
-
-        if (result.status === "success") {
-          setHosthotel(result.hotel);
-          setCategories(result.hotel.per_person_cat.map(c => ({ ...c, isEditing: false })));
-        }
+        if (result.success && result.data?._id) {
+            updated[index]._id = result.data._id;
+          }
       }
     } catch (err) {
       console.error("Failed to save category:", err);
       setErrorMsg("Failed to save. Please try again.");
     } finally {
+      updated[index].isEditing = !cat.isEditing;
       setLoadingIndex(null);
     }
   };
-   const handleRoomNumberChange = (catIdx, rIdx, value) => {
-      const updated = [...categories];
-      updated[catIdx].roomNumbers[rIdx] = value;
+  const handleRoomNumberChange = (catIdx, rIdx, value) => {
+    const updated = [...categories];
+    updated[catIdx].roomNumbers[rIdx] = value;
+    setCategories(updated);
+  };
+
+  const addRoomNumber = (catIdx) => {
+    if (getTotalUsedRooms() >= totalRoomsAllowed) {
+      setProblems((prev) => ({
+        ...prev,
+        roomLimit: `You can only add ${totalRoomsAllowed} rooms across all categories.`,
+      }));
+      return;
+    }
+    setProblems((prev) => {
+      const copy = { ...prev };
+      delete copy.roomLimit;
+      return copy;
+    });
+    const updated = [...categories];
+    updated[catIdx].roomNumbers.push("");
+    setCategories(updated);
+  };
+
+  const removeRoomNumber = (catIdx, rIdx) => {
+    const updated = [...categories];
+    if (updated[catIdx].roomNumbers.length > 1) {
+      updated[catIdx].roomNumbers.splice(rIdx, 1);
       setCategories(updated);
-    };
+    }
+  };
+
+  const handleAddPhoto = (catIdx, files) => {
+    const updated = [...categories];
+    const currentPhotos = updated[catIdx].images || [];
+    if (currentPhotos.length + files.length > 4) {
+      setProblems((prev) => ({
+        ...prev,
+        [`cat-${catIdx}-images`]: "Only 4 images allowed per category.",
+      }));
+      return;
+    }
+    setProblems((prev) => {
+      const copy = { ...prev };
+      delete copy[`cat-${catIdx}-images`];
+      return copy;
+    });
+    updated[catIdx].images = [
+      ...currentPhotos,
+      ...Array.from(files).slice(0, 4 - currentPhotos.length),
+    ];
+    setCategories(updated);
+  };
   
-    const addRoomNumber = (catIdx) => {
-      if (getTotalUsedRooms() >= totalRoomsAllowed) {
-        setProblems((prev) => ({
-          ...prev,
-          roomLimit: `You can only add ${totalRoomsAllowed} rooms across all categories.`,
-        }));
-        return;
-      }
-      setProblems((prev) => {
-        const copy = { ...prev };
-        delete copy.roomLimit;
-        return copy;
-      });
-      const updated = [...categories];
-      updated[catIdx].roomNumbers.push("");
-      setCategories(updated);
-    };
-  
-    const removeRoomNumber = (catIdx, rIdx) => {
-      const updated = [...categories];
-      if (updated[catIdx].roomNumbers.length > 1) {
-        updated[catIdx].roomNumbers.splice(rIdx, 1);
-        setCategories(updated);
-      }
-    };
-  
-    const handleAddPhoto = (catIdx, files) => {
-      const updated = [...categories];
-      const currentPhotos = updated[catIdx].images || [];
-      if (currentPhotos.length + files.length > 4) {
-        setProblems((prev) => ({
-          ...prev,
-          [`cat-${catIdx}-images`]: "Only 4 images allowed per category.",
-        }));
-        return;
-      }
-      setProblems((prev) => {
-        const copy = { ...prev };
-        delete copy[`cat-${catIdx}-images`];
-        return copy;
-      });
-      updated[catIdx].images = [
-        ...currentPhotos,
-        ...Array.from(files).slice(0, 4 - currentPhotos.length),
-      ];
-      setCategories(updated);
-    };
-    const removePhoto = (catIdx, photoIdx) => {
+  const removePhoto = (catIdx, photoIdx) => {
     const updated = [...categories];
     updated[catIdx].images.splice(photoIdx, 1);
     setCategories(updated);
   };
-     const handleDeleteCategory = async (catIdx) => {
+  
+  const handleDeleteCategory = async (catIdx) => {
     const categoryId = categories[catIdx]._id;
     if (categoryId) {
       const confirmed = window.confirm(
@@ -201,43 +215,43 @@ const PerPersonPricingForm = () => {
     }
   };
   
-    const handleAddCategory = () => {
-      if (getTotalUsedRooms() >= totalRoomsAllowed) {
-        setProblems((prev) => ({
-          ...prev,
-          roomLimit: `You can only add ${totalRoomsAllowed} rooms across all categories.`,
-        }));
-        return;
-      }
-      setProblems((prev) => {
-        const copy = { ...prev };
-        delete copy.roomLimit;
-        return copy;
-      });
-      setCategories([
-        ...categories,
-        {
-          name: "",
-            roomNumbers: [""],
-            capacity: 0,
-            rate1: 0,
-            rate2: 0,
-            rate3: 0,
-            rate4: 0,
-            agentCommission: { amount: 0, percent: true },
-            advance: { amount: 0, percent: true },
-            images: [],
-            amenities: [],
-            isEditing: true,
-        },
-      ]);
-    };
-  
-    const handleCategoryNameChange = (index, value) => {
-      const updated = [...categories];
-      updated[index].name = value;
-      setCategories(updated);
-    };
+  const handleAddCategory = () => {
+    if (getTotalUsedRooms() >= totalRoomsAllowed) {
+      setProblems((prev) => ({
+        ...prev,
+        roomLimit: `You can only add ${totalRoomsAllowed} rooms across all categories.`,
+      }));
+      return;
+    }
+    setProblems((prev) => {
+      const copy = { ...prev };
+      delete copy.roomLimit;
+      return copy;
+    });
+    setCategories([
+      ...categories,
+      {
+        name: "",
+        roomNumbers: [""],
+        capacity: 0,
+        rate1: 0,
+        rate2: 0,
+        rate3: 0,
+        rate4: 0,
+        agentCommission: { amount: 0, percent: true },
+        advance: { amount: 0, percent: true },
+        images: [],
+        amenities: [],
+        isEditing: true,
+      },
+    ]);
+  };
+
+  const handleCategoryNameChange = (index, value) => {
+    const updated = [...categories];
+    updated[index].name = value;
+    setCategories(updated);
+  };
 
   return (
     <div className="space-y-6">
@@ -252,64 +266,44 @@ const PerPersonPricingForm = () => {
               className="font-semibold text-lg border p-2 rounded w-1/2"
               disabled={!cat.isEditing}
             />
-            <div className="flex gap-3 items-center">
+            {!cat.isEditing && (
               <button
                 onClick={() => toggleEdit(catIdx)}
                 className="text-blue-600"
-                disabled={loadingIndex === catIdx}
-                title={cat.isEditing ? "Save" : "Edit"}
+                title="Edit"
               >
-                {loadingIndex === catIdx ? (
-                  <span className="animate-spin">⏳</span>
-                ) : cat.isEditing ? (
-                  <Save size={18} />
-                ) : (
-                  <Edit size={18} />
-                )}
+                <Edit size={18} />
               </button>
-              <button
-                onClick={() => handleDeleteCategory(catIdx)}
-                className="text-red-500"
-                disabled={loadingIndex === catIdx}
-                title="Delete"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
+            )}
           </div>
-
-          {errorMsg && cat.isEditing && (
-            <p className="text-red-600 font-medium">{errorMsg}</p>
-          )}
-
           {cat.isEditing && (
             <>
               {/* Room Numbers */}
               <div>
-              <label className="font-medium">Room Names</label>
-              {cat.roomNumbers.map((r, rIdx) => (
-                <div key={rIdx} className="flex gap-2 mb-2">
-                  <input
-                    value={r}
-                    onChange={(e) =>
-                      handleRoomNumberChange(catIdx, rIdx, e.target.value)
-                    }
-                    className="input w-full"
-                    placeholder={`Room ${rIdx + 1}`}
-                  />
-                  {rIdx === cat.roomNumbers.length - 1 && (
-                    <button onClick={() => addRoomNumber(catIdx)}>
-                      <Plus />
-                    </button>
-                  )}
-                  {cat.roomNumbers.length > 1 && (
-                    <button onClick={() => removeRoomNumber(catIdx, rIdx)}>
-                      <X />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+                <label className="font-medium">Room Names</label>
+                {cat.roomNumbers.map((r, rIdx) => (
+                  <div key={rIdx} className="flex gap-2 mb-2">
+                    <input
+                      value={r}
+                      onChange={(e) =>
+                        handleRoomNumberChange(catIdx, rIdx, e.target.value)
+                      }
+                      className="input w-full"
+                      placeholder={`Room ${rIdx + 1}`}
+                    />
+                    {rIdx === cat.roomNumbers.length - 1 && (
+                      <button onClick={() => addRoomNumber(catIdx)}>
+                        <Plus />
+                      </button>
+                    )}
+                    {cat.roomNumbers.length > 1 && (
+                      <button onClick={() => removeRoomNumber(catIdx, rIdx)}>
+                        <X />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
 
               {/* Capacity */}
               <label className="font-medium">Capacity</label>
@@ -322,28 +316,29 @@ const PerPersonPricingForm = () => {
                 onWheel={(e) => e.target.blur()} 
                 min="0"
               />
-
               {/* Rates with Labels */}
-              <div className="space-y-2">
-                <label className="font-medium">Rates (Per Person)</label>
-                {[1, 2, 3, 4].map((num) => (
-                  <div key={num}>
-                    <label className="text-sm text-gray-600">
-                     {num} occupancy
-                    </label>
-                    <input
-                      placeholder="Enter rate per person"
-                      type="number"
-                      onWheel={(e) => e.target.blur()} 
-                      min="0"
-                      value={cat[`rate${num}`] === 0 ? '' : cat[`rate${num}`]}
-                      onChange={(e) => handleChange(catIdx, `rate${num}`, e.target.value)}
-                      className="no-spinner border rounded p-2 w-full"
+                <div className="space-y-2">
+                  <label className="font-medium">Rates (Per Person)</label>
+                  {[1, 2, 3, 4].map((num) => (
+                    <div key={num}>
+                      <label className="text-sm text-gray-600 flex items-center gap-1">
+                        {num} occupancy
+                        {cat.capacity === num && <span className="text-red-700 font-bold text-xl">*</span>}
+                      </label>
+                      <input
+                        placeholder="Enter rate per person"
+                        type="number"
+                        onWheel={(e) => e.target.blur()}
+                        min="0"
+                        value={cat[`rate${num}`] === 0 ? "" : cat[`rate${num}`]}
+                        onChange={(e) =>
+                          handleChange(catIdx, `rate${num}`, e.target.value)
+                        }
+                        className="no-spinner border rounded p-2 w-full"
                       />
-                  </div>
-                ))}
-              </div>
-
+                    </div>
+                  ))}
+                </div>
               {/* Agent Commission */}
               <div className="space-y-2">
                 <label className="font-medium">Agent Commission</label>
@@ -411,46 +406,81 @@ const PerPersonPricingForm = () => {
                   ))}
                 </select>
               </div>
-
               {/* Image Upload */}
-              {!cat._id && (
-                <div>
-                  <label className="font-medium">Upload Images (Max 4)</label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
-                    className="mt-1"
-                  />
-                </div>
-              )}
-
-              {/* Image Preview */}
-              {cat.images.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                  {cat.images.map((photo, i) => (
-                    <div key={i} className="relative w-20 h-20">
-                      <img
-                        src={cat._id ? site + "imgs/" + photo : URL.createObjectURL(photo)}
-                        className="w-full h-full object-cover rounded"
-                        alt={`Room ${i + 1}`}
-                      />
-                      <button
-                    className="absolute top-0 right-0 text-red-500"
-                    onClick={() => removePhoto(catIdx, i)}
+               <div className="mb-4">
+                  <label className="block font-medium mb-1">Upload Room Photos (max 4):</label>
+                  <div
+                      className="border border-gray-400 rounded-md p-4 cursor-pointer text-center text-sm text-blue-500 hover:border-gray-500 transition"
+                      onClick={() => document.getElementById(`imageUpload-${catIdx}`).click()}
                   >
-                    <X />
-                  </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                   Click here to select images
+                  </div>
+                  <input
+                    id={`imageUpload-${catIdx}`}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+                    className="hidden"
+                   />
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                      {cat.images.map((photo, i) => (
+                        <div key={i} className="relative w-20 h-20">
+                          <img
+                              src={cat._id ? site + "imgs/" + photo : URL.createObjectURL(photo)}
+                              alt={`img-${i}`}
+                              className="w-full h-full object-cover rounded"
+                          />
+                          <button
+                            className="absolute top-0 right-0 bg-white rounded-full text-red-500 p-0.5 shadow"
+                            onClick={() => removePhoto(catIdx, i)}
+                            type="button"
+                          >
+                          <X size={16} />
+                          </button>
+                        </div>
+                     ))}
+                      </div>
+                        {problems[`cat-${catIdx}-images`] && (
+                          <p className="text-red-500 text-sm mt-1">{problems[`cat-${catIdx}-images`]}</p>
+                        )}
+                  </div>
+              {/* Action Buttons at Bottom */}
+             <div className="relative flex justify-end gap-4 pt-4 border-t">
+                    <button
+                      onClick={() => handleDeleteCategory(catIdx)}
+                      className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
+                      disabled={loadingIndex === catIdx}
+                    >
+                      <Trash2 size={16} />
+                      <span>Delete</span>
+                    </button>
+
+                    <button
+                      onClick={() => toggleEdit(catIdx)}
+                      className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                      disabled={loadingIndex === catIdx}
+                    >
+                      {loadingIndex === catIdx ? (
+                        <span className="animate-spin">⏳</span>
+                      ) : (
+                        <>
+                          <Save size={16} />
+                          <span>Save</span>
+                        </>
+                      )}
+                    </button>
+                    {errorMsg[catIdx] && (
+                      <div className="absolute top-[calc(100%+11px)] right-0  text-red-600 text-sm font-medium z-9">
+                        {errorMsg[catIdx]}
+                      </div>
+                    )}
+                  </div>
+
             </>
           )}
         </div>
       ))}
-
       {/* Add Category Button */}
       <div className="text-center">
         <button

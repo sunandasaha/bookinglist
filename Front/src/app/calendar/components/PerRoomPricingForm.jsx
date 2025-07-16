@@ -282,40 +282,24 @@ const PerRoomPricingForm = () => {
           className="border rounded p-4 space-y-3 shadow bg-gray-50"
         >
           {/* header */}
-          <div className="flex justify-between items-center">
-            <input
-              value={cat.name}
-              onChange={(e) => handleCategoryNameChange(catIdx, e.target.value)}
-              placeholder="Leave this if no category"
-              className="font-semibold text-lg border p-1 rounded w-1/2"
-              disabled={!cat.isEditing}
-            />
-            <div className="flex gap-3 items-center">
-              <button
-                onClick={() => toggleEdit(catIdx)}
-                className="text-blue-600"
-                disabled={loadingIndex === catIdx}
-                title={cat.isEditing ? "Save" : "Edit"}
-              >
-                {loadingIndex === catIdx ? (
-                  <span className="animate-spin inline-block">⏳</span>
-                ) : cat.isEditing ? (
-                  <Save size={18} />
-                ) : (
-                  <Edit size={18} />
-                )}
-              </button>
-              <button
-                onClick={() => handleDeleteCategory(catIdx)}
-                className="text-red-500"
-                disabled={loadingIndex === catIdx}
-                title="Delete"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          </div>
-
+            <div className="flex justify-between items-center">
+                        <input
+                          value={cat.name}
+                          placeholder="Category name"
+                          onChange={(e) => handleChange(catIdx, "name", e.target.value)}
+                          className="font-semibold text-lg border p-2 rounded w-1/2"
+                          disabled={!cat.isEditing}
+                        />
+                        {!cat.isEditing && (
+                          <button
+                            onClick={() => toggleEdit(catIdx)}
+                            className="text-blue-600"
+                            title="Edit"
+                          >
+                            <Edit size={18} />
+                          </button>
+                        )}
+              </div>
           {errorMsg && cat.isEditing && (
             <p className="text-red-600 font-medium">{errorMsg}</p>
           )}
@@ -438,8 +422,6 @@ const PerRoomPricingForm = () => {
                   </select>
                 </div>
               </div>
-
-
               {/* Facilities */}
               <div>
                 <label className="font-medium">Facilities</label>
@@ -471,29 +453,67 @@ const PerRoomPricingForm = () => {
                   onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
                 />
               )}
-              {/* Image preview */}
-              <div className="flex gap-2 flex-wrap">
-                {cat.images.map((photo, i) => (
-                  <div key={i} className="relative w-20 h-20">
-                    <img
-                      src={
-                        cat._id
-                          ? site + "imgs/" + photo
-                          : URL.createObjectURL(photo)
-                      }
-                      className="w-full h-full object-cover rounded"
-                      alt={`room-img-${i}`}
-                    />
-                    <button
-                      className="absolute top-0 right-0 text-red-500"
-                      onClick={() => removePhoto(catIdx, i)}
-                      type="button"
-                    >
-                      <X />
-                    </button>
+              {/* Image Upload Section */}
+                <div className="mb-4">
+                  <label className="block font-medium mb-1">Upload Room Photos (max 4):</label>
+                  <div
+                    className="border border-gray-400 rounded-md p-4 cursor-pointer text-center text-sm text-blue-500 hover:border-gray-500 transition"
+                    onClick={() => document.getElementById(`imageUpload-${catIdx}`).click()}
+                  >
+                    Click here to select images
                   </div>
-                ))}
-              </div>
+                  <input
+                    id={`imageUpload-${catIdx}`}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+                    className="hidden"
+                  />
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    {cat.images.map((photo, i) => (
+                      <div key={i} className="relative w-20 h-20">
+                        <img
+                          src={cat._id ? site + "imgs/" + photo : URL.createObjectURL(photo)}
+                          alt={`img-${i}`}
+                          className="w-full h-full object-cover rounded"
+                        />
+                        <button
+                          className="absolute top-0 right-0 bg-white rounded-full text-red-500 p-0.5 shadow"
+                          onClick={() => removePhoto(catIdx, i)}
+                          type="button"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {problems[`cat-${catIdx}-images`] && (
+                    <p className="text-red-500 text-sm mt-1">{problems[`cat-${catIdx}-images`]}</p>
+                  )}
+                </div>
+               <div className="relative flex justify-end gap-4 pt-4 border-t">
+                  <button
+                    onClick={() => handleDeleteCategory(catIdx)}
+                    className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
+                    disabled={loadingIndex === catIdx}
+                  >
+                  <Trash2 size={16} />
+                  <span>Delete</span>
+                  </button>
+              
+                  <button
+                    onClick={() => toggleEdit(catIdx)}
+                    className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                    disabled={loadingIndex === catIdx}
+                  >
+                  {loadingIndex === catIdx ? (<span className="animate-spin">⏳</span>) : (
+                    <>
+                    <Save size={16} />
+                    <span>Save</span>
+                    </>)}
+                  </button>
+                </div>
             </>
           )}
         </div>

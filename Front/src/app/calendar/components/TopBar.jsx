@@ -1,50 +1,26 @@
 "use client";
-import { useState, useContext, useEffect } from "react";
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  startOfDay,
-} from "date-fns";
-import {
-  CalendarDays,
-  User,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  Bell,
-  CalendarCheck,
-  CalendarX,
-  Bed,
-  Home,
-  LogOut,
-} from "lucide-react";
-
+import "intro.js/introjs.css";
+import { useState, useContext, useEffect, useRef } from "react";
+import {format,startOfMonth,endOfMonth,eachDayOfInterval,startOfDay,} from "date-fns";
+import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Search,Bell,CalendarCheck,CalendarX,Bed,Home,LogOut,} from "lucide-react";
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
 import PopEffect from "../../_components/PopEffect";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
 import { postReq, site } from "../../_utils/request.ts";
-
-export default function TopBar({
-  selectedDate,
-  setSelectedDate,
-  searchBID,
-  setSearchBID,
-  setSearchTrigger,
-}) {
-  const {
-    hosthotel,
-    setUser,
-    setHosthotel,
-    pending,
-    socket,
-    setPending,
-    user,
-  } = useContext(Context);
+const waitForElement = (selector, timeout = 3000) =>
+  new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (document.querySelector(selector)) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 100);
+    setTimeout(() => clearInterval(interval), timeout);
+  });
+export default function TopBar({selectedDate,setSelectedDate,searchBID,setSearchBID,setSearchTrigger,calendarRef,}) {
+  const {hosthotel,setUser,setHosthotel,pending,socket,setPending,user,} = useContext(Context);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
@@ -54,7 +30,6 @@ export default function TopBar({
   const [showNot, setShowNot] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const navigate = useRouter();
-
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
     end: endOfMonth(currentMonth),
@@ -77,16 +52,13 @@ export default function TopBar({
       }
     }
   };
-
   const isSelected = (day) =>
     format(day, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
-
   const goToPreviousMonth = () => {
     const prev = new Date(currentMonth);
     prev.setMonth(currentMonth.getMonth() - 1);
     setCurrentMonth(prev);
   };
-
   const goToNextMonth = () => {
     const next = new Date(currentMonth);
     next.setMonth(currentMonth.getMonth() + 1);
@@ -110,7 +82,73 @@ export default function TopBar({
     setShowProfile(true);
     setShowSideMenu(false);
   };
+  const startTour = async () => {
+  try {
+    const introJs = (await import("intro.js")).default;
+    await Promise.all([
+      waitForElement('.calendar-btn'),
+      waitForElement('.search-icon'),
+      waitForElement('.side-menu-btn'),
+      waitForElement('.Not-icon'),
+    ]);
 
+    const tour = introJs();
+    tour.setOptions({
+      steps: [
+        {
+          element: '.calendar-btn',
+          intro: `<strong>Select a date</strong> to view or create bookings for that day.`,
+          position: 'bottom'
+        },
+        {
+          element: '.search-icon',
+          intro: `<strong>Search by Booking ID</strong> quickly using this search bar.`,
+          position: 'left'
+        },
+        {
+          element: '.side-menu-btn',
+          intro: `<strong>Open the sidebar</strong> for quick navigation like check-in, check-out,today's bookings and Rooms &.`,
+          position: 'bottom'
+        },
+        {
+          element: '.Not-icon',
+          intro: `<strong>View pending booking requests</strong> and respond to them easily.`,
+          position: 'left'
+        },
+      ],
+      tooltipClass: 'custom-introjs-tooltip',
+      highlightClass: 'custom-introjs-highlight',
+      showProgress: true,
+      scrollToElement: true,
+      showBullets: false,
+      exitOnOverlayClick: true,
+      disableInteraction: true,
+    });
+    tour.oncomplete(() => {
+      localStorage.setItem("tour_completed", "true");
+      localStorage.setItem("calendar_tour_trigger", "true");
+      calendarRef.current.startTour();
+    });
+
+    tour.onexit(() => {
+      localStorage.setItem("tour_completed", "true");
+      localStorage.setItem("calendar_tour_trigger", "true");
+     calendarRef.current.startTour();
+    });
+    tour.start();
+  } catch (error) {
+    console.error("Tour failed to start:", error);
+  }
+};
+  useEffect(() => {
+  if (typeof window === 'undefined') return;
+  if (!localStorage.getItem('tour_completed')) {
+    const timer = setTimeout(() => {
+      startTour();
+    }, 1500); 
+    return () => clearTimeout(timer);
+  }
+}, []);
   useEffect(() => {
     if (socket) {
       socket.on("new-booking", (bok) => {
@@ -147,7 +185,7 @@ export default function TopBar({
       <div className="flex items-center gap-4">
         <MoreVertical
           onClick={toggleSideMenu}
-          className="text-gray-700 hover:text-black cursor-pointer"
+          className=" side-menu-btn text-gray-700 hover:text-black cursor-pointer"
           size={24}
           title="Menu"
         />
@@ -222,7 +260,7 @@ export default function TopBar({
       <div className="relative">
         <button
           onClick={toggleCalendar}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+          className="calendar-btn flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
           title="Select Date"
         >
           <CalendarDays className="text-gray-600" size={20} />
@@ -291,7 +329,7 @@ export default function TopBar({
         <div className="relative">
           <Search
             onClick={toggleSearch}
-            className="text-gray-700 hover:text-black cursor-pointer"
+            className="search-icon text-gray-700 hover:text-black cursor-pointer"
             size={24}
             title="Search Booking ID"
           />
@@ -322,7 +360,7 @@ export default function TopBar({
         <div className="relative">
           <Bell
             onClick={() => setShowNot((prev) => !prev)}
-            className="text-gray-700 hover:text-black cursor-pointer"
+            className="Not-icon text-gray-700 hover:text-black cursor-pointer"
             size={24}
             title="Notifications"
           />

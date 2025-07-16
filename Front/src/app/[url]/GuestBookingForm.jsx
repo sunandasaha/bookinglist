@@ -26,8 +26,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     children: 0,
     age_0_5: 0,
     age_6_10: 0,
-    message:
-      "Hi, your booking is confirmed at our hotel. Your Booking ID will be generated after confirmation.,",
+    message: "Thank you for booking! Your Booking ID will be generated after payment. A confirmation email will follow once your booking is approved by the host.",
   });
 
   const [errors, setErrors] = useState({ phone: "", whatsapp: "" });
@@ -215,62 +214,96 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     }
     // PER PERSON PRICING LOGIC
     if (hosthotel?.pay_per?.person) {
-      const selectedCats =
-        hosthotel.per_person_cat?.filter((cat) =>
-          cat.roomNumbers?.some((room) => selectedRooms.includes(room))
-        ) || [];
+  const selectedCats =
+    hosthotel.per_person_cat?.filter((cat) =>
+      cat.roomNumbers?.some((room) => selectedRooms.includes(room))
+    ) || [];
 
-      if (selectedCats.length === 0) {
-        return { totalPrice: 0, advanceAmount: 0 };
-      }
+  if (selectedCats.length === 0) {
+    return { totalPrice: 0, advanceAmount: 0 };
+  }
 
-      let totalBase = 0;
-      let totalAdvance = 0;
-      const assignments = Array(selectedRooms.length).fill(0);
-      for (let i = 0; i < adults; i++) {
-        assignments[i % selectedRooms.length]++;
-      }
-      const rateDetails = [];
-      assignments.forEach((occupancy, index) => {
-        const cat = selectedCats.find((c) =>
-          c.roomNumbers.includes(selectedRooms[index])
-        );
-        if (!cat) return;
-        let rate;
-        if (occupancy === 1) rate = cat.rate1 || 0;
-        else if (occupancy === 2) rate = (cat.rate2 || 0) * 2;
-        else if (occupancy === 3) rate = (cat.rate3 || 0) * 3;
-        else if (occupancy === 4) rate = (cat.rate4 || 0) * 4;
+  const roomStats = selectedRooms.map((roomNo) => {
+    const cat = selectedCats.find((c) =>
+      c.roomNumbers.includes(roomNo)
+    );
+    if (!cat) return null;
+    const baseCap = cat.capacity || 1;
+    let maxCap = 4;
 
-        totalBase += rate * nights;
-        if (cat.advance?.percent) {
-          totalAdvance += rate * nights * (cat.advance.amount / 100);
-        } else {
-          totalAdvance += cat.advance?.amount || 0;
-        }
-        if (occupancy >= 1 && occupancy <= 4) {
-          const perPersonRate =
-            [cat.rate1, cat.rate2, cat.rate3, cat.rate4][occupancy - 1] || 0;
-          rateDetails.push({ rate: perPersonRate, cat });
-        }
-      });
-      if (rateDetails.length > 0 && (age_6_10 || 0) > 0) {
-        const minDetail = rateDetails.reduce(
-          (min, curr) => (curr.rate < min.rate ? curr : min),
-          { rate: Infinity }
-        );
-        const childCharge = (age_6_10 || 0) * minDetail.rate * nights * 0.5;
-        totalBase += childCharge;
-        if (minDetail.cat.advance?.percent) {
-          totalAdvance += childCharge * (minDetail.cat.advance.amount / 100);
-        }
-      }
-      return {
-        totalPrice: parseFloat(totalBase.toFixed(2)),
-        advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-      };
+    // 👇 Dynamic maxCap logic based on baseCap
+    if (baseCap === 2) maxCap = 3;
+    else if (baseCap === 3) maxCap = 4;
+    else if (baseCap >= 4) maxCap = 4;
+
+    return {
+      roomNo,
+      cat,
+      assigned: 0,
+      baseCap,
+      maxCap,
+    };
+  }).filter(Boolean);
+
+  let remaining = adults;
+
+  // Assign base capacity first
+  for (let room of roomStats) {
+    const assign = Math.min(room.baseCap, remaining);
+    room.assigned += assign;
+    remaining -= assign;
+  }
+
+  // Round-robin assignment for extra adults
+  let i = 0;
+  while (remaining > 0) {
+    const room = roomStats[i % roomStats.length];
+    if (room.assigned < room.maxCap) {
+      room.assigned++;
+      remaining--;
+    }
+    i++;
+  }
+
+  let totalBase = 0;
+  let totalAdvance = 0;
+  const rateDetails = [];
+
+  for (const room of roomStats) {
+    const { assigned, cat } = room;
+    if (assigned < 1 || assigned > 4) continue;
+
+    const perPersonRate = cat[`rate${assigned}`] || 0;
+    const roomTotal = perPersonRate * assigned * nights;
+    totalBase += roomTotal;
+
+    if (cat.advance?.percent) {
+      totalAdvance += roomTotal * (cat.advance.amount / 100);
+    } else {
+      totalAdvance += (cat.advance?.amount || 0) * nights;
     }
 
+    rateDetails.push({ rate: perPersonRate, cat });
+  }
+
+  // Child pricing (age 6–10)
+  const age_6_10 = Number(formData.age_6_10) || 0;
+  if (age_6_10 > 0 && rateDetails.length > 0) {
+    const minRate = Math.min(...rateDetails.map(r => r.rate));
+    const minCat = rateDetails.find(r => r.rate === minRate)?.cat;
+    const childCharge = age_6_10 * minRate * nights * 0.5;
+    totalBase += childCharge;
+
+    if (minCat?.advance?.percent) {
+      totalAdvance += childCharge * (minCat.advance.amount / 100);
+    }
+  }
+
+  return {
+    totalPrice: parseFloat(totalBase.toFixed(2)),
+    advanceAmount: parseFloat(totalAdvance.toFixed(2)),
+  };
+}
     return { totalPrice: 0, advanceAmount: 0 };
   }, [
     hosthotel,
@@ -406,7 +439,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="👤Guest Name"
+              placeholder="* 👤Guest Name"
               required
               className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
             />
@@ -416,7 +449,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               name="address"
               value={formData.address}
               onChange={handleChange}
-              placeholder="🏠Address"
+              placeholder="* 🏠Address"
               required
               className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
             />
@@ -427,7 +460,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder=" 📞Phone Number"
+                placeholder="* 📞Phone Number"
                 required
                 className={`w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 ${
                   errors.phone
@@ -440,7 +473,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 name="whatsapp"
                 value={formData.whatsapp}
                 onChange={handleChange}
-                placeholder="💬WhatsApp Number"
+                placeholder="* 💬WhatsApp Number"
                 required
                 className={`w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 ${
                   errors.whatsapp
@@ -462,7 +495,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder=" 📧Email"
+              placeholder="* 📧Email"
               required
               className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
             />
@@ -508,11 +541,10 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 <input
                   type="number"
                   name="age_0_5"
-                  value={formData.age_0_5}
+                  value={formData.age_0_5 === 0 ? "" : formData.age_0_5} 
                   onWheel={(e) => e.target.blur()}
                   onChange={handleChange}
-                  placeholder="0–5 yrs"
-                  required
+                  placeholder="Free"
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -524,16 +556,15 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   type="number"
                   name="age_6_10"
                   onWheel={(e) => e.target.blur()}
-                  value={formData.age_6_10}
+                  value={formData.age_6_10 === 0 ? "" : formData.age_6_10} 
                   onChange={handleChange}
-                  placeholder="6–10 yrs"
-                  required
+                  placeholder="Half"
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
-
             <textarea
+              readOnly
               name="message"
               rows={3}
               value={formData.message}
@@ -560,6 +591,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
             </p>
             <p>
               <strong>whatsapp:</strong> {formData.whatsapp}
+            </p>
+            <p>
+              <strong>Email:</strong> {formData.email}
             </p>
             <p>
               <strong>Adults:</strong> {formData.adults} |{" "}

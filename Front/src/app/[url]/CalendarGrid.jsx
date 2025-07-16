@@ -236,7 +236,8 @@ const handleBookingSave = async () => {
             >
               <div>Room: {room.name}</div>
               <div className="text-xs text-gray-500">
-               {room.price?.one ? (
+                ₹
+               {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
                   room.capacity === 1 ? `${room.price.one} /person`
                   : room.capacity === 2 ? `${room.price.two} /person`
                   : room.capacity === 3 ? `${room.price.three} / person`
@@ -276,11 +277,11 @@ const handleBookingSave = async () => {
           </div>
         ))}
         {selectedCells.length > 0 && !selectedBooking && (
-            <div className="fixed bottom-4 left-0 w-full flex text-center z-50 px-20">
+            <div className="fixed bottom-6 left-0 w-full flex justify-center z-50">
                 <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("w-full max-w-sm py-3 px-10 rounded-full text-center  text-white font-semibold shadow-md",
+                  className={clsx("Book w-20 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                    )}
                   >

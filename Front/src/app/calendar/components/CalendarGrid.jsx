@@ -3,12 +3,31 @@ import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays } from "date-fns";
 import clsx from "clsx";
 import GuestBookingForm from "./GuestBookingForm";
+import { forwardRef, useImperativeHandle } from "react";
 import { putReq, site } from "../../_utils/request";
 import { Context } from "../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
 import RescheduleModal from "./RescheduleModal";
+const waitForElement = (selector, timeout = 3000) =>
+  new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (document.querySelector(selector)) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 100);
+    setTimeout(() => clearInterval(interval), timeout);
+  });
+const waitForEvent = (eventName) =>
+  new Promise((resolve) => {
+    const handler = () => {
+      document.removeEventListener(eventName, handler);
+      resolve();
+    };
+    document.addEventListener(eventName, handler);
+  });
 
-export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
+const CalendarGrid = forwardRef(({ startDate, searchBID, searchTrigger }, ref) => {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [tappedCells, setTappedCells] = useState([]);
@@ -112,7 +131,7 @@ export default function CalendarGrid({ startDate, searchBID, searchTrigger }) {
     return [...actualRooms, ...dummyRooms];
   }, [hosthotel]);
 
-  useEffect(() => {
+  useEffect(() => { 
     if (startDate) {
       const next7Days = Array.from({ length: 7 }, (_, i) =>
         addDays(startDate, i)
@@ -169,9 +188,7 @@ if (rooms[r]?.isDummy) {
   alert("This room is not available for booking.");
   return;
 }
-
-
-  setTappedCells((prev) => {
+setTappedCells((prev) => {
     const alreadySelected = prev.some(([x, y]) => x === r && y === d);
     const next = alreadySelected
       ? prev.filter(([x, y]) => !(x === r && y === d))
@@ -202,6 +219,8 @@ if (rooms[r]?.isDummy) {
     setHasBookedCellsInSelection(anyBooked);
     return next;
   });
+   document.dispatchEvent(new Event("cellTapped"));
+
 };
 const selectedCells = tappedCells;
 const isSelected = (r, d) =>
@@ -234,12 +253,98 @@ const handleBookClick = () => {
       to: format(dates[toIdx], "yyyy-MM-dd"),
       roomNames,
     });
+   document.dispatchEvent(new Event("bookingStarted"));
+
 };
   const handleBookingSave = async () => {
     setSelectedBooking(null);
     setTappedCells([]);
     await getBookings();
   };
+ const tourStarted = useRef(false);
+const startCalendarTour = async () => {
+  if (tourStarted.current) return;
+  tourStarted.current = true;
+  const introJs = (await import("intro.js")).default;
+  await waitForElement(".room-column");
+  const introRoom = introJs();
+  introRoom.setOptions({
+    steps: [
+      {
+        element: ".room-column",
+        intro: "Tap on Room name to view room info. (Optional)",
+        position: "right",
+      },
+    ],
+    showButtons: true,
+    exitOnOverlayClick: false,
+    exitOnEsc: false,
+  });
+  await new Promise((resolve) => {
+    introRoom.oncomplete(resolve);
+    introRoom.onexit(resolve);
+    introRoom.start();
+  });
+  await waitForElement(".grid-cell");
+  const cellTour = introJs();
+  cellTour.setOptions({
+    steps: [
+      {
+        element: ".grid-cell:not(.bg-gray-300)",
+        intro: "📅 Tap on available dates to begin booking.",
+        position: "bottom",
+        disableInteraction: false,
+      },
+    ],
+    showButtons: false,
+    exitOnOverlayClick: false,
+    exitOnEsc: false,
+  });
+
+  cellTour.start();
+  await waitForEvent("cellTapped");
+  cellTour.exit();
+  await waitForElement("button.Book");
+  const bookBtn = document.querySelector("button.Book");
+  if (!bookBtn) return;
+
+  const bookTour = introJs();
+  bookTour.setOptions({
+    steps: [
+      {
+        element: bookBtn,
+        intro: `
+          you can click <strong>Book</strong> to open the guest form and complete the booking.`,
+        position: "top",
+        disableInteraction: false,
+        highlightClass: "click-through",
+      },
+      {
+        intro: `
+          🎉 <strong>Hurray! You're done with the steps.</strong><br/>
+          You can now manage bookings using this calendar easily.`,
+      },
+    ],
+    showButtons: true,
+    exitOnOverlayClick: false,
+    exitOnEsc: false,
+    showStepNumbers: false,
+  });
+  bookTour.oncomplete(() => {
+  setTappedCells([]);          
+});
+
+bookTour.onexit(() => {
+  setTappedCells([]);         
+});
+
+
+  bookTour.start();
+};
+
+useImperativeHandle(ref, () => ({
+  startTour: () => startCalendarTour(),
+}));
 
   return (
     <div
@@ -295,7 +400,7 @@ const handleBookClick = () => {
         {rooms.map((room, rIdx) => (
           <div
             key={`room-${room.name}-${rIdx}`}
-            className="grid grid-cols-[120px_repeat(7,70px)] border-t grid-row"
+            className="grid grid-cols-[120px_repeat(7,70px)] border-t grid-row room-column"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
@@ -305,7 +410,8 @@ const handleBookClick = () => {
             >
               <div>Room: {room.name}</div>
               <div className="text-xs text-gray-500">
-                {room.price?.one ? (
+                ₹
+                {room.price?.one || room.price?.two || room.price?.three || room.price?.four? (
                   room.capacity === 1 ? `${room.price.one} /person`
                   : room.capacity === 2 ? `${room.price.two} / person`
                   : room.capacity === 3 ? `${room.price.three} / person`
@@ -345,11 +451,11 @@ const handleBookClick = () => {
           </div>
         ))}
         {selectedCells.length > 0 && !selectedBooking && (
-          <div className="fixed bottom-4 left-0 w-full flex text-center z-50 px-20">
+          <div className="fixed bottom-6 left-0 w-full flex justify-center z-50">
               <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("w-full max-w-sm py-3 px-10 rounded-full text-center  text-white font-semibold shadow-md",
+                  className={clsx("Book w-20 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                   )}
               >
@@ -532,5 +638,8 @@ const handleBookClick = () => {
             </div>
           )}
     </div>
-  );
-}
+ );
+});
+
+export default CalendarGrid;
+

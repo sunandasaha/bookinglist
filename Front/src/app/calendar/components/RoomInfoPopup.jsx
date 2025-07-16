@@ -133,19 +133,34 @@ export default function RoomInfoPopup({ roomName }) {
             <span>₹{roomData.price.rate}</span>
           </div>
         )}
-
-        {roomData.price.one && (
+        {(roomData.price.one >0 || roomData.price.two >0 || roomData.price.three >0  || roomData.price.four >0 ) && (
           <div>
-            <div className="font-bold mb-1">Rates (per person):</div>
+            <div className="font-bold mb-1">Rates (Per Person):</div>
             <div className="grid grid-cols-2 gap-1 text-xs">
-              <div>1 occupancy:</div>
-              <div className="text-right">₹{roomData.price.one}/person</div>
-              <div>2 occupancy:</div>
-              <div className="text-right">₹{roomData.price.two}/person</div>
-              <div>3 occupancy:</div>
-              <div className="text-right">₹{roomData.price.three}/person</div>
-              <div>4 occupancy:</div>
-              <div className="text-right">₹{roomData.price.four}/person</div>
+              {roomData.price.one >0  && (
+                <>
+                  <div>1 occupancy:</div>
+                  <div className="text-right">₹{roomData.price.one}/person</div>
+                </>
+              )}
+              {roomData.price.two >0  && (
+                <>
+                  <div>2 occupancy:</div>
+                  <div className="text-right">₹{roomData.price.two}/person</div>
+                </>
+              )}
+              {roomData.price.three >0 && (
+                <>
+                  <div>3 occupancy:</div>
+                  <div className="text-right">₹{roomData.price.three}/person</div>
+                </>
+              )}
+              {roomData.price.four >0 && (
+                <>
+                  <div>4 occupancy:</div>
+                  <div className="text-right">₹{roomData.price.four}/person</div>
+                </>
+              )}
             </div>
           </div>
         )}

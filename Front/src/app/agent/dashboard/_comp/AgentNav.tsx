@@ -8,6 +8,7 @@ import PopEffect from "../../../_components/PopEffect";
 import AgentProfile from "./AgentProfile";
 import AgentHistory from "../../history/page.jsx";
 import { AnimatePresence } from "framer-motion";
+import "intro.js/introjs.css";
 
 type Hotel = {
   name: string;
@@ -15,12 +16,24 @@ type Hotel = {
   url: string;
 };
 
+const waitForElement = (selector: string, timeout = 3000): Promise<void> => {
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (document.querySelector(selector)) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 100);
+    setTimeout(() => clearInterval(interval), timeout);
+  });
+};
 const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
   const { user } = useContext(Context);
   const navigate = useRouter();
   const [pr, setPr] = useState(false);
   const [search, setSearch] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+    const [tourStarted, setTourStarted] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== "agent") {
@@ -33,7 +46,51 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
       h.name.toLowerCase().includes(search.toLowerCase()) ||
       h.location.toLowerCase().includes(search.toLowerCase())
   );
+   const startAgentTour = async () => {
+    const introJs = (await import("intro.js")).default;
+    const intro = introJs();
 
+    await waitForElement("input[type='text']");
+    await waitForElement(".history-btn");
+    await waitForElement(".hotel-box");
+
+    intro.setOptions({
+      steps: [
+        {
+          element: "input[type='text']",
+          intro: "🔍 Use this search to find hotels by name or location.",
+          position: "bottom",
+        },
+        {
+          element: ".history-btn",
+          intro: "📖 Click to view your booking history.",
+          position: "bottom",
+        },
+        {
+          element: ".hotel-box",
+          intro:
+            "🌐 Click on any hotel url to view and manage bookings in its calendar.",
+          position: "bottom" ,
+        },
+      ],
+      scrollToElement: true,
+      exitOnOverlayClick: false,
+      exitOnEsc: false,
+      showButtons: true,
+      showProgress: true,
+      disableInteraction: true,
+    });
+
+    intro.start();
+    setTourStarted(true);
+  };
+  useEffect(() => {
+  const hasSeenAgentTour = localStorage.getItem("has_seen_agentnav_tour");
+  if (!hasSeenAgentTour) {
+    localStorage.setItem("has_seen_agentnav_tour", "true");
+    startAgentTour();
+  }
+}, []);
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-white border-b shadow-md">
@@ -61,7 +118,7 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
           <History
             onClick={() => setShowHistory(true)}
             aria-label="View History"
-            className="w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
+            className="history-btn w-6 h-6 text-gray-700 hover:text-blue-800 cursor-pointer"
           />
         </div>
       </div>
@@ -70,12 +127,17 @@ const AgentNav = ({ hotels = [] }: { hotels?: Hotel[] }) => {
           filteredHotels.map((hotel, i) => (
             <div
               key={i}
-              onClick={() => navigate.push(`/agent/dashboard/${hotel.url}`)}
+              onClick={() => {
+                  if (!localStorage.getItem("has_seen_calendar_tour")) {
+                        localStorage.setItem("calendar_grid_tour", "true");
+                  }
+                  navigate.push(`/agent/dashboard/${hotel.url}`);
+                }}
               className="border rounded-lg p-4 bg-gray shadow hover:shadow-md cursor-pointer transition duration-200"
             >
               <h3 className="text-lg font-bold text-gray-900"> {hotel.name}</h3>
               <p className="text-gray-600"> 📍Location :{hotel.location}</p>
-              <p className="text-blue-600 text-sm truncate">
+              <p className="hotel-box text-blue-600 text-sm truncate">
                 {" "}
                 🌐URL :{hotel.url}
               </p>

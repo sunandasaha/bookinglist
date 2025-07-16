@@ -1,5 +1,5 @@
 "use client";
-import { useState, useContext, useEffect, useMemo } from "react";
+import { useState, useContext, useEffect, useMemo, useRef } from "react"; // ⬅️ import useRef
 import TopBar from "./TopBar";
 import CalendarGrid from "./CalendarGrid";
 import { Context } from "../../_components/ContextProvider";
@@ -13,6 +13,8 @@ export default function Dashboard() {
   const [searchTrigger, setSearchTrigger] = useState(0);
   const { user, hosthotel, socket, setSocket } = useContext(Context);
   const navigate = useRouter();
+
+  const calendarRef = useRef();
 
   useEffect(() => {
     if (!user) {
@@ -32,9 +34,15 @@ export default function Dashboard() {
         setSelectedDate={setSelectedDate}
         searchBID={searchBID}
         setSearchBID={setSearchBID}
-        setSearchTrigger = {setSearchTrigger}
+        setSearchTrigger={setSearchTrigger}
+        calendarRef={calendarRef}
       />
-      <CalendarGrid startDate={selectedDate} searchBID={searchBID} searchTrigger={searchTrigger} />
+      <CalendarGrid
+        ref={calendarRef}
+        startDate={selectedDate}
+        searchBID={searchBID}
+        searchTrigger={searchTrigger}
+      />
     </div>
   );
 }

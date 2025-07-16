@@ -9,7 +9,6 @@ const GuestModel = require("../models/GuestBooking");
 const retry = new Map();
 
 const getCred = async (code) => {
-  // geting user info from gmail
   try {
     const oauth2Client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,

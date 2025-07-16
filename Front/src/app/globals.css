@@ -259,9 +259,6 @@ input[type='number'].no-spinner::-webkit-outer-spin-button {
   -webkit-appearance: none; 
   margin: 0;
 }
-
-
-
 @media (max-width: 450px) {
   .grid3,
   .grid4,
@@ -272,4 +269,33 @@ input[type='number'].no-spinner::-webkit-outer-spin-button {
   .grid2 label {
     text-align: center;
   }
+}
+/* intro.js custom styling */
+.intro-highlight {
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+}
+
+.introjs-tooltip {
+  min-width: 300px;
+  max-width: 400px;
+  border-radius: 0.5rem;
+}
+
+.introjs-tooltip-header {
+  padding-top: 0.5rem;
+}
+
+.introjs-button {
+  color: white;
+  background-color: #3b82f6;
+}
+
+.introjs-button:hover {
+  background-color: #2563eb;
+}
+.introjs-highlight.click-through {
+  pointer-events: auto !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.6); /* blue ring */
+  border-radius: 0.75rem;
 }

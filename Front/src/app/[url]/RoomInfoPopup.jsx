@@ -23,7 +23,6 @@ export default function RoomInfoPopup({ roomName }) {
             images: cat.images,
             capacity: cat.capacity,
             advance: cat.advance,
-            commission: cat.agentCommission,
             price: {
               one: cat.rate1,
               two: cat.rate2,
@@ -42,7 +41,6 @@ export default function RoomInfoPopup({ roomName }) {
             images: cat.images,
             capacity: cat.capacity,
             advance: cat.advance,
-            commission: cat.agent_com,
             price: { rate: cat.price },
             amenities: cat.amenities,
             extraPerson: cat.price_for_extra_person,
@@ -58,7 +56,7 @@ export default function RoomInfoPopup({ roomName }) {
 
   return (
     <div className="p-3 w-full max-w-[95vw] mx-auto bg-white rounded-xl shadow-lg space-y-3">
-      <div className="text-lg font-bold text-gray-800 truncate">{roomName}</div>
+      <div className="text-lg font-bold text-gray-800 truncate">Room :{roomName}</div>
       <div className="text-xs text-gray-500">
         Category: <span className="font-medium">{roomData.category}</span>
       </div>
@@ -118,39 +116,44 @@ export default function RoomInfoPopup({ roomName }) {
             {roomData.advance.percent ? "%" : " Rs"}</span>
           </div>
         )}
-
-        {roomData.commission && (
-          <div className="flex justify-between">
-            <span><strong>Agent Commission:</strong></span>
-            <span>{roomData.commission.amount}
-            {roomData.commission.percent ? "%" : " Rs"}</span>
-          </div>
-        )}
-
         {roomData.price.rate && (
           <div className="flex justify-between">
             <span><strong>Rate:</strong></span>
             <span>₹{roomData.price.rate}</span>
           </div>
         )}
-
-        {roomData.price.one && (
-          <div>
-            <div className="font-bold mb-1">Rates (Per Person):</div>
-            <div className="grid grid-cols-2 gap-1 text-xs">
-              <div>1 occupancy:</div>
-              <div className="text-right">₹{roomData.price.one}/person</div>
-              <div>2 occupancy:</div>
-              <div className="text-right">₹{roomData.price.two}/person</div>
-              <div>3 occupancy:</div>
-              <div className="text-right">₹{roomData.price.three}/person</div>
-              <div>4 occupancy:</div>
-              <div className="text-right">₹{roomData.price.four}/person</div>
+        {(roomData.price.one >0  || roomData.price.two >0 || roomData.price.three >0 || roomData.price.four >0 ) && (
+            <div>
+              <div className="font-bold mb-1">Rates (Per Person):</div>
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                {roomData.price.one >0  && (
+                  <>
+                    <div>1 occupancy:</div>
+                    <div className="text-right">₹{roomData.price.one}/person</div>
+                  </>
+                )}
+                {roomData.price.two >0  && (
+                  <>
+                    <div>2 occupancy:</div>
+                    <div className="text-right">₹{roomData.price.two}/person</div>
+                  </>
+                )}
+                {roomData.price.three >0  && (
+                  <>
+                    <div>3 occupancy:</div>
+                    <div className="text-right">₹{roomData.price.three}/person</div>
+                  </>
+                )}
+                {roomData.price.four >0  && (
+                  <>
+                    <div>4 occupancy:</div>
+                    <div className="text-right">₹{roomData.price.four}/person</div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-
-        {roomData.extraPerson && (
+          )}
+           {roomData.extraPerson && (
           <div className="flex justify-between">
             <span><strong>Extra Person:</strong></span>
             <span>₹{roomData.extraPerson}</span>
