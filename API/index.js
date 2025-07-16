@@ -15,7 +15,7 @@ const { setio } = require("./sockets/global");
 mongoose.connect(process.env.API_URIS);
 
 const hid = new Map();
-const PORT = process.env.PORT || 8080;
+const PORT = 8080;
 const ser = app.listen(PORT, () => {
   console.log("this runs");
 });

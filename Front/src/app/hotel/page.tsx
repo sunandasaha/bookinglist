@@ -9,9 +9,8 @@ import { postReq, putReq } from "../_utils/request";
 const def = {
   name: "",
   location: "",
-  accountName : "",
-  upi_id: "",
   accountName: "",
+  upi_id: "",
   ph1: "",
   rooms: 5,
   pay_per: { person: false, room: true },
