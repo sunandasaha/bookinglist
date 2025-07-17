@@ -69,10 +69,20 @@ const Hotel = () => {
           )}
         </>
       ) : (
-        <label htmlFor="vis-card">
-          <input type="file" id="vis-card" ref={imgref} />
-        </label>
-      )}
+            <div className="mb-4">
+                  <input
+                    type="file"
+                    id="vis-card"
+                    ref={imgref}
+                    accept="image/*"
+                    onChange={(e) => {
+                      const fileName = e.target.files?.[0]?.name || "No file chosen";
+                      document.getElementById("file-name-display").textContent = `Selected: ${fileName}`;
+                    }}
+                    className="block w-full text-sm text-gray-70 file:bg-blue-500 file:text-white file:font-semibold file:py-2 file:px-4 file:rounded file:border-0 file:cursor-pointer hover:file:bg-blue-700"
+                  />
+             </div>
+        )}
       <button className="pbutton" onClick={update}>
         {agent?._id ? "Update" : "Create"}
       </button>

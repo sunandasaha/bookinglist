@@ -281,7 +281,7 @@ const handleBookingSave = async () => {
                 <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("Book w-20 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
+                  className={clsx("Book w-15 h-15 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                    )}
                   >

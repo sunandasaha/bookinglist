@@ -74,245 +74,185 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     }
   };
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const phoneError = validatePhone(formData.phone);
-    const whatsappError = validatePhone(formData.whatsapp);
-    const childCount = Number(formData.children);
-    const age0_5 = Number(formData.age_0_5);
-    const age6_10 = Number(formData.age_6_10);
-    let childError = "";
-    if (childCount != age0_5 + age6_10) {
-      childError = "Total children must match age 0–5 or  age 6–10";
-    }
-    setErrors({
-      phone: phoneError,
-      whatsapp: whatsappError,
-      child: childError,
-    });
-    if (calcError) {
-      return;
-    }
-
-    if (!phoneError && !whatsappError && !childError) {
-      setSubmitted(true);
-      setIsEditing(false);
-    }
+  e.preventDefault();
+  let phoneError = "";
+  if (formData.phone) {
+    phoneError = validatePhone(formData.phone);
+  }
+  const whatsappError = validatePhone(formData.whatsapp);
+  const childCount = Number(formData.children);
+  const age0_5 = Number(formData.age_0_5);
+  const age6_10 = Number(formData.age_6_10);
+  let childError = "";
+  if (childCount !== age0_5 + age6_10) {
+    childError = "Total children must match age 0–5 or age 6–10";
+  }
+  const Maxerror = error || "";
+  const newErrors = {
+    phone: phoneError,
+    whatsapp: whatsappError,
+    child: childError,
+    max: Maxerror,
   };
-  const { totalPrice, advanceAmount } = useMemo(() => {
-    if (
-      !hosthotel ||
-      !booking?.roomNames?.length ||
-      !booking.from ||
-      !booking.to
-    ) {
-      return { totalPrice: 0, advanceAmount: 0 };
+  setErrors(newErrors);
+  const hasAnyError = Object.values(newErrors).some((err) => err);
+  if (hasAnyError) {
+    return;
+  }
+  setSubmitted(true);
+  setIsEditing(false);
+};
+ const { totalPrice, advanceAmount, error } = useMemo(() => {
+  const selectedRooms = booking?.roomNames || [];
+  const nights =
+    (new Date(booking?.to).setHours(0, 0, 0, 0) -
+      new Date(booking?.from).setHours(0, 0, 0, 0)) /
+      (1000 * 60 * 60 * 24) + 1;
+  const adults = Number(formData.adults) || 0;
+  const age_0_5 = Number(formData.age_0_5) || 0;
+  const age_6_10 = Number(formData.age_6_10) || 0;
+  const children = Number(formData.children) || 0;
+  if (!hosthotel || !selectedRooms.length || !booking.from || !booking.to || age_0_5 + age_6_10 !== children) {
+    return { totalPrice: 0, advanceAmount: 0 };
+  }
+  const getMaxCap = (cap) => (cap === 2 ? 3 : cap === 3 ? 4 : 4);
+  // PER ROOM PRICING
+  if (hosthotel?.pay_per?.room) {
+    const selectedCats = hosthotel.room_cat?.filter(cat =>
+      cat.room_no?.some(room => selectedRooms.includes(room))
+    ) || [];
+    const roomStats = [];
+    let totalCapacity = 0, totalMaxCapacity = 0;
+    selectedCats.forEach(cat => {
+      const roomCount = cat.room_no.filter(r => selectedRooms.includes(r)).length;
+      if (!roomCount) return;
+      const capacity = cat.capacity || 0;
+      const maxCap = getMaxCap(capacity);
+      totalCapacity += capacity * roomCount;
+      totalMaxCapacity += maxCap * roomCount;
+      roomStats.push({ capacity, maxCap, rate: cat.price || 0, extraRate: cat.price_for_extra_person || 0, roomCount, advance: cat.advance });
+    });
+    if (adults > totalMaxCapacity) {
+      return { error: `Only ${totalMaxCapacity} adult(s) can be accommodated. Please select more rooms.`, totalPrice: 0, advanceAmount: 0 };
     }
-
-    const selectedRooms = booking.roomNames;
-    const nights =
-      (new Date(booking.to).setHours(0, 0, 0, 0) -
-        new Date(booking.from).setHours(0, 0, 0, 0)) /
-        (1000 * 60 * 60 * 24) +
-      1;
-
-    const adults = Number(formData.adults) || 0;
-    const age_0_5 = Number(formData.age_0_5) || 0;
-    const age_6_10 = Number(formData.age_6_10) || 0;
-    const children = Number(formData.children) || 0;
-
-    if (age_0_5 + age_6_10 !== children) {
-      return { totalPrice: 0, advanceAmount: 0 };
+    const roomAssignments = [];
+    let remainingAdults = adults;
+    roomStats.forEach(room => {
+      for (let i = 0; i < room.roomCount; i++) {
+        const base = Math.min(remainingAdults, room.capacity);
+        roomAssignments.push({ base, extra: 0, room });
+        remainingAdults -= base;
+      }
+    });
+    let i = 0;
+    while (remainingAdults > 0) {
+      const current = roomAssignments[i % roomAssignments.length];
+      const maxExtras = current.room.maxCap - current.room.capacity;
+      if (current.extra < maxExtras) {
+        current.extra++;
+        remainingAdults--;
+      }
+      i++;
+      if (i > roomAssignments.length * 2) break;
     }
-    // PER ROOM PRICING
-    if (hosthotel?.pay_per?.room) { 
-      const selectedCats =
-        hosthotel.room_cat?.filter((cat) =>
-          cat.room_no?.some((room) => selectedRooms.includes(room))
-        ) || [];
-
-      if (!selectedCats.length) return { totalPrice: 0, advanceAmount: 0 };
-
-      let totalBase = 0;
-      let totalAdvance = 0;
-      let totalCapacity = 0;
-      let totalMaxCapacity = 0;
-      const roomStats = [];
-      selectedCats.forEach((cat) => {
-        const roomCount = cat.room_no.filter((r) =>
-          selectedRooms.includes(r)
-        ).length;
-        if (!roomCount) return;
-
-        const capacity = cat.capacity || 0;
-        const maxCap = capacity < 4 ? capacity + 1 : capacity;
-        const rate = cat.price || 0;
-        const extraRate = cat.price_for_extra_person || 0;
-
-        totalCapacity += capacity * roomCount;
-        totalMaxCapacity += maxCap * roomCount;
-        totalBase += rate * roomCount * nights;
-        if (cat.advance?.percent) {
-          totalAdvance +=
-            rate * roomCount * nights * (cat.advance.amount / 100);
-        } else {
-          totalAdvance += (cat.advance?.amount || 0) * roomCount * nights;
-        }
-
-        roomStats.push({
-          capacity,
-          maxCap,
-          rate,
-          extraRate,
-          roomCount,
-          advance: cat.advance,
-        });
-      });
-      if (adults > totalMaxCapacity) {
-        return {
-          error: `Only ${totalMaxCapacity} adult(s) can be accommodated. ${
-            adults - totalMaxCapacity
-          } extra adult(s) cannot be accommodated.`,
-          totalPrice: 0,
-          advanceAmount: 0,
-        };
-      }
-      let extraCharges = 0;
-      const extraAdults = Math.max(0, adults - totalCapacity);
-      if (extraAdults > 0) {
-        roomStats.sort((a, b) => a.extraRate - b.extraRate);
-        let remainingExtras = extraAdults;
-        for (const room of roomStats) {
-          const availableExtras =(room.maxCap - room.capacity) * room.roomCount;
-          const assign = Math.min(availableExtras, remainingExtras);
-          extraCharges += assign * room.extraRate * nights;
-          if (room.advance?.percent) {
-            totalAdvance += assign * room.extraRate * nights * (room.advance.amount / 100);
-          }
-          remainingExtras -= assign;
-          if (remainingExtras <= 0) break;
-        }
-      }
-      const minPerAdultRate =
-        roomStats.length > 0
-          ? Math.min(...roomStats.map((r) => r.rate / r.capacity))
-          : 0;
+    if (remainingAdults > 0) {
+      return { error: `Only ${totalMaxCapacity} adult(s) can be accommodated. Please choose more rooms.`, totalPrice: 0, advanceAmount: 0 };
+    }
+    let totalPrice = 0, totalAdvance = 0;
+    roomAssignments.forEach(({ base, extra, room }) => {
+      const baseCost = room.rate * nights;
+      const extraCost = room.extraRate * extra * nights;
+      const total = baseCost + extraCost;
+      totalPrice += total;
+      totalAdvance += room.advance?.percent
+        ? total * (room.advance.amount / 100)
+        : (room.advance?.amount || 0) * nights;
+    });
+    if (age_6_10 > 0) {
+      const minPerAdultRate = Math.min(...roomStats.map(r => r.rate / r.capacity));
       const childCharge = age_6_10 * 0.5 * minPerAdultRate * nights;
-      const childRateRoom = roomStats.find(
-        (r) => r.rate / r.capacity === minPerAdultRate
-      );
-      if (childRateRoom) {
-        if (childRateRoom.advance?.percent) {
-          totalAdvance += childCharge * (childRateRoom.advance.amount / 100);
-        }
+      totalPrice += childCharge;
+
+      const childAdvanceRoom = roomStats.find(r => r.rate / r.capacity === minPerAdultRate);
+      if (childAdvanceRoom?.advance?.percent) {
+        totalAdvance += childCharge * (childAdvanceRoom.advance.amount / 100);
       }
-      return {
-        totalPrice: parseFloat(
-          (totalBase + extraCharges + childCharge).toFixed(2)
-        ),
-        advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-      };
     }
-    // PER PERSON PRICING LOGIC
-    if (hosthotel?.pay_per?.person) {
-  const selectedCats =
-    hosthotel.per_person_cat?.filter((cat) =>
-      cat.roomNumbers?.some((room) => selectedRooms.includes(room))
+    return {
+      totalPrice: parseFloat(totalPrice.toFixed(2)),
+      advanceAmount: parseFloat(totalAdvance.toFixed(2)),
+    };
+  }
+  // PER PERSON PRICING
+  if (hosthotel?.pay_per?.person) {
+    const selectedCats = hosthotel.per_person_cat?.filter(cat =>
+      cat.roomNumbers?.some(room => selectedRooms.includes(room))
     ) || [];
 
-  if (selectedCats.length === 0) {
-    return { totalPrice: 0, advanceAmount: 0 };
-  }
-
-  const roomStats = selectedRooms.map((roomNo) => {
-    const cat = selectedCats.find((c) =>
-      c.roomNumbers.includes(roomNo)
-    );
-    if (!cat) return null;
-    const baseCap = cat.capacity || 1;
-    let maxCap = 4;
-
-    // 👇 Dynamic maxCap logic based on baseCap
-    if (baseCap === 2) maxCap = 3;
-    else if (baseCap === 3) maxCap = 4;
-    else if (baseCap >= 4) maxCap = 4;
-
+    const roomStats = selectedRooms.map(roomNo => {
+      const cat = selectedCats.find(c => c.roomNumbers.includes(roomNo));
+      if (!cat) return null;
+      const baseCap = cat.capacity || 1;
+      return {
+        roomNo,
+        cat,
+        assigned: 0,
+        baseCap,
+        maxCap: getMaxCap(baseCap),
+      };
+    }).filter(Boolean);
+    let remaining = adults;
+    roomStats.forEach(room => {
+      const assign = Math.min(room.baseCap, remaining);
+      room.assigned += assign;
+      remaining -= assign;
+    });
+    let i = 0;
+    while (remaining > 0) {
+      const room = roomStats[i % roomStats.length];
+      if (room.assigned < room.maxCap) {
+        room.assigned++;
+        remaining--;
+      }
+      i++;
+      if (i > roomStats.length * 2) break;
+    }
+    if (remaining > 0) {
+      const totalMax = roomStats.reduce((acc, r) => acc + r.maxCap, 0);
+      return {
+        error: `Only ${totalMax} adult(s) can be accommodated. Please choose more rooms.`,
+        totalPrice: 0,
+        advanceAmount: 0,
+      };
+    }
+    let totalBase = 0, totalAdvance = 0;
+    const rateDetails = [];
+    for (const room of roomStats) {
+      const { assigned, cat } = room;
+      const rate = cat[`rate${assigned}`] || 0;
+      const roomTotal = rate * assigned * nights;
+      totalBase += roomTotal;
+      totalAdvance += cat.advance?.percent
+        ? roomTotal * (cat.advance.amount / 100)
+        : (cat.advance?.amount || 0) * nights;
+      rateDetails.push({ rate, cat });
+    }
+    if (age_6_10 > 0 && rateDetails.length > 0) {
+      const minRate = Math.min(...rateDetails.map(r => r.rate));
+      const minCat = rateDetails.find(r => r.rate === minRate)?.cat;
+      const childCharge = age_6_10 * minRate * nights * 0.5;
+      totalBase += childCharge;
+      if (minCat?.advance?.percent) {
+        totalAdvance += childCharge * (minCat.advance.amount / 100);
+      }
+    }
     return {
-      roomNo,
-      cat,
-      assigned: 0,
-      baseCap,
-      maxCap,
+      totalPrice: parseFloat(totalBase.toFixed(2)),
+      advanceAmount: parseFloat(totalAdvance.toFixed(2)),
     };
-  }).filter(Boolean);
-
-  let remaining = adults;
-
-  // Assign base capacity first
-  for (let room of roomStats) {
-    const assign = Math.min(room.baseCap, remaining);
-    room.assigned += assign;
-    remaining -= assign;
   }
-
-  // Round-robin assignment for extra adults
-  let i = 0;
-  while (remaining > 0) {
-    const room = roomStats[i % roomStats.length];
-    if (room.assigned < room.maxCap) {
-      room.assigned++;
-      remaining--;
-    }
-    i++;
-  }
-
-  let totalBase = 0;
-  let totalAdvance = 0;
-  const rateDetails = [];
-
-  for (const room of roomStats) {
-    const { assigned, cat } = room;
-    if (assigned < 1 || assigned > 4) continue;
-
-    const perPersonRate = cat[`rate${assigned}`] || 0;
-    const roomTotal = perPersonRate * assigned * nights;
-    totalBase += roomTotal;
-
-    if (cat.advance?.percent) {
-      totalAdvance += roomTotal * (cat.advance.amount / 100);
-    } else {
-      totalAdvance += (cat.advance?.amount || 0) * nights;
-    }
-
-    rateDetails.push({ rate: perPersonRate, cat });
-  }
-
-  // Child pricing (age 6–10)
-  const age_6_10 = Number(formData.age_6_10) || 0;
-  if (age_6_10 > 0 && rateDetails.length > 0) {
-    const minRate = Math.min(...rateDetails.map(r => r.rate));
-    const minCat = rateDetails.find(r => r.rate === minRate)?.cat;
-    const childCharge = age_6_10 * minRate * nights * 0.5;
-    totalBase += childCharge;
-
-    if (minCat?.advance?.percent) {
-      totalAdvance += childCharge * (minCat.advance.amount / 100);
-    }
-  }
-
-  return {
-    totalPrice: parseFloat(totalBase.toFixed(2)),
-    advanceAmount: parseFloat(totalAdvance.toFixed(2)),
-  };
-}
-    return { totalPrice: 0, advanceAmount: 0 };
-  }, [
-    hosthotel,
-    booking,
-    formData.adults,
-    formData.children,
-    formData.age_0_5,
-    formData.age_6_10,
-  ]);
+  return { totalPrice: 0, advanceAmount: 0 };
+}, [hosthotel, booking, formData.adults, formData.children, formData.age_0_5, formData.age_6_10]);
   const hotelSlug =
     typeof window !== "undefined" ? window.location.pathname.split("/")[1] : "";
   const upiId = hosthotel?.url === hotelSlug ? hosthotel?.upi_id : null;
@@ -514,6 +454,11 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              {errors.max && (
+                    <div className="text-red-600 text-sm mt-2">
+                      {errors.max}
+                    </div>
+                  )}
               <div>
                 <label className="text-sm text-gray-600 ml-1">
                   👶 Children

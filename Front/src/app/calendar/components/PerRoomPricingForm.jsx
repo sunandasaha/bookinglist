@@ -445,14 +445,6 @@ const PerRoomPricingForm = () => {
                   ))}
                 </select>
               </div>
-              {!cat._id && (
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
-                />
-              )}
               {/* Image Upload Section */}
                 <div className="mb-4">
                   <label className="block font-medium mb-1">Upload Room Photos (max 4):</label>

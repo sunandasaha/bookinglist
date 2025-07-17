@@ -323,7 +323,7 @@ const PerPersonPricingForm = () => {
                     <div key={num}>
                       <label className="text-sm text-gray-600 flex items-center gap-1">
                         {num} occupancy
-                        {cat.capacity === num && <span className="text-red-700 font-bold text-xl">*</span>}
+                        { num && <span className="text-red-700 font-bold text-xl">*</span>}
                       </label>
                       <input
                         placeholder="Enter rate per person"

@@ -266,13 +266,13 @@ const startCalendarTour = async () => {
   if (tourStarted.current) return;
   tourStarted.current = true;
   const introJs = (await import("intro.js")).default;
-  await waitForElement(".room-column");
+  await waitForElement(".room-column .sticky.left-0");
   const introRoom = introJs();
   introRoom.setOptions({
     steps: [
       {
-        element: ".room-column",
-        intro: "Tap on Room name to view room info. (Optional)",
+        element: ".room-column .sticky.left-0",
+        intro: "Tap on Room name to view room info.",
         position: "right",
       },
     ],
@@ -455,7 +455,7 @@ useImperativeHandle(ref, () => ({
               <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("Book w-20 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
+                  className={clsx("Book w-15 h-15 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                   )}
               >
@@ -539,9 +539,15 @@ useImperativeHandle(ref, () => ({
               <strong className="text-blue-500">Advance:</strong> ₹
               {fetchedBooking.advanceAmount}
             </div>
+              {fetchedBooking.agentCut != null && (
+                  <div>
+                    <strong className="text-blue-500">Agent Pay:</strong> ₹
+                    {fetchedBooking.totalPrice - fetchedBooking.agentCut}
+                  </div>
+                )}
             <div>
               <strong className="text-blue-500">Balance:</strong> ₹
-              {fetchedBooking.totalPrice -fetchedBooking.advanceAmount }
+              { (fetchedBooking.totalPrice - (fetchedBooking.agentCut || 0) ) - fetchedBooking.advanceAmount }
             </div>
             {fetchedBooking.agent_Id && (
               <>

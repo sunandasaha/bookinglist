@@ -194,12 +194,12 @@ const startCalendarTour = async () => {
   if (tourStarted.current) return;
   tourStarted.current = true;
   const introJs = (await import("intro.js")).default;
-  await waitForElement(".room-column");
+  await waitForElement(".room-column .sticky.left-0");
   const introRoom = introJs();
   introRoom.setOptions({
     steps: [
       {
-        element: ".room-column",
+        element: ".room-column .sticky.left-0",
         intro: "Tap on Room name to view room info.",
         position: "right",
       },
@@ -385,7 +385,7 @@ useEffect(() => {
                 <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("Book w-20 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
+                  className={clsx("Book w-15 h-15 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                    )}
                 >
