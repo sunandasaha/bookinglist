@@ -62,6 +62,7 @@ export default function TopBar({
   const [showRoomsPricing, setShowRoomsPricing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNot, setShowNot] = useState(false);
+  const [showNoRoomModal, setShowNoRoomModal] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const navigate = useRouter();
   const daysInMonth = eachDayOfInterval({
@@ -176,13 +177,24 @@ export default function TopBar({
   };
   useEffect(() => {
     if (typeof window === "undefined") return;
+     const hasRoomData = hosthotel?.room_cat?.length > 0 || hosthotel?.per_person_cat?.length > 0;
+    if (!hasRoomData) return; 
     if (!localStorage.getItem("tour_completed")) {
       const timer = setTimeout(() => {
+        console.log("Starting TopBar tour");
         startTour();
       }, 1500);
       return () => clearTimeout(timer);
     }
   }, []);
+  useEffect(() => {
+  const hasRoomData =
+    hosthotel?.room_cat?.length > 0 || hosthotel?.per_person_cat?.length > 0;
+
+  if (hosthotel && !hasRoomData) {
+    setShowNoRoomModal(true);
+  }
+}, [hosthotel]);
   useEffect(() => {
     if (socket) {
       socket.on("new-booking", (bok) => {
@@ -527,6 +539,25 @@ export default function TopBar({
           </div>
         </>
       )}
+      {showNoRoomModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-lg text-center">
+                <h2 className="text-xl font-semibold mb-4">🎉 Hello! Host</h2>
+                        <p className="mb-4">
+                          Before you can start using the calendar, you need to add your <strong>rooms and pricing</strong> details.
+                        </p>
+                <button
+                  onClick={() => {
+                      setShowRoomsPricing(true);
+                      setShowNoRoomModal(false);
+                    }}
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Room Details
+                </button>
+              </div>
+            </div>
+          )}
     </div>
   );
 }

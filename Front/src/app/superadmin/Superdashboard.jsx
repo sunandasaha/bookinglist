@@ -313,14 +313,16 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                   <div className="flex gap-3 mt-4">
                     <button
                       className="flex-1 bg-green-600 text-white py-2 rounded"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleNot(1, u._id);
                       }}
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleDelete(u._id);
                       }}
                       className="flex-1 bg-red-600 text-white py-2 rounded"

@@ -10,7 +10,7 @@ const Page = () => {
   const handleClose = () => {
     if (window.confirm("Do you want to close this tab?")) {
       window.close();
-      navigate.back();
+      navigate.push("/");
     }
   };
 
@@ -26,7 +26,7 @@ const Page = () => {
         className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow"
       >
         <ArrowLeft size={20} />
-        Close / Go Back
+        Go Back
       </button>
     </div>
   );

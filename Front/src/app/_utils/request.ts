@@ -1,4 +1,4 @@
-const site = "https://api.bookinglist.in/";
+const site = "http://localhost:8080/";
 const imgurl =
   "https://bookinglist-bucket.s3.ap-south-1.amazonaws.com/bookinglist-bucket/";
 const postReq = async (surl: string, data: {}, tok: string) => {
@@ -10,7 +10,6 @@ const postReq = async (surl: string, data: {}, tok: string) => {
   const dat = await res.json();
   return dat;
 };
-
 const putReq = async (surl: string, data: {}, tok: string) => {
   const res = await fetch(site + surl, {
     method: "PUT",
