@@ -151,7 +151,7 @@ const ContextProvider = ({
         socket,
       }}
     >
-      <GoogleOAuthProvider clientId="85449916853-ilvmr3fr74rmit72esdsbvoptgvbr1m3.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId="900226839117-f1tjgrpbjre8251ksib83lejtnl845q4.apps.googleusercontent.com">
         {children}
       </GoogleOAuthProvider>
     </Context.Provider>
