@@ -27,9 +27,9 @@ const GuestSchema = new mongoose.Schema(
       required: true,
     },
     email: String,
-    phone: Number,
+    phone: String,
     whatsapp: {
-      type: Number,
+      type: String,
       required: true,
     },
     address: {

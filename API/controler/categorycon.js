@@ -2,6 +2,7 @@ const fs = require("fs");
 const RoomCatmodel = require("../models/Rooms");
 const Hotelmodel = require("../models/Hotel");
 const path = require("path");
+const { deleteFile } = require("../utils/upload");
 
 const createRoomCategory = async (req, res) => {
   const data = JSON.parse(req.body.details);
@@ -84,15 +85,13 @@ const deleteImg = async (req, res) => {
 const deleteRoomCategory = async (req, res) => {
   try {
     const data = req.body;
-    const hot = await Hotelmodel.updateOne(
+    await Hotelmodel.updateOne(
       { _id: req.user.sid },
       { $pull: { room_cat: data._id } }
     );
     const cat = await RoomCatmodel.findById(data._id);
     cat.images.forEach((el) => {
-      fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {
-        if (err) console.log(err);
-      });
+      deleteFile(el);
     });
     await RoomCatmodel.findByIdAndDelete(data._id);
     const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");

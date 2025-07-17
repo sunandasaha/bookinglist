@@ -15,6 +15,7 @@ const {
   deletePerPersonCategory,
 } = require("../controler/perpersoncon");
 const { authUser, chkHost } = require("../middleware/auth");
+const { s3upload } = require("../middleware/bucket");
 
 const categoryroute = express.Router();
 
@@ -24,6 +25,7 @@ categoryroute.post(
   chkHost,
   uploadImages,
   resizeAndSaveImages,
+  s3upload,
   createRoomCategory
 );
 categoryroute.put("/room", authUser, chkHost, modifyRoomCategory);
@@ -43,6 +45,7 @@ categoryroute.post(
   chkHost,
   uploadImages,
   resizeAndSaveImages,
+  s3upload,
   createPerPersonCategory
 );
 categoryroute.put("/perperson", authUser, chkHost, modifyPerPersonCategory);

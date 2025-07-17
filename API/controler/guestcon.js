@@ -1,15 +1,14 @@
-const UserModel = require("../models/Users");
-const HotelModel = require("../models/Hotel");
 const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
 const { randomInt } = require("crypto");
 const { sendNewBook, sendSsBook } = require("../sockets/global");
 const { setFalse } = require("../middleware/bookingQue");
 const { deleteTimeout, addTimeOut } = require("./timercon");
+const { decrypt, encrypt } = require("../utils/encription");
 
 const createBooking = async (req, res) => {
+  const data = req.body;
   try {
-    const data = req.body;
     const today = new Date(new Date().toISOString().substring(0, 10));
     const fromDate = new Date(data.fromDate.substring(0, 10));
     const toDate = new Date(data.toDate.substring(0, 10));
@@ -59,6 +58,12 @@ const createBooking = async (req, res) => {
           temp.push(up._id);
         }
 
+        data.name = encrypt(bookingid, data.name);
+        data.address = encrypt(bookingid, data.address);
+        data.email = encrypt(bookingid, data.email);
+        data.phone = encrypt(bookingid, data.phone);
+        data.whatsapp = encrypt(bookingid, data.whatsapp);
+
         const newBooking = await GuestModel.create({
           ...data,
           _id: bookingid,
@@ -68,8 +73,10 @@ const createBooking = async (req, res) => {
           status: req.user?.role === "host" ? 1 : 0,
           agent_Id: req.user?.role === "agent" ? req.user.sid : null,
         });
+
+        const dnbook = decryptData(newBooking);
         if (req.user?.role !== "host") {
-          sendNewBook(data.hotelId, newBooking);
+          sendNewBook(data.hotelId, dnbook);
           addTimeOut(newBooking._id);
         }
 
@@ -83,7 +90,7 @@ const createBooking = async (req, res) => {
 
         setFalse(data.hotelId);
 
-        res.json({ status: "success", booking: newBooking, bookings: book });
+        res.json({ status: "success", booking: dnbook, bookings: book });
       }
     }
   } catch (error) {
@@ -93,6 +100,15 @@ const createBooking = async (req, res) => {
   }
 };
 
+const decryptData = (data) => {
+  data.name = decrypt(data._id, data.name);
+  data.address = decrypt(data._id, data.address);
+  data.email = decrypt(data._id, data.email);
+  data.phone = decrypt(data._id, data.phone);
+  data.whatsapp = decrypt(data._id, data.whatsapp);
+  return data;
+};
+
 const uploadScreenShot = async (req, res) => {
   const bid = req.body.bid;
   deleteTimeout(bid);
@@ -100,7 +116,8 @@ const uploadScreenShot = async (req, res) => {
   if (booking) {
     booking.advance_ss = req.savedImages[0];
     await booking.save();
-    sendSsBook(booking.hotelId, booking);
+    const dnbook = decryptData(booking);
+    sendSsBook(booking.hotelId, dnbook);
     res.json({ success: true, booking });
   } else {
     res.json({ succuss: false });
@@ -124,8 +141,10 @@ const getBookingById = async (req, res) => {
       return res
         .status(404)
         .json({ status: "failed", message: "missing booking" });
+    } else {
+      const dnbook = decryptData(booking);
+      res.json({ status: "success", booking: dnbook });
     }
-    res.json({ status: "success", booking });
   } catch (error) {
     console.error("Booking Error", error);
     res.status(500).json({ status: "failed", error: error.message });
@@ -163,7 +182,8 @@ const getAgentBookings = async (req, res) => {
         createdAt: -1,
       })
       .limit(50);
-    res.json({ success: true, bookings });
+    const dbooks = bookings.map((e) => decryptData(e));
+    res.json({ success: true, dbooks });
   }
 };
 
@@ -174,8 +194,8 @@ const getHotelBookings = async (req, res) => {
         createdAt: -1,
       })
       .limit(50);
-    console.log("Bookings for hotel:", req.user.sid);
-    res.json({ success: true, bookings });
+    const dbooks = bookings.map((e) => decryptData(e));
+    res.json({ success: true, dbooks });
   }
 };
 
@@ -221,7 +241,8 @@ const getCheckedBookings = async (req, res) => {
               ),
             });
     }
-    res.json({ success: true, bookings: bok });
+    const dbooks = bok.map((e) => decryptData(e));
+    res.json({ success: true, bookings: dbooks });
   } else {
     res.json({ success: false });
   }
