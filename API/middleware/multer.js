@@ -10,11 +10,7 @@ if (!fs.existsSync(uploadPath)) {
 }
 
 const imageFileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/jpg"
-  ) {
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/jpg") {
     cb(null, true);
   } else {
     cb(null, false);

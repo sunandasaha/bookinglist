@@ -1,14 +1,33 @@
 "use client";
 import "intro.js/introjs.css";
 import { useState, useContext, useEffect, useRef } from "react";
-import {format,startOfMonth,endOfMonth,eachDayOfInterval,startOfDay,} from "date-fns";
-import {CalendarDays,User,MoreVertical,ChevronLeft,ChevronRight,Search,Bell,CalendarCheck,CalendarX,Bed,Home,LogOut,} from "lucide-react";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  startOfDay,
+} from "date-fns";
+import {
+  CalendarDays,
+  User,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Bell,
+  CalendarCheck,
+  CalendarX,
+  Bed,
+  Home,
+  LogOut,
+} from "lucide-react";
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
 import PopEffect from "../../_components/PopEffect";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
-import { postReq, site } from "../../_utils/request.ts";
+import { imgurl, postReq, site } from "../../_utils/request.ts";
 const waitForElement = (selector, timeout = 3000) =>
   new Promise((resolve) => {
     const interval = setInterval(() => {
@@ -19,8 +38,23 @@ const waitForElement = (selector, timeout = 3000) =>
     }, 100);
     setTimeout(() => clearInterval(interval), timeout);
   });
-export default function TopBar({selectedDate,setSelectedDate,searchBID,setSearchBID,setSearchTrigger,calendarRef,}) {
-  const {hosthotel,setUser,setHosthotel,pending,socket,setPending,user,} = useContext(Context);
+export default function TopBar({
+  selectedDate,
+  setSelectedDate,
+  searchBID,
+  setSearchBID,
+  setSearchTrigger,
+  calendarRef,
+}) {
+  const {
+    hosthotel,
+    setUser,
+    setHosthotel,
+    pending,
+    socket,
+    setPending,
+    user,
+  } = useContext(Context);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
@@ -83,72 +117,72 @@ export default function TopBar({selectedDate,setSelectedDate,searchBID,setSearch
     setShowSideMenu(false);
   };
   const startTour = async () => {
-  try {
-    const introJs = (await import("intro.js")).default;
-    await Promise.all([
-      waitForElement('.calendar-btn'),
-      waitForElement('.search-icon'),
-      waitForElement('.side-menu-btn'),
-      waitForElement('.Not-icon'),
-    ]);
+    try {
+      const introJs = (await import("intro.js")).default;
+      await Promise.all([
+        waitForElement(".calendar-btn"),
+        waitForElement(".search-icon"),
+        waitForElement(".side-menu-btn"),
+        waitForElement(".Not-icon"),
+      ]);
 
-    const tour = introJs();
-    tour.setOptions({
-      steps: [
-        {
-          element: '.calendar-btn',
-          intro: `<strong>Select a date</strong> to view or create bookings for that day.`,
-          position: 'bottom'
-        },
-        {
-          element: '.search-icon',
-          intro: `<strong>Search by Booking ID</strong> quickly using this search bar.`,
-          position: 'left'
-        },
-        {
-          element: '.side-menu-btn',
-          intro: `<strong>Open the sidebar</strong> for quick navigation like check-in, check-out,today's bookings and Rooms &.`,
-          position: 'bottom'
-        },
-        {
-          element: '.Not-icon',
-          intro: `<strong>View pending booking requests</strong> and respond to them easily.`,
-          position: 'left'
-        },
-      ],
-      tooltipClass: 'custom-introjs-tooltip',
-      highlightClass: 'custom-introjs-highlight',
-      showProgress: true,
-      scrollToElement: true,
-      showBullets: false,
-      exitOnOverlayClick: true,
-      disableInteraction: true,
-    });
-    tour.oncomplete(() => {
-      localStorage.setItem("tour_completed", "true");
-      localStorage.setItem("calendar_tour_trigger", "true");
-      calendarRef.current.startTour();
-    });
+      const tour = introJs();
+      tour.setOptions({
+        steps: [
+          {
+            element: ".calendar-btn",
+            intro: `<strong>Select a date</strong> to view or create bookings for that day.`,
+            position: "bottom",
+          },
+          {
+            element: ".search-icon",
+            intro: `<strong>Search by Booking ID</strong> quickly using this search bar.`,
+            position: "left",
+          },
+          {
+            element: ".side-menu-btn",
+            intro: `<strong>Open the sidebar</strong> for quick navigation like check-in, check-out,today's bookings and Rooms &.`,
+            position: "bottom",
+          },
+          {
+            element: ".Not-icon",
+            intro: `<strong>View pending booking requests</strong> and respond to them easily.`,
+            position: "left",
+          },
+        ],
+        tooltipClass: "custom-introjs-tooltip",
+        highlightClass: "custom-introjs-highlight",
+        showProgress: true,
+        scrollToElement: true,
+        showBullets: false,
+        exitOnOverlayClick: true,
+        disableInteraction: true,
+      });
+      tour.oncomplete(() => {
+        localStorage.setItem("tour_completed", "true");
+        localStorage.setItem("calendar_tour_trigger", "true");
+        calendarRef.current.startTour();
+      });
 
-    tour.onexit(() => {
-      localStorage.setItem("tour_completed", "true");
-      localStorage.setItem("calendar_tour_trigger", "true");
-     calendarRef.current.startTour();
-    });
-    tour.start();
-  } catch (error) {
-    console.error("Tour failed to start:", error);
-  }
-};
+      tour.onexit(() => {
+        localStorage.setItem("tour_completed", "true");
+        localStorage.setItem("calendar_tour_trigger", "true");
+        calendarRef.current.startTour();
+      });
+      tour.start();
+    } catch (error) {
+      console.error("Tour failed to start:", error);
+    }
+  };
   useEffect(() => {
-  if (typeof window === 'undefined') return;
-  if (!localStorage.getItem('tour_completed')) {
-    const timer = setTimeout(() => {
-      startTour();
-    }, 1500); 
-    return () => clearTimeout(timer);
-  }
-}, []);
+    if (typeof window === "undefined") return;
+    if (!localStorage.getItem("tour_completed")) {
+      const timer = setTimeout(() => {
+        startTour();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
   useEffect(() => {
     if (socket) {
       socket.on("new-booking", (bok) => {
@@ -445,7 +479,7 @@ export default function TopBar({selectedDate,setSelectedDate,searchBID,setSearch
                     {bk.advance_ss ? (
                       <div className="mt-2">
                         <img
-                          src={site + "imgs/" + bk.advance_ss}
+                          src={imgurl + bk.advance_ss}
                           alt="Screenshot"
                           className="w-full max-h-48 object-contain border rounded cursor-pointer"
                           onClick={() => setShowImage(true)}
@@ -455,7 +489,7 @@ export default function TopBar({selectedDate,setSelectedDate,searchBID,setSearch
                           <PopEffect cb={() => setShowImage(false)}>
                             <div className="w-full h-full flex justify-center items-center p-4">
                               <img
-                                src={site + "imgs/" + bk.advance_ss}
+                                src={imgurl + bk.advance_ss}
                                 alt="Full Screenshot"
                                 className="max-h-[60vh] max-w-[80vw] object-contain rounded shadow-2xl"
                               />

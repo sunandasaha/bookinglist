@@ -37,6 +37,7 @@ categoryroute.post(
   chkHost,
   uploadImages,
   resizeAndSaveImages,
+  s3upload,
   addImg
 );
 categoryroute.post(
@@ -57,6 +58,7 @@ categoryroute.post(
   chkHost,
   uploadImages,
   resizeAndSaveImages,
+  s3upload,
   addImgPerPerson
 );
 

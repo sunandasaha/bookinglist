@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
 import PopEffect from "../_components/PopEffect";
-import { delReq, getReq, putReq, site } from "../_utils/request";
+import { delReq, getReq, imgurl, putReq } from "../_utils/request";
 import { AnimatePresence } from "framer-motion";
 
 export default function SuperAdminDashboard({ admin, setAdmin }) {
@@ -196,9 +196,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                         </span>
                         <img
                           src={
-                            site +
-                            "imgs/" +
-                            selectedApprovedUser.parsed.visiting_card
+                            imgurl + selectedApprovedUser.parsed.visiting_card
                           }
                           alt="Visiting Card"
                           className="w-40 h-auto rounded border"

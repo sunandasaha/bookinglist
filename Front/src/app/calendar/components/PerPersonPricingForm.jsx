@@ -2,9 +2,17 @@
 import React, { useState, useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
-import { putReq, site, delReq } from "../../_utils/request";
+import { putReq, site, delReq, imgurl } from "../../_utils/request";
 
-const facilityOptions = ["Geyser", "TV", "WiFi", "Breakfast", "Food", "Room service", "Balcony"];
+const facilityOptions = [
+  "Geyser",
+  "TV",
+  "WiFi",
+  "Breakfast",
+  "Food",
+  "Room service",
+  "Balcony",
+];
 
 const PerPersonPricingForm = () => {
   const { hosthotel, setHosthotel, user } = useContext(Context);
@@ -15,7 +23,7 @@ const PerPersonPricingForm = () => {
 
   const [categories, setCategories] = useState(
     hosthotel.per_person_cat?.length > 0
-      ? hosthotel.per_person_cat.map(cat => ({ ...cat, isEditing: false }))
+      ? hosthotel.per_person_cat.map((cat) => ({ ...cat, isEditing: false }))
       : [
           {
             name: "",
@@ -41,31 +49,26 @@ const PerPersonPricingForm = () => {
     const updated = [...categories];
     if (["capacity", "rate1", "rate2", "rate3", "rate4"].includes(field)) {
       updated[index][field] = value === "" ? 0 : Number(value);
-    } 
-    else if (field === "agentCommission.amount") {
+    } else if (field === "agentCommission.amount") {
       updated[index].agentCommission.amount = value === "" ? 0 : Number(value);
-    } 
-    else if (field === "advance.amount") {
+    } else if (field === "advance.amount") {
       updated[index].advance.amount = value === "" ? 0 : Number(value);
-    } 
-    else if (field === "agentCommission.percent") {
+    } else if (field === "agentCommission.percent") {
       updated[index].agentCommission.percent = value === "%";
-    } 
-    else if (field === "advance.percent") {
+    } else if (field === "advance.percent") {
       updated[index].advance.percent = value === "%";
-    } 
-    else {
+    } else {
       updated[index][field] = value;
     }
     const cap = updated[index].capacity;
     const baseRate = updated[index][`rate${cap}`];
-      if (cap && baseRate) {
-        setErrorMsg(prev => {
-          const copy = { ...prev };
-          delete copy[index];
-          return copy;
-        });
-      }
+    if (cap && baseRate) {
+      setErrorMsg((prev) => {
+        const copy = { ...prev };
+        delete copy[index];
+        return copy;
+      });
+    }
     setCategories(updated);
   };
 
@@ -74,7 +77,7 @@ const PerPersonPricingForm = () => {
     updated[index].amenities = selectedOptions;
     setCategories(updated);
   };
-   const toggleEdit = async (index) => {
+  const toggleEdit = async (index) => {
     const updated = [...categories];
     const cat = updated[index];
 
@@ -86,9 +89,12 @@ const PerPersonPricingForm = () => {
 
     const baseRate = cat[`rate${cat.capacity}`];
     if (!cat.capacity || !baseRate) {
-        setErrorMsg(prev => ({ ...prev, [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.` }));
-        return;
-      }
+      setErrorMsg((prev) => ({
+        ...prev,
+        [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.`,
+      }));
+      return;
+    }
     setLoadingIndex(index);
     try {
       if (cat._id) {
@@ -100,7 +106,7 @@ const PerPersonPricingForm = () => {
       } else {
         const fd = new FormData();
         fd.append("details", JSON.stringify({ ...cat, images: [] }));
-        cat.images.forEach(f => fd.append("images", f));
+        cat.images.forEach((f) => fd.append("images", f));
 
         const res = await fetch(site + "category/perperson", {
           method: "POST",
@@ -109,8 +115,8 @@ const PerPersonPricingForm = () => {
         });
         const result = await res.json();
         if (result.success && result.data?._id) {
-            updated[index]._id = result.data._id;
-          }
+          updated[index]._id = result.data._id;
+        }
       }
     } catch (err) {
       console.error("Failed to save category:", err);
@@ -173,13 +179,13 @@ const PerPersonPricingForm = () => {
     ];
     setCategories(updated);
   };
-  
+
   const removePhoto = (catIdx, photoIdx) => {
     const updated = [...categories];
     updated[catIdx].images.splice(photoIdx, 1);
     setCategories(updated);
   };
-  
+
   const handleDeleteCategory = async (catIdx) => {
     const categoryId = categories[catIdx]._id;
     if (categoryId) {
@@ -214,7 +220,7 @@ const PerPersonPricingForm = () => {
       setCategories(updated);
     }
   };
-  
+
   const handleAddCategory = () => {
     if (getTotalUsedRooms() >= totalRoomsAllowed) {
       setProblems((prev) => ({
@@ -256,7 +262,10 @@ const PerPersonPricingForm = () => {
   return (
     <div className="space-y-6">
       {categories.map((cat, catIdx) => (
-        <div key={catIdx} className="border rounded-xl p-4 space-y-4 shadow bg-white">
+        <div
+          key={catIdx}
+          className="border rounded-xl p-4 space-y-4 shadow bg-white"
+        >
           {/* Header */}
           <div className="flex justify-between items-center">
             <input
@@ -310,35 +319,41 @@ const PerPersonPricingForm = () => {
               <input
                 placeholder="Capacity"
                 value={cat.capacity}
-                onChange={(e) => handleChange(catIdx, "capacity", e.target.value)}
+                onChange={(e) =>
+                  handleChange(catIdx, "capacity", e.target.value)
+                }
                 className="no-spinner border rounded p-2 w-full"
                 type="number"
-                onWheel={(e) => e.target.blur()} 
+                onWheel={(e) => e.target.blur()}
                 min="0"
               />
               {/* Rates with Labels */}
-                <div className="space-y-2">
-                  <label className="font-medium">Rates (Per Person)</label>
-                  {[1, 2, 3, 4].map((num) => (
-                    <div key={num}>
-                      <label className="text-sm text-gray-600 flex items-center gap-1">
-                        {num} occupancy
-                        { num && <span className="text-red-700 font-bold text-xl">*</span>}
-                      </label>
-                      <input
-                        placeholder="Enter rate per person"
-                        type="number"
-                        onWheel={(e) => e.target.blur()}
-                        min="0"
-                        value={cat[`rate${num}`] === 0 ? "" : cat[`rate${num}`]}
-                        onChange={(e) =>
-                          handleChange(catIdx, `rate${num}`, e.target.value)
-                        }
-                        className="no-spinner border rounded p-2 w-full"
-                      />
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <label className="font-medium">Rates (Per Person)</label>
+                {[1, 2, 3, 4].map((num) => (
+                  <div key={num}>
+                    <label className="text-sm text-gray-600 flex items-center gap-1">
+                      {num} occupancy
+                      {num && (
+                        <span className="text-red-700 font-bold text-xl">
+                          *
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      placeholder="Enter rate per person"
+                      type="number"
+                      onWheel={(e) => e.target.blur()}
+                      min="0"
+                      value={cat[`rate${num}`] === 0 ? "" : cat[`rate${num}`]}
+                      onChange={(e) =>
+                        handleChange(catIdx, `rate${num}`, e.target.value)
+                      }
+                      className="no-spinner border rounded p-2 w-full"
+                    />
+                  </div>
+                ))}
+              </div>
               {/* Agent Commission */}
               <div className="space-y-2">
                 <label className="font-medium">Agent Commission</label>
@@ -347,14 +362,26 @@ const PerPersonPricingForm = () => {
                     placeholder="Amount"
                     value={cat.agentCommission.amount}
                     type="number"
-                    onWheel={(e) => e.target.blur()} 
+                    onWheel={(e) => e.target.blur()}
                     min="0"
-                    onChange={(e) => handleChange(catIdx, "agentCommission.amount", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(
+                        catIdx,
+                        "agentCommission.amount",
+                        e.target.value
+                      )
+                    }
                     className="no-spinner border rounded p-2 w-full"
                   />
                   <select
                     value={cat.agentCommission.percent ? "%" : "₹"}
-                    onChange={(e) => handleChange(catIdx, "agentCommission.percent", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(
+                        catIdx,
+                        "agentCommission.percent",
+                        e.target.value
+                      )
+                    }
                     className="border rounded p-2"
                   >
                     <option value="%">%</option>
@@ -371,14 +398,18 @@ const PerPersonPricingForm = () => {
                     placeholder="Amount"
                     type="number"
                     min="0"
-                    onWheel={(e) => e.target.blur()} 
+                    onWheel={(e) => e.target.blur()}
                     value={cat.advance.amount}
-                    onChange={(e) => handleChange(catIdx, "advance.amount", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(catIdx, "advance.amount", e.target.value)
+                    }
                     className="no-spinner border rounded p-2 w-full"
                   />
                   <select
                     value={cat.advance.percent ? "%" : "₹"}
-                    onChange={(e) => handleChange(catIdx, "advance.percent", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(catIdx, "advance.percent", e.target.value)
+                    }
                     className="border rounded p-2"
                   >
                     <option value="%">%</option>
@@ -394,7 +425,9 @@ const PerPersonPricingForm = () => {
                   multiple
                   value={cat.amenities}
                   onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+                    const selected = Array.from(e.target.selectedOptions).map(
+                      (opt) => opt.value
+                    );
                     handleFacilitiesChange(catIdx, selected);
                   }}
                   className="border rounded p-2 w-full h-28"
@@ -407,76 +440,83 @@ const PerPersonPricingForm = () => {
                 </select>
               </div>
               {/* Image Upload */}
-               <div className="mb-4">
-                  <label className="block font-medium mb-1">Upload Room Photos (max 4):</label>
-                  <div
-                      className="border border-gray-400 rounded-md p-4 cursor-pointer text-center text-sm text-blue-500 hover:border-gray-500 transition"
-                      onClick={() => document.getElementById(`imageUpload-${catIdx}`).click()}
-                  >
-                   Click here to select images
-                  </div>
-                  <input
-                    id={`imageUpload-${catIdx}`}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
-                    className="hidden"
-                   />
-                    <div className="flex gap-2 mt-3 flex-wrap">
-                      {cat.images.map((photo, i) => (
-                        <div key={i} className="relative w-20 h-20">
-                          <img
-                              src={cat._id ? site + "imgs/" + photo : URL.createObjectURL(photo)}
-                              alt={`img-${i}`}
-                              className="w-full h-full object-cover rounded"
-                          />
-                          <button
-                            className="absolute top-0 right-0 bg-white rounded-full text-red-500 p-0.5 shadow"
-                            onClick={() => removePhoto(catIdx, i)}
-                            type="button"
-                          >
-                          <X size={16} />
-                          </button>
-                        </div>
-                     ))}
-                      </div>
-                        {problems[`cat-${catIdx}-images`] && (
-                          <p className="text-red-500 text-sm mt-1">{problems[`cat-${catIdx}-images`]}</p>
-                        )}
-                  </div>
+              <div className="mb-4">
+                <label className="block font-medium mb-1">
+                  Upload Room Photos (max 4):
+                </label>
+                <div
+                  className="border border-gray-400 rounded-md p-4 cursor-pointer text-center text-sm text-blue-500 hover:border-gray-500 transition"
+                  onClick={() =>
+                    document.getElementById(`imageUpload-${catIdx}`).click()
+                  }
+                >
+                  Click here to select images
+                </div>
+                <input
+                  id={`imageUpload-${catIdx}`}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+                  className="hidden"
+                />
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  {cat.images.map((photo, i) => (
+                    <div key={i} className="relative w-20 h-20">
+                      <img
+                        src={
+                          cat._id ? imgurl + photo : URL.createObjectURL(photo)
+                        }
+                        alt={`img-${i}`}
+                        className="w-full h-full object-cover rounded"
+                      />
+                      <button
+                        className="absolute top-0 right-0 bg-white rounded-full text-red-500 p-0.5 shadow"
+                        onClick={() => removePhoto(catIdx, i)}
+                        type="button"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {problems[`cat-${catIdx}-images`] && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {problems[`cat-${catIdx}-images`]}
+                  </p>
+                )}
+              </div>
               {/* Action Buttons at Bottom */}
-             <div className="relative flex justify-end gap-4 pt-4 border-t">
-                    <button
-                      onClick={() => handleDeleteCategory(catIdx)}
-                      className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
-                      disabled={loadingIndex === catIdx}
-                    >
-                      <Trash2 size={16} />
-                      <span>Delete</span>
-                    </button>
+              <div className="relative flex justify-end gap-4 pt-4 border-t">
+                <button
+                  onClick={() => handleDeleteCategory(catIdx)}
+                  className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
+                  disabled={loadingIndex === catIdx}
+                >
+                  <Trash2 size={16} />
+                  <span>Delete</span>
+                </button>
 
-                    <button
-                      onClick={() => toggleEdit(catIdx)}
-                      className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                      disabled={loadingIndex === catIdx}
-                    >
-                      {loadingIndex === catIdx ? (
-                        <span className="animate-spin">⏳</span>
-                      ) : (
-                        <>
-                          <Save size={16} />
-                          <span>Save</span>
-                        </>
-                      )}
-                    </button>
-                    {errorMsg[catIdx] && (
-                      <div className="absolute top-[calc(100%+11px)] right-0  text-red-600 text-sm font-medium z-9">
-                        {errorMsg[catIdx]}
-                      </div>
-                    )}
+                <button
+                  onClick={() => toggleEdit(catIdx)}
+                  className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                  disabled={loadingIndex === catIdx}
+                >
+                  {loadingIndex === catIdx ? (
+                    <span className="animate-spin">⏳</span>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      <span>Save</span>
+                    </>
+                  )}
+                </button>
+                {errorMsg[catIdx] && (
+                  <div className="absolute top-[calc(100%+11px)] right-0  text-red-600 text-sm font-medium z-9">
+                    {errorMsg[catIdx]}
                   </div>
-
+                )}
+              </div>
             </>
           )}
         </div>

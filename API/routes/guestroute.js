@@ -20,6 +20,7 @@ const {
 } = require("../controler/upbookingcon");
 const { bookingHold } = require("../middleware/bookingQue");
 const { uploadImages, resizeAndSaveImages } = require("../middleware/multer");
+const { s3upload } = require("../middleware/bucket");
 
 const guestroute = express.Router();
 
@@ -30,6 +31,7 @@ guestroute.post(
   "/guest/ss",
   uploadImages,
   resizeAndSaveImages,
+  s3upload,
   uploadScreenShot
 );
 guestroute.delete("/:id", authUser, chkHost, deleteBooking);

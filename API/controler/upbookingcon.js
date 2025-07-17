@@ -1,5 +1,6 @@
 const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
+const { deleteFile } = require("../utils/upload");
 
 const getBookings = async (req, res) => {
   try {
@@ -84,6 +85,10 @@ const cancelBooking = async (req, res) => {
         for (let i = 0; i < book.ub_ids.length; i++) {
           await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
         }
+        if (book.advance_ss && book.advance_ss.length > 0) {
+          deleteFile(book.advance_ss);
+        }
+        book.advance_ss = "";
         book.ub_ids = [];
         book.status = can ? 3 : 4;
         book.save();
@@ -108,6 +113,10 @@ const checkoutBooking = async (req, res) => {
         for (let i = 0; i < book.ub_ids.length; i++) {
           await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
         }
+        if (book.advance_ss && book.advance_ss.length > 0) {
+          deleteFile(book.advance_ss);
+        }
+        book.advance_ss = "";
         book.ub_ids = [];
         book.status = 12;
         book.amountPaid = amountPaid;

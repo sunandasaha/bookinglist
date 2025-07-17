@@ -3,9 +3,17 @@
 import React, { useState, useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
-import { site, delReq, putReq } from "../../_utils/request";
+import { site, delReq, putReq, imgurl } from "../../_utils/request";
 
-const facilityOptions = ["Geyser", "TV", "WiFi", "Breakfast", "Food","Room service","Balcony"];
+const facilityOptions = [
+  "Geyser",
+  "TV",
+  "WiFi",
+  "Breakfast",
+  "Food",
+  "Room service",
+  "Balcony",
+];
 
 const PerRoomPricingForm = () => {
   const { hosthotel, user, setHosthotel } = useContext(Context);
@@ -282,24 +290,24 @@ const PerRoomPricingForm = () => {
           className="border rounded p-4 space-y-3 shadow bg-gray-50"
         >
           {/* header */}
-            <div className="flex justify-between items-center">
-                        <input
-                          value={cat.name}
-                          placeholder="Category name"
-                          onChange={(e) => handleChange(catIdx, "name", e.target.value)}
-                          className="font-semibold text-lg border p-2 rounded w-1/2"
-                          disabled={!cat.isEditing}
-                        />
-                        {!cat.isEditing && (
-                          <button
-                            onClick={() => toggleEdit(catIdx)}
-                            className="text-blue-600"
-                            title="Edit"
-                          >
-                            <Edit size={18} />
-                          </button>
-                        )}
-              </div>
+          <div className="flex justify-between items-center">
+            <input
+              value={cat.name}
+              placeholder="Category name"
+              onChange={(e) => handleChange(catIdx, "name", e.target.value)}
+              className="font-semibold text-lg border p-2 rounded w-1/2"
+              disabled={!cat.isEditing}
+            />
+            {!cat.isEditing && (
+              <button
+                onClick={() => toggleEdit(catIdx)}
+                className="text-blue-600"
+                title="Edit"
+              >
+                <Edit size={18} />
+              </button>
+            )}
+          </div>
           {errorMsg && cat.isEditing && (
             <p className="text-red-600 font-medium">{errorMsg}</p>
           )}
@@ -345,19 +353,19 @@ const PerRoomPricingForm = () => {
                 placeholder="Capacity"
                 type="number"
                 min={0}
-                onWheel={(e) => e.target.blur()} 
+                onWheel={(e) => e.target.blur()}
                 value={displayNumber(cat.capacity)}
                 onChange={(e) =>
                   handleChange(catIdx, "capacity", e.target.value)
                 }
-               className="no-spinner border rounded p-2 w-full"
+                className="no-spinner border rounded p-2 w-full"
               />
               <label className="font-medium">Price:</label>
               <input
                 placeholder="Price"
                 type="number"
                 min={0}
-                onWheel={(e) => e.target.blur()} 
+                onWheel={(e) => e.target.blur()}
                 value={displayNumber(cat.price)}
                 onChange={(e) => handleChange(catIdx, "price", e.target.value)}
                 className="no-spinner border rounded p-2 w-full"
@@ -367,7 +375,7 @@ const PerRoomPricingForm = () => {
                 placeholder="Price for Extra Person"
                 type="number"
                 min={0}
-                onWheel={(e) => e.target.blur()} 
+                onWheel={(e) => e.target.blur()}
                 value={displayNumber(cat.price_for_extra_person)}
                 onChange={(e) =>
                   handleChange(catIdx, "price_for_extra_person", e.target.value)
@@ -384,13 +392,17 @@ const PerRoomPricingForm = () => {
                     value={cat.agent_com.amount}
                     type="number"
                     min="0"
-                    onWheel={(e) => e.target.blur()} 
-                    onChange={(e) => handleChange(catIdx, "agent_com.amount", e.target.value)}
+                    onWheel={(e) => e.target.blur()}
+                    onChange={(e) =>
+                      handleChange(catIdx, "agent_com.amount", e.target.value)
+                    }
                     className="no-spinner border rounded p-2 w-full"
                   />
                   <select
                     value={cat.agent_com.percent ? "%" : "₹"}
-                    onChange={(e) => handleChange(catIdx, "agent_com.percent", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(catIdx, "agent_com.percent", e.target.value)
+                    }
                     className="border rounded p-2"
                   >
                     <option value="%">%</option>
@@ -408,13 +420,17 @@ const PerRoomPricingForm = () => {
                     type="number"
                     min="0"
                     value={cat.advance.amount}
-                    onWheel={(e) => e.target.blur()} 
-                    onChange={(e) => handleChange(catIdx, "advance.amount", e.target.value)}
+                    onWheel={(e) => e.target.blur()}
+                    onChange={(e) =>
+                      handleChange(catIdx, "advance.amount", e.target.value)
+                    }
                     className="no-spinner border rounded p-2 w-full"
                   />
                   <select
                     value={cat.advance.percent ? "%" : "₹"}
-                    onChange={(e) => handleChange(catIdx, "advance.percent", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(catIdx, "advance.percent", e.target.value)
+                    }
                     className="border rounded p-2"
                   >
                     <option value="%">%</option>
@@ -446,66 +462,77 @@ const PerRoomPricingForm = () => {
                 </select>
               </div>
               {/* Image Upload Section */}
-                <div className="mb-4">
-                  <label className="block font-medium mb-1">Upload Room Photos (max 4):</label>
-                  <div
-                    className="border border-gray-400 rounded-md p-4 cursor-pointer text-center text-sm text-blue-500 hover:border-gray-500 transition"
-                    onClick={() => document.getElementById(`imageUpload-${catIdx}`).click()}
-                  >
-                    Click here to select images
-                  </div>
-                  <input
-                    id={`imageUpload-${catIdx}`}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
-                    className="hidden"
-                  />
-                  <div className="flex gap-2 mt-3 flex-wrap">
-                    {cat.images.map((photo, i) => (
-                      <div key={i} className="relative w-20 h-20">
-                        <img
-                          src={cat._id ? site + "imgs/" + photo : URL.createObjectURL(photo)}
-                          alt={`img-${i}`}
-                          className="w-full h-full object-cover rounded"
-                        />
-                        <button
-                          className="absolute top-0 right-0 bg-white rounded-full text-red-500 p-0.5 shadow"
-                          onClick={() => removePhoto(catIdx, i)}
-                          type="button"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  {problems[`cat-${catIdx}-images`] && (
-                    <p className="text-red-500 text-sm mt-1">{problems[`cat-${catIdx}-images`]}</p>
-                  )}
+              <div className="mb-4">
+                <label className="block font-medium mb-1">
+                  Upload Room Photos (max 4):
+                </label>
+                <div
+                  className="border border-gray-400 rounded-md p-4 cursor-pointer text-center text-sm text-blue-500 hover:border-gray-500 transition"
+                  onClick={() =>
+                    document.getElementById(`imageUpload-${catIdx}`).click()
+                  }
+                >
+                  Click here to select images
                 </div>
-               <div className="relative flex justify-end gap-4 pt-4 border-t">
-                  <button
-                    onClick={() => handleDeleteCategory(catIdx)}
-                    className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
-                    disabled={loadingIndex === catIdx}
-                  >
+                <input
+                  id={`imageUpload-${catIdx}`}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handleAddPhoto(catIdx, e.target.files)}
+                  className="hidden"
+                />
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  {cat.images.map((photo, i) => (
+                    <div key={i} className="relative w-20 h-20">
+                      <img
+                        src={
+                          cat._id ? imgurl + photo : URL.createObjectURL(photo)
+                        }
+                        alt={`img-${i}`}
+                        className="w-full h-full object-cover rounded"
+                      />
+                      <button
+                        className="absolute top-0 right-0 bg-white rounded-full text-red-500 p-0.5 shadow"
+                        onClick={() => removePhoto(catIdx, i)}
+                        type="button"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {problems[`cat-${catIdx}-images`] && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {problems[`cat-${catIdx}-images`]}
+                  </p>
+                )}
+              </div>
+              <div className="relative flex justify-end gap-4 pt-4 border-t">
+                <button
+                  onClick={() => handleDeleteCategory(catIdx)}
+                  className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
+                  disabled={loadingIndex === catIdx}
+                >
                   <Trash2 size={16} />
                   <span>Delete</span>
-                  </button>
-              
-                  <button
-                    onClick={() => toggleEdit(catIdx)}
-                    className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                    disabled={loadingIndex === catIdx}
-                  >
-                  {loadingIndex === catIdx ? (<span className="animate-spin">⏳</span>) : (
+                </button>
+
+                <button
+                  onClick={() => toggleEdit(catIdx)}
+                  className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                  disabled={loadingIndex === catIdx}
+                >
+                  {loadingIndex === catIdx ? (
+                    <span className="animate-spin">⏳</span>
+                  ) : (
                     <>
-                    <Save size={16} />
-                    <span>Save</span>
-                    </>)}
-                  </button>
-                </div>
+                      <Save size={16} />
+                      <span>Save</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </>
           )}
         </div>
