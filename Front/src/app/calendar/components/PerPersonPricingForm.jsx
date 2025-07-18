@@ -80,6 +80,15 @@ const PerPersonPricingForm = () => {
   const toggleEdit = async (index) => {
     const updated = [...categories];
     const cat = updated[index];
+    const set = new Set();
+    for (let i = 0; i < cat.room_no.length; i++) {
+      cat.room_no[i] = cat.room_no[i].trim();
+      if (cat.room_no[i] === "" || set.has(cat.room_no[i])) {
+        setProblems((p) => ({ ...p, roomno: "invalid room name" }));
+        return;
+      }
+      set.add(cat.room_no[i]);
+    }
 
     if (!cat.isEditing) {
       updated[index].isEditing = true;
