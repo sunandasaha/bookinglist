@@ -13,14 +13,12 @@ const facilityOptions = [
   "Room service",
   "Balcony",
 ];
-
 const PerPersonPricingForm = () => {
   const { hosthotel, setHosthotel, user } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
   const [problems, setProblems] = useState({});
   const [loadingIndex, setLoadingIndex] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
-
   const [categories, setCategories] = useState(
     hosthotel.per_person_cat?.length > 0
       ? hosthotel.per_person_cat.map((cat) => ({ ...cat, isEditing: false }))
@@ -81,15 +79,14 @@ const PerPersonPricingForm = () => {
     const updated = [...categories];
     const cat = updated[index];
     const set = new Set();
-    for (let i = 0; i < cat.room_no.length; i++) {
-      cat.room_no[i] = cat.room_no[i].trim();
-      if (cat.room_no[i] === "" || set.has(cat.room_no[i])) {
-        setProblems((p) => ({ ...p, roomno: "invalid room name" }));
+    for (let i = 0; i < cat.roomNumbers.length; i++) {
+      cat.roomNumbers[i] = cat.roomNumbers[i].trim();
+      if (cat.roomNumbers[i] === "" || set.has(cat.roomNumbers[i])) {
+        setProblems((p) => ({ ...p, roomno: "Room name must be unique and not empty" }));
         return;
       }
-      set.add(cat.room_no[i]);
+      set.add(cat.roomNumbers[i]);
     }
-
     if (!cat.isEditing) {
       updated[index].isEditing = true;
       setCategories(updated);
@@ -520,6 +517,11 @@ const PerPersonPricingForm = () => {
                     </>
                   )}
                 </button>
+                {problems.roomno && (
+                  <div className="absolute top-[calc(100%+11px)] right-0 text-red-600 text-sm font-medium z-9">
+                    {problems.roomno}
+                  </div>
+                )}
                 {errorMsg[catIdx] && (
                   <div className="absolute top-[calc(100%+11px)] right-0  text-red-600 text-sm font-medium z-9">
                     {errorMsg[catIdx]}

@@ -161,7 +161,7 @@ const PerRoomPricingForm = () => {
     for (let i = 0; i < cat.room_no.length; i++) {
       cat.room_no[i] = cat.room_no[i].trim();
       if (cat.room_no[i] === "" || set.has(cat.room_no[i])) {
-        setProblems((p) => ({ ...p, roomno: "invalid room name" }));
+        setProblems((p) => ({ ...p, roomno: "Room name must be unique and not empty" }));
         return;
       }
       set.add(cat.room_no[i]);
@@ -541,6 +541,11 @@ const PerRoomPricingForm = () => {
                     </>
                   )}
                 </button>
+                {problems.roomno && (
+                  <div className="absolute top-[calc(100%+11px)] right-0 text-red-600 text-sm font-medium z-9">
+                    {problems.roomno}
+                  </div>
+                )}
               </div>
             </>
           )}
