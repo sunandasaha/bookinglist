@@ -5,6 +5,7 @@ const AgentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  email: String,
   location: {
     type: String,
     required: true,

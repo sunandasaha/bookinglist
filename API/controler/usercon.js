@@ -5,6 +5,7 @@ const Usermodel = require("../models/Users");
 const Hotelmodel = require("../models/Hotel");
 const Agentmodel = require("../models/Agent");
 const GuestModel = require("../models/GuestBooking");
+const { decryptData } = require("./guestcon");
 
 const retry = new Map();
 
@@ -46,6 +47,7 @@ const getDet = async (role, id) => {
 const getPending = async (role, id) => {
   if (role === "host" && id) {
     const pen = await GuestModel.find({ status: 0, hotelId: id });
+    pen.map((e) => decryptData(e));
     return pen;
   }
   return null;

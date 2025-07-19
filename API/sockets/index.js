@@ -1,5 +1,7 @@
+const { decryptData } = require("../controler/guestcon");
 const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
+const { sendEmail } = require("../utils/emailService");
 
 const sid = new Map();
 
@@ -14,23 +16,28 @@ module.exports = (io, hid) => {
 
     soc.on("pending", async ({ id, res }) => {
       try {
-        const book = await GuestModel.findById(id);
-        if (book) {
+        const bok = await GuestModel.findById(id)
+          .populate("hotelId")
+          .populate("agent_Id");
+        if (bok) {
           if (res) {
-            for (let i = 0; i < book.ub_ids.length; i++) {
-              await UpBookModel.findByIdAndUpdate(book.ub_ids[i], {
+            for (let i = 0; i < bok.ub_ids.length; i++) {
+              await UpBookModel.findByIdAndUpdate(bok.ub_ids[i], {
                 confirmed: true,
               });
             }
-            book.status = 1;
-            await book.save();
-          } else {
-            for (let i = 0; i < book.ub_ids.length; i++) {
-              await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
+            if (bok.email) {
+              sendEmail(bok);
             }
-            book.ub_ids = [];
-            book.status = 2;
-            await book.save();
+            bok.status = 1;
+            await bok.save();
+          } else {
+            for (let i = 0; i < bok.ub_ids.length; i++) {
+              await UpBookModel.findByIdAndDelete(bok.ub_ids[i]);
+            }
+            bok.ub_ids = [];
+            bok.status = 2;
+            await bok.save();
           }
           io.to(soc.id).emit("pen-success", { id });
         }

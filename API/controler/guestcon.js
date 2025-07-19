@@ -257,4 +257,5 @@ module.exports = {
   getCheckedBookings,
   changeStatus,
   uploadScreenShot,
+  decryptData,
 };

@@ -1,6 +1,8 @@
 const GuestModel = require("../models/GuestBooking");
 const UpBookModel = require("../models/UpcomingBookings");
+const { sendEmail } = require("../utils/emailService");
 const { deleteFile } = require("../utils/upload");
+const { decryptData } = require("./guestcon");
 
 const getBookings = async (req, res) => {
   try {
@@ -44,25 +46,30 @@ const updateBooking = async (req, res) => {
     res.json({ success: false, status: "no id or responce" });
   } else {
     try {
-      const book = await GuestModel.findById(data._id);
-      if (!book) {
+      const bok = await GuestModel.findById(data._id)
+        .populate("hotelId")
+        .populate("agent_Id");
+      if (!bok) {
         res.json({ success: false, status: "failed" });
       } else {
         if (data.res) {
-          for (let i = 0; i < book.ub_ids.length; i++) {
-            await UpBookModel.findByIdAndUpdate(book.ub_ids[i], {
+          for (let i = 0; i < bok.ub_ids.length; i++) {
+            await UpBookModel.findByIdAndUpdate(bok.ub_ids[i], {
               confirmed: true,
             });
           }
-          book.status = 1;
-          await book.save();
-        } else {
-          for (let i = 0; i < book.ub_ids.length; i++) {
-            await UpBookModel.findByIdAndDelete(book.ub_ids[i]);
+          if (bok.email) {
+            sendEmail(bok);
           }
-          book.ub_ids = [];
-          book.status = 2;
-          book.save();
+          bok.status = 1;
+          await bok.save();
+        } else {
+          for (let i = 0; i < bok.ub_ids.length; i++) {
+            await UpBookModel.findByIdAndDelete(bok.ub_ids[i]);
+          }
+          bok.ub_ids = [];
+          bok.status = 2;
+          bok.save();
         }
         res.json({ success: true, status: "success" });
       }

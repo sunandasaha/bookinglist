@@ -177,8 +177,9 @@ export default function TopBar({
   };
   useEffect(() => {
     if (typeof window === "undefined") return;
-     const hasRoomData = hosthotel?.room_cat?.length > 0 || hosthotel?.per_person_cat?.length > 0;
-    if (!hasRoomData) return; 
+    const hasRoomData =
+      hosthotel?.room_cat?.length > 0 || hosthotel?.per_person_cat?.length > 0;
+    if (!hasRoomData) return;
     if (!localStorage.getItem("tour_completed")) {
       const timer = setTimeout(() => {
         console.log("Starting TopBar tour");
@@ -188,13 +189,13 @@ export default function TopBar({
     }
   }, []);
   useEffect(() => {
-  const hasRoomData =
-    hosthotel?.room_cat?.length > 0 || hosthotel?.per_person_cat?.length > 0;
+    const hasRoomData =
+      hosthotel?.room_cat?.length > 0 || hosthotel?.per_person_cat?.length > 0;
 
-  if (hosthotel && !hasRoomData) {
-    setShowNoRoomModal(true);
-  }
-}, [hosthotel]);
+    if (hosthotel && !hasRoomData) {
+      setShowNoRoomModal(true);
+    }
+  }, [hosthotel]);
   useEffect(() => {
     if (socket) {
       socket.on("new-booking", (bok) => {
@@ -411,7 +412,10 @@ export default function TopBar({
             title="Notifications"
           />
           {pending && pending.length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            <span
+              onClick={() => setShowNot((prev) => !prev)}
+              className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+            >
               {pending.length}
             </span>
           )}
@@ -485,9 +489,11 @@ export default function TopBar({
                     <div className="text-sm text-gray-700 truncate">
                       Rooms: {bk.rooms.join(", ")}
                     </div>
-                    <div className="text-sm text-gray-700">
-                      agent_com: {bk.agentCut || 0}
-                    </div>
+                    {bk.agentCut && (
+                      <div className="text-sm text-gray-700">
+                        agent_com: {bk.agentCut}
+                      </div>
+                    )}
                     {bk.advance_ss ? (
                       <div className="mt-2">
                         <img
@@ -540,24 +546,25 @@ export default function TopBar({
         </>
       )}
       {showNoRoomModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-lg text-center">
-                <h2 className="text-xl font-semibold mb-4">🎉 Hello! Host</h2>
-                        <p className="mb-4">
-                          Before you can start using the calendar, you need to add your <strong>rooms and pricing</strong> details.
-                        </p>
-                <button
-                  onClick={() => {
-                      setShowRoomsPricing(true);
-                      setShowNoRoomModal(false);
-                    }}
-                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Room Details
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-lg text-center">
+            <h2 className="text-xl font-semibold mb-4">🎉 Hello! Host</h2>
+            <p className="mb-4">
+              Before you can start using the calendar, you need to add your{" "}
+              <strong>rooms and pricing</strong> details.
+            </p>
+            <button
+              onClick={() => {
+                setShowRoomsPricing(true);
+                setShowNoRoomModal(false);
+              }}
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Room Details
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
