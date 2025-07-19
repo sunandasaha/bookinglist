@@ -128,7 +128,7 @@ export default function RoomInfoPopup({ roomName }) {
       <div className="text-xs text-gray-700 space-y-1.5">
         <div className="flex justify-between">
           <span>
-            <strong>Capacity:</strong>
+            <strong>Room Capacity:</strong>
           </span>
           <span>{roomData.capacity} persons</span>
         </div>
