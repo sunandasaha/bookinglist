@@ -12,7 +12,7 @@ const categoryroute = require("./routes/categoryroute");
 const agentroute = require("./routes/agentroute");
 const socetHandler = require("./sockets");
 const { setio } = require("./sockets/global");
-const { testCron } = require("./cron/daily_checkin");
+const { dailyCheckin } = require("./cron/daily_checkin");
 mongoose.connect(process.env.API_URIS);
 
 const hid = new Map();
@@ -38,7 +38,7 @@ app.use("/guestbooking", guestRoute);
 app.use("/category", categoryroute);
 
 //cron
-app.get("/cron", testCron);
+app.get("/cron", dailyCheckin);
 
 //socket
 socetHandler(io, hid);
