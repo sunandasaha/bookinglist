@@ -15,6 +15,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
 
   const token = user?.token;
   const hotelId = hosthotel?._id;
+  const pay_per = hosthotel?.pay_per;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -425,9 +426,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     }
   };
   const handleScreenshotPayment = async (file) => {
-    alert(
-      `Screenshot sent successfully. Booking done. Your booking ID is ${bookingId}`
+     alert(
+      ` ✅ Screenshot received.🎉 Booking done!
+        🆔 ID: ${bookingId}
+        📧 You'll get an email once the hotel confirms.`
     );
+
 
     const fd = new FormData();
     fd.append("bid", bookingId);
@@ -577,7 +581,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   value={formData.age_0_5 === 0 ? "" : formData.age_0_5} 
                   onWheel={(e) => e.target.blur()}
                   onChange={handleChange}
-                  placeholder="Free"
+                  placeholder={pay_per?.person ? "Free" : ""}
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -591,7 +595,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   onWheel={(e) => e.target.blur()}
                   value={formData.age_6_10 === 0 ? "" : formData.age_6_10} 
                   onChange={handleChange}
-                  placeholder="half cost"
+                  placeholder={pay_per?.person ? "Half Cost" : ""}
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -678,51 +682,48 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                 💸 Proceed to Payment
               </button>
             )}
-
             {showInstructions && !showQR && (
-              <PopEffect cb={() => setShowInstructions(false)}>
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md space-y-4 mt-4">
-                  <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
-                  <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
-                    <li>
-                      You have <strong>5 minutes</strong> to complete the
-                      payment.
-                    </li>
-                    <li>
-                      <strong>download the QR code</strong> to your gallery and
-                      scan it in any UPI app.
-                    </li>
-                    <li>
-                      Another option <strong>copy the UPI ID and amount</strong>{" "}
-                      and pay manually.
-                    </li>
-                    <li>
-                      After payment, <strong>upload the screenshot</strong>{" "}
-                      immediately.
-                    </li>
-                    <li>
-                      If the screenshot is not uploaded within time,{" "}
-                      <span className="text-red-600 font-semibold">
-                        your booking will be cancelled.
-                      </span>
-                    </li>
-                  </ul>
+                <PopEffect cb={() => setShowInstructions(false)}>
+                  <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md space-y-4 mt-4">
+                    <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
+                    <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
+                      <li>
+                        You have <strong>5 minutes</strong> to complete the booking.
+                      </li>
+                      <li>
+                        <strong>Scan the QR code</strong> using any UPI app on your phone.
+                      </li>
+                      <li>
+                        If the advance is <strong>less than ₹2000</strong>, you can take a screenshot and scan it from your gallery. 
+                        For amounts above ₹2000, please scan directly from another phone.
+                      </li>
+                      <li>
+                        After making the payment, <strong>upload the screenshot immediately</strong>.
+                      </li>
+                      <li>
+                        If the screenshot is not uploaded within 5 minutes,{" "}
+                        <span className="text-red-600 font-semibold">your booking will be cancelled.</span>
+                      </li>
+                      <li>
+                        The advance amount goes directly to the host’s account. 
+                        You can confirm with the host after booking.
+                      </li>
+                    </ul>
 
-                  <div className="text-center">
-                    <button
-                      onClick={() => {
-                        setShowInstructions(false);
-                        handlePayment();
-                      }}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-                    >
-                      OK, Show Payment Options
-                    </button>
+                    <div className="text-center">
+                      <button
+                        onClick={() => {
+                          setShowInstructions(false);
+                          handlePayment();
+                        }}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                      >
+                        OK, Show Payment Options
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </PopEffect>
-            )}
-
+                </PopEffect>
+              )}
             {showQR && (
               <PopEffect cb={() => setShowQR(false)}>
                 <div className="space-y-4 mt-4 text-center text-black">
@@ -739,75 +740,12 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                     ) : (
                       <p>
                         📱 Scan QR from another phone.
-                        <br />
-                        Copy UPI ID and amount in your desired app.
                       </p>
                     )}
                   </div>
                   <div className="flex justify-center">
                     <div id="qr-container" className="bg-white p-2 rounded">
                       <QRCodeCanvas value={upiLink} size={180} />
-                    </div>
-                  </div>
-                  <button
-                    className="bg-blue-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-                    onClick={() => {
-                      const canvas = document.querySelector(
-                        "#qr-container canvas"
-                      );
-                      const url = canvas.toDataURL("image/png");
-                      const link = document.createElement("a");
-                      link.href = url;
-                      link.download = "upi_qr_code.png";
-                      link.click();
-                    }}
-                  >
-                    ⬇️ Download QR
-                  </button>
-                  <div className="text-left max-w-sm mx-auto space-y-1">
-                    <span>UPI ID:</span>
-                    <div className="relative inline-block">
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(upiId);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 1500);
-                        }}
-                        className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-blue-300"
-                      >
-                        Copy
-                      </button>
-
-                      {copied && (
-                        <span className="absolute left-full top-1/2 ml-2 transform -translate-y-1/2 text-green-600 text-xs font-semibold">
-                          Copied!
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-mono">{upiId} </p>
-                    <div className="flex mt-4">
-                      <p className="font-mono">
-                        <span>Amount:</span> ₹{advanceAmount}
-                      </p>
-                      <div className="relative inline-block ml-2">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              advanceAmount.toString()
-                            );
-                            setCopiedAmount(true);
-                            setTimeout(() => setCopiedAmount(false), 1500);
-                          }}
-                          className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-blue-300"
-                        >
-                          Copy
-                        </button>
-                        {copiedAmount && (
-                          <span className="absolute left-full top-1/2 ml-2 transform -translate-y-1/2 text-green-600 text-xs font-semibold">
-                            Copied!
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
                   {!screenshot && countdown > 0 ? (

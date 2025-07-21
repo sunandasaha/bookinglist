@@ -8,10 +8,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
   if (!booking) return null;
   const { user, hosthotel } = useContext(Context);
   const [isEditing, setIsEditing] = useState(false);
-
   const token = user?.token;
   const hotelId = hosthotel?._id;
-
+  const pay_per = hosthotel?.pay_per;
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -405,7 +404,7 @@ useEffect(() => {
                   onWheel={(e) => e.target.blur()}
                   value={formData.age_0_5 === 0 ? "" : formData.age_0_5} 
                   onChange={handleChange}
-                  placeholder="Free"
+                  placeholder={pay_per?.person ? "Free" : ""}
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -419,7 +418,7 @@ useEffect(() => {
                   value={formData.age_6_10 === 0 ? "" : formData.age_6_10} 
                   onChange={handleChange}
                   onWheel={(e) => e.target.blur()}
-                  placeholder="half"
+                  placeholder={pay_per?.person ? "Half Cost" : ""}
                   className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>

@@ -7,6 +7,7 @@ import {
   endOfMonth,
   eachDayOfInterval,
   startOfDay,
+  addDays,
 } from "date-fns";
 import {
   CalendarDays,
@@ -339,7 +340,6 @@ export default function TopBar({
                 <div key={d}>{d}</div>
               ))}
             </div>
-
             <div className="grid grid-cols-7 text-center gap-y-2 text-sm text-black">
               {Array.from({
                 length: new Date(
@@ -481,7 +481,7 @@ export default function TopBar({
                     <div className="font-semibold truncate">{bk.name}</div>
                     <div className="text-sm text-gray-700">
                       📅 {format(new Date(bk.fromDate), "dd MMM")} →{" "}
-                      {format(new Date(bk.toDate), "dd MMM")}
+                      {format(new Date(addDays(bk.toDate, 1)), "dd MMM")}
                     </div>
                     <div className="text-sm text-gray-700">
                       💬 {bk.whatsapp}
