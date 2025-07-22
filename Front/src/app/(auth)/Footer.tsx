@@ -1,37 +1,73 @@
 import React from "react";
-import { Phone, Mail, Globe, MapPin } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  Youtube,
+} from "lucide-react";
+import Image from "next/image";
 
 const Footer = () => {
   return (
-    <div>
-      <footer className="bg-gray-200 text-white px-6 py-8 mt-10">
-        <h2 className="text-lg font-semibold text-center mb-4 text-black">
-          Contact Us
-        </h2>
-        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-6 text-sm text-black">
-          <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-yellow-400" />
-            <span>9832252849</span>
-            <br />
-            <Mail className="w-4 h-4 text-yellow-400" />
-            <span>bookinglist.in@gmail.com</span>
+    <footer className="bg-white text-blue-800 border-t pt-10 pb-6 px-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 text-sm">
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <Image
+              src="/svgs/logo.png"
+              alt="BookingList Logo"
+              width={50}
+              height={50}
+              className="rounded-full"
+            />
+            <span className="text-xl font-bold text-blue-600">
+              BookingList
+            </span>
           </div>
-          <div className="flex items-center gap-3">
-            <Globe className="w-4 h-4 text-yellow-400" />
-            <a
-              href="https://www.bookinglist.in"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline text-black-700"
-            >
-              www.bookinglist.in
+          <p className="text-black mb-4">
+            Helping hosts and agents to simplify booking management with smart, secure, and stress-free tools.
+          </p>
+          <div className="flex gap-4">
+            <a href="https://facebook.com" target="_blank" rel="noreferrer">
+              <Facebook className="w-5 h-5 hover:text-blue-600" />
             </a>
-            <MapPin className="w-4 h-4 text-yellow-400" />
-            <span>Visit us at Siliguri</span>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer">
+              <Instagram className="w-5 h-5 hover:text-pink-600" />
+            </a>
+            <a href="https://youtube.com" target="_blank" rel="noreferrer">
+              <Youtube className="w-5 h-5 hover:text-red-600" />
+            </a>
           </div>
         </div>
-      </footer>
-    </div>
+        <div>
+          <h4 className="font-semibold text-blue-700 mb-3">Company</h4>
+          <ul className="space-y-2 text-gray-700">
+            <li><a href="/about_us" className=" text-black hover:text-blue-600">About Us</a></li>
+            <li><a href="/contact_us" className="text-black hover:text-blue-600">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-semibold text-blue-700 mb-3">Legal</h4>
+          <ul className="space-y-2 text-gray-700">
+            <li><a href="/terms" className="text-black hover:text-blue-600">Terms & Conditions</a></li>
+            <li><a href="/privacy" className="text-black hover:text-blue-600">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-semibold text-blue-700 mb-3">Get in Touch</h4>
+          <ul className="space-y-2 text-gray-700 ">
+            <li className="text-black hover:text-blue-600">Need any help?</li>
+            <li className="text-black">📞 9832252849</li>
+            <li className="text-black hover:text-blue-600">Need live support?</li>
+            <li className="text-black">📧bookinglist.in@gmail.com</li>
+            <li className="text-black hover:text-blue-600">Visit Us</li>
+            <li className="text-black">📍 Siliguri, West Bengal</li>
+          </ul>
+        </div>
+      </div>
+      <div className="mt-10 text-center text-xs text-gray-500 border-t pt-4">
+        © {new Date().getFullYear()} BookingList — All rights reserved.
+      </div>
+    </footer>
   );
 };
 

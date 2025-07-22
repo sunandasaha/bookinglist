@@ -627,23 +627,19 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                       You have <strong>5 minutes</strong> to complete the booking.
                     </li>
                     <li>
-                      <strong>Scan the QR code</strong> using any UPI app on your phone.
+                      <strong>Scan the QR code</strong> from phone in any UPI app.
                     </li>
                     <li>
-                      If the advance is <strong>below ₹2000</strong>,  take a screenshot and scan from  gallery. 
-                      For amount above ₹2000, use another phone to scan QR.
-                    </li>
-                    <li>
-                      After making the payment, <strong>upload the screenshot immediately</strong>.
+                      After  payment, <strong>upload the screenshot immediately</strong>.
                     </li>
                     <li>
                       If the screenshot is not uploaded within 5 minutes,{" "}
                       <span className="text-red-600 font-semibold">your booking will be cancelled.</span>
                     </li>
                     <li>
-                      The advance amount goes directly to the <strong>host’s account</strong>. 
-                      You can <strong>confirm with the host</strong> after booking.
+                      Advance goes to hotel, you’ll<strong>get email </strong> once they accept.
                     </li>
+
                   </ul>
 
                   <div className="text-center">

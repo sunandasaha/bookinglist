@@ -5,11 +5,14 @@ import { Trash2, Plus, X, Edit, Save } from "lucide-react";
 import { putReq, site, delReq, imgurl } from "../../_utils/request";
 
 const facilityOptions = [
+  "Kanchanjunga view",
   "Geyser",
   "TV",
   "WiFi",
   "Breakfast",
-  "Food",
+  "Lunch",
+  "Snacks",
+  "Dinner",
   "Room service",
   "Balcony",
 ];
