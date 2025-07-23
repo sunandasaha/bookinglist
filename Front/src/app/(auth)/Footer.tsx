@@ -19,7 +19,7 @@ const Footer = () => {
               height={50}
               className="rounded-full"
             />
-            <span className="text-xl font-bold text-blue-600">
+            <span className="text-xl font-bold text-blue-900">
               BookingList
             </span>
           </div>
@@ -39,21 +39,21 @@ const Footer = () => {
           </div>
         </div>
         <div>
-          <h4 className="font-semibold text-blue-700 mb-3">Company</h4>
+          <h4 className="font-semibold text-blue-900 mb-3">Company</h4>
           <ul className="space-y-2 text-gray-700">
             <li><a href="/about_us" className=" text-black hover:text-blue-600">About Us</a></li>
             <li><a href="/contact_us" className="text-black hover:text-blue-600">Contact</a></li>
           </ul>
         </div>
         <div>
-          <h4 className="font-semibold text-blue-700 mb-3">Legal</h4>
+          <h4 className="font-semibold text-blue-900 mb-3">Legal</h4>
           <ul className="space-y-2 text-gray-700">
             <li><a href="/terms" className="text-black hover:text-blue-600">Terms & Conditions</a></li>
             <li><a href="/privacy" className="text-black hover:text-blue-600">Privacy Policy</a></li>
           </ul>
         </div>
         <div>
-          <h4 className="font-semibold text-blue-700 mb-3">Get in Touch</h4>
+          <h4 className="font-semibold text-blue-900 mb-3">Get in Touch</h4>
           <ul className="space-y-2 text-gray-700 ">
             <li className="text-black hover:text-blue-600">Need any help?</li>
             <li className="text-black">📞 9832252849</li>

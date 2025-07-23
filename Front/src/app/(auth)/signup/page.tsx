@@ -125,7 +125,7 @@ const Signup = () => {
       </div>
 
       <button
-        className="w-full max-w-md bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition"
+        className="w-full max-w-md bg-blue-900 text-white py-3 rounded-full hover:bg-blue-600 transition"
         onClick={signup}
         disabled={disable}
       >

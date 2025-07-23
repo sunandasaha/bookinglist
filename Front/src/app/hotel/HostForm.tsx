@@ -1,137 +1,139 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { hostHotel } from "../_components/ContextProvider";
-import {ArrowLeft} from "lucide-react";
-
+import {ArrowLeft,Building2,MapPin,User,IndianRupee,Phone, MessageCircle, BedDouble,UserRound,Users,} from "lucide-react";
 type props = {
   info: hostHotel;
   setInfo: React.Dispatch<React.SetStateAction<hostHotel>>;
 };
-
 const HostForm = ({ info, setInfo }: props) => {
   const navigate = useRouter();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.id === "hname")
-      setInfo((p) => ({ ...p, name: e.target.value }));
-    if (e.target.id === "hloc")
-      setInfo((p) => ({ ...p, location: e.target.value }));
-     if (e.target.id === "hacc")
-      setInfo((p) => ({ ...p, accountName: e.target.value }));
-    if (e.target.id === "hupi")
-      setInfo((p) => ({ ...p, upi_id: e.target.value }));
-    if (e.target.id === "hph1") setInfo((p) => ({ ...p, ph1: e.target.value }));
-    if (e.target.id === "hph2") setInfo((p) => ({ ...p, ph2: e.target.value }));
-    if (e.target.id === "hnr")
-      setInfo((p) => ({ ...p, rooms: Number(e.target.value) }));
+    const val = e.target.value;
+    switch (e.target.id) {
+      case "hname": setInfo(p => ({ ...p, name: val })); break;
+      case "hloc": setInfo(p => ({ ...p, location: val })); break;
+      case "hacc": setInfo(p => ({ ...p, accountName: val })); break;
+      case "hupi": setInfo(p => ({ ...p, upi_id: val })); break;
+      case "hph1": setInfo(p => ({ ...p, ph1: val })); break;
+      case "hph2": setInfo(p => ({ ...p, ph2: val })); break;
+      case "hnr": setInfo(p => ({ ...p, rooms: Number(val) })); break;
+    }
   };
-
   const handleRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value === "person";
     setInfo((p) => ({ ...p, pay_per: { person: val, room: !val } }));
   };
-
   return (
-    <div className="p-5">
-      <button
-        onClick={() => navigate.back()}
-        className="mb-4 flex items-center gap-2 text-black-600 hover:text-indigo-800"
-      >
-        <ArrowLeft size={24} />
-      </button>
-      <div className="grid2">
-        <label htmlFor="hname"> Name : </label>
-        <input
-          type="text"
-          className="pinput"
-          name="name"
-          id="hname"
-          value={info.name}
-          placeholder="Name"
-          onChange={handleChange}
-        />
-        <label htmlFor="hloc"> Location : </label>
-        <input
-          type="text"
-          className="pinput"
-          name="Location"
-          value={info.location}
-          id="hloc"
-          placeholder="Location"
-          onChange={handleChange}
-        />
-        <label htmlFor="haccount"> AccountName : </label>
-        <input
-          type="text"
-          name="accountName"
-          className="pinput"
-          value={info.accountName || ""}
-          id="hacc"
-          placeholder="AccountName"
-          onChange={handleChange}
-        />
-        <label htmlFor="hupi"> UPI ID : </label>
-        <input
-          type="text"
-          name="UPI"
-          className="pinput"
-          value={info.upi_id}
-          id="hupi"
-          placeholder="UPI ID"
-          onChange={handleChange}
-        />
-        <label htmlFor="hph1"> Whatsapp Number : </label>
-        <input
-          type="number"
-          name="ph1"
-          className="pinput"
-          value={info.ph1}
-          id="hph1"
-          placeholder="whatsapp number"
-          onChange={handleChange}
-        />
-        <label htmlFor="hph2">2nd phone Number :</label>
-        <input
-          type="number"
-          name="ph2"
-          value={info.ph2 || ""}
-          id="hph2"
-          className="pinput"
-          placeholder="Secondary phone"
-          onChange={handleChange}
-        />
-        <label htmlFor="hnr">Number of rooms :</label>
-        <input
-          type="number"
-          name="hnr"
-          value={info.rooms}
-          className="pinput"
-          id="hnr"
-          placeholder="Number of rooms"
-          onChange={handleChange}
-        />
-        <label htmlFor="">Pay per</label>
-        <div className="px-10">
-          <div className="inline">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+      <div className="w-full max-w-lg bg-white p-6 md:p-10 rounded-2xl shadow-lg">
+        <button
+          onClick={() => navigate.back()}
+          className="mb-6 flex items-center gap-2 text-black hover:text-indigo-800 transition"
+        >
+          <ArrowLeft size={22} /> 
+        </button>
+        <div className="space-y-5">
+          <div className="flex items-center gap-3">
+            <Building2 className="text-indigo-900" />
             <input
-              type="radio"
-              name="pp"
-              id="ppp"
-              checked={info.pay_per.person}
-              value="person"
-              onChange={handleRChange}
+              id="hname"
+              type="text"
+              placeholder="Hotel Name"
+              value={info.name}
+              onChange={handleChange}
+              className="flex-1 pinput"
             />
-            <label htmlFor="ppp">Person</label>
           </div>
-          <div className="inline">
+          <div className="flex items-center gap-3">
+            <MapPin className="text-indigo-900" />
             <input
-              type="radio"
-              name="pp"
-              id="ppr"
-              value="room"
-              checked={info.pay_per.room}
-              onChange={handleRChange}
+              id="hloc"
+              type="text"
+              placeholder="Location"
+              value={info.location}
+              onChange={handleChange}
+              className="flex-1 pinput"
             />
-            <label htmlFor="ppr">Room</label>
+          </div>
+          <div className="flex items-center gap-3">
+            <User className="text-indigo-900" />
+            <input
+              id="hacc"
+              type="text"
+              placeholder="Account Holder Name"
+              value={info.accountName}
+              onChange={handleChange}
+              className="flex-1 pinput"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <IndianRupee className="text-indigo-900" />
+            <input
+              id="hupi"
+              type="text"
+              placeholder="UPI ID"
+              value={info.upi_id}
+              onChange={handleChange}
+              className="flex-1 pinput"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <MessageCircle className="text-indigo-900" />
+            <input
+              id="hph1"
+              type="number"
+              placeholder="WhatsApp Number"
+              value={info.ph1}
+              onChange={handleChange}
+              className="flex-1 pinput"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <Phone className="text-indigo-900" />
+            <input
+              id="hph2"
+              type="number"
+              placeholder="Second Phone (optional)"
+              value={info.ph2 || ""}
+              onChange={handleChange}
+              className="flex-1 pinput"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <BedDouble className="text-indigo-900" />
+            <input
+              id="hnr"
+              type="number"
+              placeholder="Number of Rooms"
+              value={info.rooms===0? "" : info.rooms}
+              onChange={handleChange}
+              className="flex-1 pinput"
+            />
+          </div>
+          <div className="flex items-center justify-start gap-6 mt-4 px-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="pp"
+                value="person"
+                checked={info.pay_per.person}
+                onChange={handleRChange}
+                className="accent-indigo-600"
+              />
+              <UserRound className="text-indigo-900" size={18} /> Per Person
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="pp"
+                value="room"
+                checked={info.pay_per.room}
+                onChange={handleRChange}
+                className="accent-indigo-600"
+              />
+              <Users className="text-indigo-900" size={18} /> Per Room
+            </label>
           </div>
         </div>
       </div>

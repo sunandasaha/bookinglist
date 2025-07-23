@@ -231,80 +231,12 @@ export default function TopBar({
   return (
     <div className="w-full px-6 py-4 flex items-center justify-between bg-white shadow-md z-50 relative">
       <div className="flex items-center gap-4">
-        <MoreVertical
-          onClick={toggleSideMenu}
-          className=" side-menu-btn text-gray-700 hover:text-black cursor-pointer"
-          size={24}
-          title="Menu"
-        />
         <img
           src="/svgs/logo.png"
           alt="BookingList"
           className="h-10 w-auto object-contain"
         />
       </div>
-
-      {showSideMenu && (
-        <div className="absolute left-0 top-16 w-64 bg-white shadow-xl rounded-r-lg border-t border-r border-b border-gray-200 z-50">
-          <div className="p-4 space-y-2">
-            <button
-              onClick={openProfile}
-              className="flex items-center gap-3 w-full p-2 hover:bg-gray-100 rounded-lg text-left text-black"
-            >
-              <User size={18} className="text-blue-600" />
-              <span>Profile</span>
-            </button>
-            <button
-              onClick={() => {
-                navigate.push("/calendar/checkin");
-              }}
-              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
-            >
-              <CalendarCheck size={18} className="text-green-600" />
-              <span>Check In</span>
-            </button>
-            <button
-              onClick={() => {
-                navigate.push("/calendar/checkout");
-              }}
-              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
-            >
-              <CalendarX size={18} className="text-red-600" />
-              <span>Check Out</span>
-            </button>
-            <button
-              onClick={() => navigate.push("/calendar/tb")}
-              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
-            >
-              <Bed size={18} className="text-indigo-600" />
-              <span>Today's booking</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setShowRoomsPricing(true);
-                setShowSideMenu(false);
-              }}
-              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
-            >
-              <Home size={18} className="text-purple-600" />
-              <span>Rooms & Pricing</span>
-            </button>
-            <button
-              onClick={() => {
-                setUser(null);
-                setHosthotel(null);
-                localStorage.removeItem("tok");
-                navigate.push("/login");
-              }}
-              className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-red-600"
-            >
-              <LogOut size={18} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      )}
       <div className="relative">
         <button
           onClick={toggleCalendar}
@@ -420,8 +352,74 @@ export default function TopBar({
             </span>
           )}
         </div>
-      </div>
+        <MoreVertical
+          onClick={toggleSideMenu}
+          className=" side-menu-btn text-gray-700 hover:text-black cursor-pointer"
+          size={24}
+          title="Menu"
+        />
+        {showSideMenu && (
+            <div className="absolute right-0 top-16 w-64 bg-white shadow-xl rounded-r-lg border-t border-r border-b border-gray-200 z-50">
+              <div className="p-4 space-y-2">
+                <button
+                  onClick={openProfile}
+                  className="flex items-center gap-3 w-full p-2 hover:bg-gray-100 rounded-lg text-left text-black"
+                >
+                  <User size={18} className="text-blue-600" />
+                  <span>Profile</span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigate.push("/calendar/checkin");
+                  }}
+                  className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+                >
+                  <CalendarCheck size={18} className="text-green-600" />
+                  <span>Check In</span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigate.push("/calendar/checkout");
+                  }}
+                  className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+                >
+                  <CalendarX size={18} className="text-red-600" />
+                  <span>Check Out</span>
+                </button>
+                <button
+                  onClick={() => navigate.push("/calendar/tb")}
+                  className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+                >
+                  <Bed size={18} className="text-indigo-600" />
+                  <span>Today's booking</span>
+                </button>
 
+                <button
+                  onClick={() => {
+                    setShowRoomsPricing(true);
+                    setShowSideMenu(false);
+                  }}
+                  className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-black"
+                >
+                  <Home size={18} className="text-purple-600" />
+                  <span>Rooms & Pricing</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setUser(null);
+                    setHosthotel(null);
+                    localStorage.removeItem("tok");
+                    navigate.push("/login");
+                  }}
+                  className="flex items-center gap-3 w-full p-2 hover:bg-blue-100 rounded-lg text-left text-red-600"
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          )}
+      </div>
       {showProfile && (
         <ProfileModal
           profile={hosthotel}

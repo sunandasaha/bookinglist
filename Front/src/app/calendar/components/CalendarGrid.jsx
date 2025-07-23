@@ -348,8 +348,8 @@ useImperativeHandle(ref, () => ({
       ref={containerRef}
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
-        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-600 text-white font-semibold">
-          <div className="p-2 border-r sticky left-0 bg-blue-600">
+        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-900 text-white font-semibold">
+          <div className="p-2 border-r sticky left-0 bg-blue-900">
             Room / Date
           </div>
           {dates.map((date, i) => (
@@ -359,8 +359,8 @@ useImperativeHandle(ref, () => ({
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-green-100 text-sm text-gray-800 font-medium">
-          <div className="p-2 border-r sticky left-0 bg-gray-100">
+        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-100 text-sm text-gray-800 font-medium">
+          <div className="p-2 border-r sticky left-0 bg-blue-100">
             Availability
           </div>
           {dates.map((date, i) => {
@@ -387,7 +387,7 @@ useImperativeHandle(ref, () => ({
             const free = totalAvailableRooms - bookedCount;
 
             return (
-              <div key={i} className="p-2 bg-green-100 text-center border-r">
+              <div key={i} className="p-2 bg-blue-100 text-center border-r">
                 {free} available
               </div>
             );

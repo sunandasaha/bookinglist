@@ -51,7 +51,7 @@ const Landing = () => {
               alt="BookingList"
               className="h-12 w-auto object-contain"
             />
-            <h1 className="text-xl font-bold text-gray-800">Booking List</h1>
+            <h1 className="text-xl font-bold text-blue-900">Booking List</h1>
           </div>
 
           {/* Desktop Nav */}
@@ -146,7 +146,7 @@ const Landing = () => {
             <div className="land-btns">
               <button
                 onClick={() => router.push("/login")}
-                className="px-7 py-2 bg-blue-600 text-white border border-blue-600 rounded-full hover:bg-blue-500 transition"
+                className="px-7 py-2 bg-blue-900 text-white border border-blue-600 rounded-full hover:bg-blue-600 transition"
               >
                 Login
               </button>
@@ -166,7 +166,7 @@ const Landing = () => {
         ref={featuresRef}
         className="feture-con bg-white py-12 px-6 text-center"
       >
-        <h2 className="text-2xl font-bold mb-6 text-blue-600">
+        <h2 className="text-2xl font-bold mb-6 text-blue-900">
           Platform Features
         </h2>
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto text-left">
@@ -240,7 +240,7 @@ const Landing = () => {
       </section>
       {/* About Us Section */}
       <section ref={aboutRef} className="bg-blue-50 py-12 px-6 text-center">
-        <h2 className="text-2xl font-bold mb-4 text-blue-700">About Us</h2>
+        <h2 className="text-2xl font-bold mb-4 text-blue-900">About Us</h2>
         <p className="max-w-3xl mx-auto text-gray-800 text-sm sm:text-base leading-relaxed">
           At <strong>Booking List</strong>, we help property owners and agents
           to manage room bookings without the chaos. Whether it's a cozy
@@ -256,7 +256,7 @@ const Landing = () => {
         <div className="mt-6">
           <a
             href="/about_us"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base px-6 py-2 rounded-full transition-colors duration-200"
+            className="inline-block bg-blue-900 hover:bg-blue-600 text-white font-semibold text-sm sm:text-base px-6 py-2 rounded-full transition-colors duration-200"
           >
             Learn More →
           </a>
