@@ -53,6 +53,8 @@ export default function Home() {
             } else {
               navigate.push("/agent");
             }
+          } else {
+            navigate.push("/landing");
           }
         } else {
           navigate.push("/landing");

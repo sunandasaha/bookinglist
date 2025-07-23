@@ -8,7 +8,7 @@ type props = {
 
 const Fadeup = (props: props) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-250px 0px" });
+  const isInView = useInView(ref, { once: true, margin: "-150px 0px" });
 
   return (
     <div className="fu" ref={ref}>

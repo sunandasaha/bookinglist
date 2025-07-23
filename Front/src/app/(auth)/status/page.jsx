@@ -1,11 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 
 const Page = () => {
   const navigate = useRouter();
+
+  useEffect(() => {
+    localStorage.removeItem("tok");
+  }, []);
 
   const handleClose = () => {
     if (window.confirm("Do you want to close this tab?")) {
