@@ -2,7 +2,8 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays } from "date-fns";
 import clsx from "clsx";
-import { User, Plus, } from "lucide-react";
+import { User,Users, Plus,BedDouble,Phone,Wallet, CalendarCheck,CalendarX,IndianRupee,UserRound,CalendarPlus,
+  CalendarMinus,BadgeCheck, } from "lucide-react";
 import GuestBookingForm from "./GuestBookingForm";
 import { forwardRef, useImperativeHandle } from "react";
 import { putReq, site } from "../../_utils/request";
@@ -460,7 +461,7 @@ useImperativeHandle(ref, () => ({
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                    )}
                   >
-                    <Plus sixe ={30} />
+                    <Plus size ={30} />
                   </button>
             </div>
           )}
@@ -488,146 +489,167 @@ useImperativeHandle(ref, () => ({
         </div>
       )}
       {fetchedBooking && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 relative max-w-md w-full">
-            <button
-              onClick={() => setFetchedBooking(null)}
-              className="absolute top-2 right-3 text-red-500 font-bold text-xl"
-            >
-              ×
-            </button>
-            <h2 className="text-xl font-semibold mb-2 text-green-500">
-              Booking Details
-            </h2>
-            <div>
-              <strong className="text-blue-500">BID:</strong>{" "}
-              {fetchedBooking._id}
-            </div>
-            <div>
-              <strong className="text-blue-500">Name:</strong>{" "}
-              {fetchedBooking.name}
-            </div>
-            <div>
-              <strong className="text-blue-500">Phone:</strong>{" "}
-              {fetchedBooking.phone}
-            </div>
-            <div>
-              <strong className="text-blue-500">Room(s):</strong>{" "}
-              {fetchedBooking.rooms?.join(", ")}
-            </div>
-            <div>
-              <strong className="text-blue-500">Checkin:</strong>{" "}
-              {format(new Date(fetchedBooking.fromDate), "dd MMM yyyy")}
-            </div>
-            <div>
-              <strong className="text-blue-500">Checkout:</strong>{" "}
-              {format(
-                addDays(new Date(fetchedBooking.toDate), 1),
-                "dd MMM yyyy"
-              )}
-            </div>
-            <div>
-              <strong className="text-blue-500">Adults:</strong>{" "}
-              {fetchedBooking.adults},{" "}
-              <strong className="text-blue-500">Children:</strong>{" "}
-              {fetchedBooking.children}
-            </div>
-            <div>
-              <strong className="text-blue-500">Total:</strong> ₹
-              {fetchedBooking.totalPrice}
-            </div>
-            <div>
-              <strong className="text-blue-500">Advance:</strong> ₹
-              {fetchedBooking.advanceAmount}
-            </div>
-              {fetchedBooking.agentCut != null && (
-                  <div>
-                    <strong className="text-blue-500">Agent Pay:</strong> ₹
-                    {fetchedBooking.totalPrice - fetchedBooking.agentCut}
-                  </div>
-                )}
-            <div>
-              <strong className="text-blue-500">Balance:</strong> ₹
-              { (fetchedBooking.totalPrice - (fetchedBooking.agentCut || 0) ) - fetchedBooking.advanceAmount }
-            </div>
-            {fetchedBooking.agent_Id && (
-              <>
-                <div className="border-t border-black-200 ">
-                  <strong className="text-black-500">👤Agent:</strong>{" "}
-                  {fetchedBooking.agent_Id.name}
-                </div>
-                <div>
-                  <strong className="text-black-500">🏢Agency:</strong>{" "}
-                  {fetchedBooking.agent_Id.agency}
-                </div>
-                <div>
-                  <strong className="text-black-500"> 📍Location:</strong>{" "}
-                  {fetchedBooking.agent_Id.location}
-                </div>
-                <div>
-                  <strong className="text-black-500"> 💬whatsapp:</strong>{" "}
-                  {fetchedBooking.agent_Id.ph1}
-                </div>
-                <div>
-                  <strong className="text-black-500"> 💰Commission:</strong> ₹
-                  {fetchedBooking.agentCut.toFixed(2)}
-                </div>
-              </>
-            )}
-            {(fetchedBooking.status === 1 || fetchedBooking.status === 4) && (
-              <div className="mt-4 flex justify-center gap-3">
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={() => {
-                    console.log("Reschedule clicked", fetchedBooking._id);
-                    setShowRescheduleModal(true);
-                  }}
-                >
-                  Reschedule
-                </button>
-                <button
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                  onClick={async () => {
-                    if (
-                      confirm(
-                        `Are you sure you want to cancel booking ID ${fetchedBooking._id}?`
-                      )
-                    ) {
-                      console.log("Cancel confirmed", fetchedBooking._id);
-                      const res = await putReq(
-                        "guestbooking/status",
-                        {
-                          id: fetchedBooking._id,
-                          can: true,
-                        },
-                        user.token
-                      );
-                      console.log(res);
+  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl shadow-lg p-6 relative max-w-md w-full text-sm">
+      <button
+        onClick={() => setFetchedBooking(null)}
+        className="absolute top-2 right-3 text-red-500 font-bold text-xl"
+      >
+        ×
+      </button>
 
-                      if (res.success) {
-                        setPending((p) => [...p]);
-                        setFetchedBooking(null);
-                      }
-                    }
-                  }}
-                >
-                  Cancel Booking
-                </button>
-              </div>
-            )}
+      <h2 className="text-xl text-center font-semibold mb-4 text-blue-900">
+        Booking Details
+      </h2>
 
-            {showRescheduleModal && fetchedBooking && (
-              <RescheduleModal
-                booking={fetchedBooking}
-                onClose={() => {
-                  setShowRescheduleModal(false);
-                  setFetchedBooking(null);
-                }}
-              />
-            )}
-          </div>
+      <div className="space-y-2 text-black">
+        <div className="flex items-center gap-2">
+          <CalendarCheck size={16} className="text-green-800" />
+          <span className="font-semibold text-blue-900">BID:</span>
+          <span className="text-slate-800">{fetchedBooking._id}</span>
         </div>
+
+        <div className="flex items-center gap-2">
+          <UserRound size={16} className="text-blue-900" />
+          <span className="font-semibold text-blue-900">Name:</span>
+          <span className="text-slate-800">{fetchedBooking.name}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Phone size={16} className="text-green-900" />
+          <span className="font-semibold text-blue-900">Phone:</span>
+          <span className="text-slate-800">{fetchedBooking.phone}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <BedDouble size={16} className="text-blue-900" />
+          <span className="font-semibold text-blue-900">Room(s):</span>
+          <span className="text-slate-800">{fetchedBooking.rooms?.join(", ")}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <CalendarPlus size={16} className="text-green-900" />
+          <span className="font-semibold text-blue-900">Check-in:</span>
+          <span className="text-slate-800">
+            {format(new Date(fetchedBooking.fromDate), "dd MMM yyyy")}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <CalendarMinus size={16} className="text-blue-900" />
+          <span className="font-semibold text-blue-900">Check-out:</span>
+          <span className="text-slate-800">
+            {format(addDays(new Date(fetchedBooking.toDate), 1), "dd MMM yyyy")}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Users size={16} className="text-green-900" />
+          <span className="font-semibold text-blue-900">Adults:</span>
+          <span className="text-slate-800">{fetchedBooking.adults}</span>
+          <span className="font-semibold text-blue-900">Children:</span>
+          <span className="text-slate-800">{fetchedBooking.children}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <IndianRupee size={16} className="text-blue-900" />
+          <span className="font-semibold text-blue-900">Total:</span>
+          <span className="text-slate-800">₹{fetchedBooking.totalPrice}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Wallet size={16} className="text-green-900" />
+          <span className="font-semibold text-blue-900">Advance:</span>
+          <span className="text-slate-800">₹{fetchedBooking.advanceAmount}</span>
+        </div>
+
+        {fetchedBooking.agentCut != null && (
+          <>
+            <div className="flex items-center gap-2">
+              <BadgeCheck size={16} className="text-blue-900" />
+              <span className="font-semibold text-blue-900">Agent Pay:</span>
+              <span className="text-slate-800">
+                ₹{fetchedBooking.totalPrice - fetchedBooking.agentCut}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Wallet size={16} className="text-blue-900" />
+              <span className="font-semibold text-blue-900">Balance:</span>
+              <span className="text-slate-800">
+                ₹
+                {(fetchedBooking.totalPrice - fetchedBooking.agentCut) -
+                  fetchedBooking.advanceAmount}
+              </span>
+            </div>
+          </>
+        )}
+        {fetchedBooking.agent_Id && (
+          <div className="pt-3 border-t border-gray-200 space-y-1">
+            <div>
+              <span className="font-semibold text-blue-900">👤 Agent:</span>{" "}
+              <span className="text-slate-800">{fetchedBooking.agent_Id.name}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-blue-900">🏢 Agency:</span>{" "}
+              <span className="text-slate-800">{fetchedBooking.agent_Id.agency}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-blue-900">📍 Location:</span>{" "}
+              <span className="text-slate-800">{fetchedBooking.agent_Id.location}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-blue-900">💬 WhatsApp:</span>{" "}
+              <span className="text-slate-800">{fetchedBooking.agent_Id.ph1}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-blue-900">💰 Commission:</span>{" "}
+              <span className="text-slate-800">₹{fetchedBooking.agentCut.toFixed(2)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 flex justify-center gap-3">
+        <button
+          className="bg-blue-900 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition"
+          onClick={() => setShowRescheduleModal(true)}
+        >
+          Reschedule
+        </button>
+        <button
+          className="bg-red-900 text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
+          onClick={async () => {
+            if (confirm(`Are you sure you want to cancel booking ID ${fetchedBooking._id}?`)) {
+              const res = await putReq(
+                "guestbooking/status",
+                { id: fetchedBooking._id, can: true },
+                user.token
+              );
+              if (res.success) {
+                setPending((p) => [...p]);
+                setFetchedBooking(null);
+              }
+            }
+          }}
+        >
+          Cancel Booking
+        </button>
+      </div>
+
+      {showRescheduleModal && (
+        <RescheduleModal
+          booking={fetchedBooking}
+          onClose={() => {
+            setShowRescheduleModal(false);
+            setFetchedBooking(null);
+          }}
+        />
       )}
+    </div>
+  </div>
+)}
+
     </div>
  );
 });

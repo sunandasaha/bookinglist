@@ -1,16 +1,23 @@
 "use client";
 
-import React from "react";
-import { X } from "lucide-react";
+import React, { useState } from "react";
+import {X,Copy,Building2,MapPin,Phone,MessageSquare,UserCircle,IndianRupee,BedDouble,Globe,Mail,} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProfileModal({ profile, onClose }) {
   if (!profile) return null;
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    if (profile.url) {
+      const site = "https://www.bookinglist.in/";
+      const Url = site + profile.url;
+      navigator.clipboard.writeText(Url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  };
 
-  const roomsCount =
-    profile.rooms ||
-    profile.room_cat?.flatMap((cat) => cat.room_no).length ||
-    profile.per_person_cat?.flatMap((cat) => cat.roomNumbers).length ||
-    "N/A";
+  const navigate = useRouter();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 px-4">
@@ -23,31 +30,42 @@ export default function ProfileModal({ profile, onClose }) {
           <X size={22} />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6 text-center text-black">
+        <h2 className="text-2xl font-bold mb-6 text-center text-blue-900">
           🏨 Hotel Profile
         </h2>
+
         <div className="space-y-3 text-sm text-black">
-          <ProfileRow label="🏨 Property Name" value={profile.name} />
-          <ProfileRow label="📍 Location" value={profile.location} />
-          <ProfileRow label="📞 Phone" value={profile.ph2} />
-          <ProfileRow label="💬 WhatsApp" value={profile.ph1} />
-          <ProfileRow label="🛏️ Rooms" value={roomsCount} />
-          <ProfileRow label="AccountName" value={profile.accountName} />
+          <ProfileRow icon={<Building2 size={16} />} label="Property Name" value={profile.name} />
+          <ProfileRow icon={<MapPin size={16} />} label="Location" value={profile.location} />
+          <ProfileRow icon={<Phone size={16} />} label="Phone" value={profile.ph1} />
+          <ProfileRow icon={<MessageSquare size={16} />} label="WhatsApp" value={profile.ph2} />
+          <ProfileRow icon={<UserCircle size={16} />} label="Account Name" value={profile.accountName} />
+          <ProfileRow icon={<BedDouble size={16} />} label="Rooms" value={profile.rooms} />
+        </div>
+
+        <div className="inline p-5 justify-center flex gap-4">
+          <button
+            className="bg-blue-900 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300"
+            onClick={() => navigate.push("/hotel")}
+          >
+            Edit
+          </button>
         </div>
       </div>
     </div>
   );
 }
-
-function ProfileRow({ label, value }) {
+function ProfileRow({ icon, label, value }) {
   return (
     <div className="flex justify-between items-start gap-4 border-b pb-2">
-      <span className="font-medium text-gray-700 whitespace-nowrap">
-        {label}:
+      <span className="flex items-center gap-2 whitespace-nowrap">
+        <span className="text-blue-900">{icon}</span> 
+        <span className="text-black-900 font-medium">{label}:</span> 
       </span>
-      <span className="text-blue-600 font-semibold text-right break-words max-w-[60%]">
+      <span className="text-slate-800 font-semibold text-right break-words max-w-[60%]">
         {value || "N/A"}
       </span>
     </div>
   );
 }
+

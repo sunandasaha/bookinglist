@@ -7,25 +7,7 @@ import GuestBookingForm from "./GuestBookingForm";
 import { site } from "../../../_utils/request";
 import { Context } from "../../../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
-import "intro.js/introjs.css";
-const waitForElement = (selector, timeout = 3000) =>
-  new Promise((resolve) => {
-    const interval = setInterval(() => {
-      if (document.querySelector(selector)) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 100);
-    setTimeout(() => clearInterval(interval), timeout);
-  });
-const waitForEvent = (eventName) =>
-  new Promise((resolve) => {
-    const handler = () => {
-      document.removeEventListener(eventName, handler);
-      resolve();
-    };
-    document.addEventListener(eventName, handler);
-  });
+
 export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -33,8 +15,10 @@ export default function CalendarGrid({ startDate }) {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [hasBookedCellsInSelection, setHasBookedCellsInSelection] = useState(false);
+
   const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
+
   const getBookings = async () => {
     try {
       const res = await fetch(site + "guestbooking/bookings", {
@@ -44,8 +28,10 @@ export default function CalendarGrid({ startDate }) {
           "Content-Type": "application/json",
         },
       });
+
       const data = await res.json();
       const bookingsData = Array.isArray(data) ? data : data?.bookings || [];
+
       setBookings(
         bookingsData.map((b) => ({
           ...b,
@@ -83,6 +69,7 @@ export default function CalendarGrid({ startDate }) {
     }
     return [];
   }, [hosthotel]);
+
   useEffect(() => {
     if (startDate) {
       const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
@@ -103,13 +90,15 @@ export default function CalendarGrid({ startDate }) {
       return cellDate >= fromDate && cellDate <= toDate;
     });
   };
-  const toggleCell = (r, d) => {
+ const toggleCell = (r, d) => {
   const roomName = rooms[r]?.name;
   const date = dates[d];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
   const cellDate = new Date(date);
   cellDate.setHours(0, 0, 0, 0);
+
   if (cellDate < today) {
     alert("Invalid date selection");
     return;
@@ -150,7 +139,6 @@ export default function CalendarGrid({ startDate }) {
     setHasBookedCellsInSelection(anyBooked);
     return next;
   });
-  document.dispatchEvent(new Event("cellTapped"));
 };
 const selectedCells = tappedCells;
 const isSelected = (r, d) =>
@@ -183,105 +171,13 @@ const handleBookClick = () => {
       to: format(dates[toIdx], "yyyy-MM-dd"),
       roomNames,
     });
-     document.dispatchEvent(new Event("bookingStarted"));
 };
-  const handleBookingSave = async () => {
+const handleBookingSave = async () => {
     setSelectedBooking(null);
-    setTappedCells([]);
+    setTappedCells([]); 
     await getBookings(); 
   };
-   const tourStarted = useRef(false);
-const startCalendarTour = async () => {
-  if (tourStarted.current) return;
-  tourStarted.current = true;
-  const introJs = (await import("intro.js")).default;
-  await waitForElement(".room-column .sticky.left-0");
-  const introRoom = introJs();
-  introRoom.setOptions({
-    steps: [
-      {
-        element: ".room-column .sticky.left-0",
-        intro: "Tap on Room name to view room info.",
-        position: "right",
-      },
-    ],
-    showButtons: true,
-    exitOnOverlayClick: false,
-    exitOnEsc: false,
-  });
-  await new Promise((resolve) => {
-    introRoom.oncomplete(resolve);
-    introRoom.onexit(resolve);
-    introRoom.start();
-  });
-  await waitForElement(".grid-cell");
-  const cellTour = introJs();
-  cellTour.setOptions({
-    steps: [
-      {
-        element: ".grid-cell:not(.bg-gray-300)",
-        intro: "📅 Tap on available dates to begin booking.",
-        position: "bottom",
-        disableInteraction: false,
-      },
-    ],
-    showButtons: false,
-    exitOnOverlayClick: false,
-    exitOnEsc: false,
-  });
 
-  cellTour.start();
-  await waitForEvent("cellTapped");
-  cellTour.exit();
-  await waitForElement("button.Book");
-  const bookBtn = document.querySelector("button.Book");
-  if (!bookBtn) return;
-
-  const bookTour = introJs();
-  bookTour.setOptions({
-    steps: [
-      {
-        element: bookBtn,
-        intro: `
-          you can click <strong>Book</strong> to open the guest form and complete the booking.`,
-        position: "top",
-        disableInteraction: false,
-        highlightClass: "click-through",
-      },
-      {
-        intro: `
-          🎉 <strong>Hurray! You're done with the steps.</strong><br/>
-          You can now manage bookings using any Hotel URL.`,
-      },
-    ],
-    showButtons: true,
-    exitOnOverlayClick: false,
-    exitOnEsc: false,
-    showStepNumbers: false,
-  });
-  bookTour.oncomplete(() => {
-  setTappedCells([]);          
-});
-
-bookTour.onexit(() => {
-  setTappedCells([]);         
-});
-
-
-  bookTour.start();
-};
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    const shouldStartTour = localStorage.getItem("calendar_grid_tour") === "true";
-    const alreadySeenTour = localStorage.getItem("has_seen_calendar_tour") === "true";
-
-    if (shouldStartTour && !alreadySeenTour) {
-      startCalendarTour();
-      localStorage.setItem("has_seen_calendar_tour", "true"); 
-    }
-    localStorage.removeItem("calendar_grid_tour");
-  }
-}, []);
   return (
     <div
       className="relative overflow-x-auto w-full bg-white"
@@ -293,7 +189,7 @@ useEffect(() => {
             Tap Room <br />
             for info 👇 
         </div>
-          {dates.map((date, i) => (
+          {dates.map((date, i) => ( 
             <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
               <div>{format(date, "dd MMM")}</div>
@@ -301,7 +197,8 @@ useEffect(() => {
           ))}
         </div>
         <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-100 text-sm text-gray-800 font-medium">
-          <div className="p-2 border-r sticky left-0 bg-blue-100">Availability</div>
+
+          <div className="p-2 border-r sticky left-0 bg-blue-100">Availabile</div>
             {dates.map((date, i) => {
               const dateStart = new Date(date).setHours(0, 0, 0, 0);
               let bookedCount = 0;
@@ -332,24 +229,29 @@ useEffect(() => {
             );
           })}
         </div>
-
         {rooms.map((room, rIdx) => (
           <div
             key={room.name}
-            className="grid grid-cols-[120px_repeat(7,70px)] border-t grid-row room-column"
+            className="grid border-t grid-row grid-cols-[120px_repeat(7,70px)]"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
               onClick={() => setSelectedRoomName(room.name)}
             >
               <div className = " flex  items-center text-blue-800  gap-1 font-bold text-l">Room {room.name}: <span className="flex items-center text-black">
-                <User size={13} className="mr-0.5" />{room.capacity}</span></div>
-                  <div className="text-xs text-gray-500">
-                    ₹
-                    {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
-                       room.capacity === 1 ? `${room.price.one} /person`: room.capacity === 2 ? `${room.price.two} /person`
-                        : room.capacity === 3 ? `${room.price.three} / person`: `${room.price.four} / person`) : (`${room.price?.rate} / room`
-                     )}
+                      <User size={13} className="mr-0.5" />
+                      {room.capacity}
+                    </span></div>
+              <div className="text-xs text-gray-500">
+                ₹
+               {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
+                  room.capacity === 1 ? `${room.price.one} /person`
+                  : room.capacity === 2 ? `${room.price.two} /person`
+                  : room.capacity === 3 ? `${room.price.three} / person`
+                  : `${room.price.four} / person`
+                ) : (
+                  `${room.price?.rate} / room`
+                )}
               </div>
             </div>
 
@@ -360,12 +262,12 @@ useEffect(() => {
                 <div
                   key={dIdx}
                   className={clsx(
-                    "border-r border-b p-2 text-xs flex justify-center items-center grid-cell",
+                    "border-r border-b px-1 py-2 text-[12px] flex justify-center items-center grid-cell",
                     selected && "bg-blue-300",
                     booking && "bg-green-500 text-white  cursor-not-allowed",
-                    !booking && !selected && "hover:bg-blue-100"
-                  )}
-                  onClick={() => toggleCell(rIdx, dIdx)}
+                    !booking && !selected && "hover:bg-blue-100",
+                   )}
+                   onClick={() => toggleCell(rIdx, dIdx)}
                   data-room={rIdx}
                   data-date={dIdx}
                 >
@@ -381,7 +283,7 @@ useEffect(() => {
             })}
           </div>
         ))}
-         {selectedCells.length > 0 && !selectedBooking && (
+        {selectedCells.length > 0 && !selectedBooking && (
             <div className="fixed bottom-6 right-6  z-50">
                 <button
                   onClick={handleBookClick}
@@ -419,4 +321,4 @@ useEffect(() => {
       )}
     </div>
   );
-}
+} 
