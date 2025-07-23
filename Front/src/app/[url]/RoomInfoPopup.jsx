@@ -56,13 +56,12 @@ export default function RoomInfoPopup({ roomName }) {
 
   return (
     <div className="p-3 w-full max-w-[95vw] mx-auto bg-white rounded-xl shadow-lg space-y-3">
-      <div className="text-lg font-bold text-gray-800 truncate">
+      <div className="text-lg font-bold text-blue-900 truncate">
         Room :{roomName}
       </div>
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-black-900">
         Category: <span className="font-medium">{roomData.category}</span>
       </div>
-
       {/* Swiper Carousel with Navigation Arrows */}
       <div className="relative rounded-lg overflow-hidden">
         <Swiper
@@ -200,11 +199,11 @@ export default function RoomInfoPopup({ roomName }) {
         {roomData.amenities?.length > 0 && (
           <div>
             <div className="font-bold mb-1">Amenities:</div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 ">
               {roomData.amenities.map((a, i) => (
                 <span
                   key={i}
-                  className="bg-gray-100 px-2 py-0.5 rounded-full text-xs"
+                  className="bg-gray-100  px-2 py-0.5 rounded-full text-xs"
                 >
                   {a}
                 </span>

@@ -2,6 +2,7 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
+import { User, Plus, } from "lucide-react";
 import GuestBookingForm from "./GuestBookingForm";
 import { site } from "../../../_utils/request";
 import { Context } from "../../../_components/ContextProvider";
@@ -288,7 +289,10 @@ useEffect(() => {
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-900 text-white font-semibold">
-          <div className="p-2 border-r sticky left-0 bg-blue-900">Room / Date</div>
+          <div className=" text-center p-2 border-r sticky left-0 bg-blue-900  text-white text-sm sm:text-base font-medium">
+            Tap Room <br />
+            for info 👇 
+        </div>
           {dates.map((date, i) => (
             <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
@@ -323,7 +327,7 @@ useEffect(() => {
 
             return (
               <div key={i} className="p-2 bg-blue-100 text-center border-r">
-                {free} available
+                {free} 
               </div>
             );
           })}
@@ -338,17 +342,14 @@ useEffect(() => {
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
               onClick={() => setSelectedRoomName(room.name)}
             >
-              <div>Room: {room.name}</div>
-              <div className="text-xs text-gray-500">
-                 ₹
-                {room.price?.one || room.price?.two || room.price?.three || room.price?.four? (
-                  room.capacity === 1 ? `${room.price.one} / person`
-                  : room.capacity === 2 ? `${room.price.two} / person`
-                  : room.capacity === 3 ? `${room.price.three} / person`
-                  : `${room.price.four} per person`
-                ) : (
-                  `${room.price?.rate} per room`
-                )}
+              <div className = " flex  items-center text-blue-800  gap-1 font-bold text-l">Room {room.name}: <span className="flex items-center text-black">
+                <User size={13} className="mr-0.5" />{room.capacity}</span></div>
+                  <div className="text-xs text-gray-500">
+                    ₹
+                    {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
+                       room.capacity === 1 ? `${room.price.one} /person`: room.capacity === 2 ? `${room.price.two} /person`
+                        : room.capacity === 3 ? `${room.price.three} / person`: `${room.price.four} / person`) : (`${room.price?.rate} / room`
+                     )}
               </div>
             </div>
 
@@ -380,18 +381,18 @@ useEffect(() => {
             })}
           </div>
         ))}
-        {selectedCells.length > 0 && !selectedBooking && (
-            <div className="fixed bottom-6 left-0 w-full flex justify-center z-50">
+         {selectedCells.length > 0 && !selectedBooking && (
+            <div className="fixed bottom-6 right-6  z-50">
                 <button
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
                   className={clsx("Book w-15 h-15 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                    )}
-                >
-                Book
-                </button>
-              </div>
+                  >
+                    <Plus sixe ={30} />
+                  </button>
+            </div>
           )}
       </div>
 

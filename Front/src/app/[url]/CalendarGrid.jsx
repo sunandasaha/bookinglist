@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
-import {Users, Plus} from "lucide-react";
+import { User, Plus, } from "lucide-react";
 import GuestBookingForm from "./GuestBookingForm";
 import { site } from "../_utils/request";
 import { Context } from "../_components/ContextProvider";
@@ -185,8 +185,11 @@ const handleBookingSave = async () => {
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
         <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-900 text-white font-semibold">
-          <div className="p-2 border-r sticky left-0 bg-blue-900 animate-pulse backdrop-blur-sm text-center text-l"> Tap room for info 👇</div>
-          {dates.map((date, i) => (
+          <div className=" text-center p-2 border-r sticky left-0 bg-blue-900  text-white text-sm sm:text-base font-medium">
+            Tap Room <br />
+            for info 👇 
+        </div>
+          {dates.map((date, i) => ( 
             <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
               <div>{format(date, "dd MMM")}</div>
@@ -195,7 +198,7 @@ const handleBookingSave = async () => {
         </div>
         <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-100 text-sm text-gray-800 font-medium">
 
-          <div className="p-2 border-r sticky left-0 bg-blue-100">Availability</div>
+          <div className="p-2 border-r sticky left-0 bg-blue-100">Availabile</div>
             {dates.map((date, i) => {
               const dateStart = new Date(date).setHours(0, 0, 0, 0);
               let bookedCount = 0;
@@ -221,7 +224,7 @@ const handleBookingSave = async () => {
 
             return (
               <div key={i} className="p-2 bg-blue-100 text-center border-r">
-                {free} available
+                {free} 
               </div>
             );
           })}
@@ -235,11 +238,10 @@ const handleBookingSave = async () => {
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
               onClick={() => setSelectedRoomName(room.name)}
             >
-              <div className = " text-blue-900 font-bold text-l">Room: {room.name}</div>
-             <div className="flex items-center gap-1 text-xs text-gray-500">
-                <Users size={13} />
-                {room.capacity}
-              </div>
+              <div className = " flex  items-center text-blue-800  gap-1 font-bold text-l">Room {room.name}: <span className="flex items-center text-black">
+                      <User size={13} className="mr-0.5" />
+                      {room.capacity}
+                    </span></div>
               <div className="text-xs text-gray-500">
                 ₹
                {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
