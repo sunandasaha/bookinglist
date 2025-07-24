@@ -1,6 +1,5 @@
-"use client";
-
 import { agent } from "../_components/ContextProvider";
+import { Building2, MapPin, User, IndianRupee, MessageCircle, Phone } from "lucide-react";
 
 type props = {
   info: agent;
@@ -22,66 +21,70 @@ const AgentForm = ({ info, setInfo }: props) => {
   };
 
   return (
-    <div className="p-5">
-      <div className="grid2">
-        <label htmlFor="hname"> Name : </label>
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        <User className="text-indigo-900" />
         <input
           type="text"
-          className="pinput"
-          name="name"
+          className="flex-1 pinput"
           id="hname"
           value={info.name}
           placeholder="Name"
           onChange={handleChange}
         />
-        <label htmlFor="hnr">Agency name :</label>
+      </div>
+      <div className="flex items-center gap-3">
+        <Building2 className="text-indigo-900" />
         <input
           type="text"
-          name=""
-          value={info.agency}
-          className="pinput"
+          className="flex-1 pinput"
           id="hagency"
-          placeholder="Agency name"
+          value={info.agency}
+          placeholder="Agency Name"
           onChange={handleChange}
         />
-        <label htmlFor="hloc"> Location : </label>
+      </div>
+      <div className="flex items-center gap-3">
+        <MapPin className="text-indigo-900" />
         <input
           type="text"
-          className="pinput"
-          name="Location"
-          value={info.location}
+          className="flex-1 pinput"
           id="hloc"
+          value={info.location}
           placeholder="Location"
           onChange={handleChange}
         />
-        <label htmlFor="hupi"> UPI ID : </label>
+      </div>
+      <div className="flex items-center gap-3">
+        <IndianRupee className="text-indigo-900" />
         <input
           type="text"
-          name="UPI"
-          className="pinput"
-          value={info.upi_id}
+          className="flex-1 pinput"
           id="hupi"
+          value={info.upi_id}
           placeholder="UPI ID"
           onChange={handleChange}
         />
-        <label htmlFor="hph1"> Whatsapp Number : </label>
+      </div>
+      <div className="flex items-center gap-3">
+        <MessageCircle className="text-indigo-900" />
         <input
           type="number"
-          name="ph1"
-          className="pinput"
-          value={info.ph1}
+          className="flex-1 pinput"
           id="hph1"
-          placeholder="whatsapp number"
+          value={info.ph1}
+          placeholder="WhatsApp Number"
           onChange={handleChange}
         />
-        <label htmlFor="hph2">2nd phone Number :</label>
+      </div>
+      <div className="flex items-center gap-3">
+        <Phone className="text-indigo-900" />
         <input
           type="number"
-          name="ph2"
-          value={info.ph2 || ""}
+          className="flex-1 pinput"
           id="hph2"
-          className="pinput"
-          placeholder="Secondary phone"
+          value={info.ph2 || ""}
+          placeholder="Second Phone Number"
           onChange={handleChange}
         />
       </div>

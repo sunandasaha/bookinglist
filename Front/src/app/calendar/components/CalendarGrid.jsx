@@ -168,15 +168,18 @@ const CalendarGrid = forwardRef(({ startDate, searchBID, searchTrigger }, ref) =
   const date = dates[d];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
+  const booking = getBookingForCell(roomName, date);
   const cellDate = new Date(date);
   cellDate.setHours(0, 0, 0, 0);
-
   if (cellDate < today) {
-    alert("Invalid date selection");
-    return;
+    if (!booking) {
+      alert("Invalid date selection");
+      return;
+    } else {
+      fetchBookingDetails(booking.b_ID);
+      return;
+    }
   }
-  const booking = getBookingForCell(roomName, date);
 if (booking) {
   fetchBookingDetails(booking.b_ID); 
   return;

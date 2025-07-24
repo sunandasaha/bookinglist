@@ -4,19 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { Context, hostHotel } from "../_components/ContextProvider";
 import { useRouter } from "next/navigation";
 import { postReq, putReq } from "../_utils/request";
-import {
-  ArrowLeft,
-  Building2,
-  MapPin,
-  User,
-  IndianRupee,
-  Phone,
-  MessageCircle,
-  BedDouble,
-  UserRound,
-  Users,
-} from "lucide-react";
-
+import { ArrowLeft, Building2, MapPin, User, IndianRupee, Phone, MessageCircle, BedDouble, UserRound, Users} from "lucide-react";
 const def = {
   name: "",
   location: "",
