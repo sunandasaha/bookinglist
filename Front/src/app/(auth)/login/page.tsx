@@ -80,7 +80,8 @@ const Login = () => {
             if (res.user.cred) {
               if (res.user.status === 1) {
                 if (setHosthotel) setHosthotel(res.user.cred);
-                if (res.user.pending && setPending) setPending(res.user.pending);
+                if (res.user.pending && setPending)
+                  setPending(res.user.pending);
                 navigate.push("/calendar");
               } else {
                 navigate.push("/status");
@@ -119,7 +120,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-white">
+    <div className="flex flex-col items-center justify-center min-h-screen px-8 bg-white">
       <button
         onClick={() => navigate.back()}
         className="absolute top-4 left-4 text-gray-600 hover:text-blue-800"
@@ -133,8 +134,10 @@ const Login = () => {
         className="w-full max-w-md bg-white border border-gray-300 py-3 rounded-full flex items-center justify-center gap-2 hover:shadow-md transition mb-4"
         onClick={googleLogin}
       >
-        <Image src="/svgs/logo.svg" alt="Google" width={20} height={20} />
-        <span className="text-sm text-gray-800 font-medium">Sign in with Google</span>
+        <Image src="/svgs/google.svg" alt="Google" width={20} height={20} />
+        <span className="text-sm text-gray-800 font-medium">
+          Sign in with Google
+        </span>
       </button>
 
       <div className="relative w-full max-w-md mb-4">
@@ -175,7 +178,7 @@ const Login = () => {
       <p className="text-sm text-red-600 mb-2">{prob}</p>
 
       <button
-        className="w-full max-w-md bg-blue-900 text-white py-3 rounded-full hover:bg-blue-600 transition"
+        className="w-full max-w-100px bg-blue-900 text-white py-3 rounded-full hover:bg-blue-600 transition"
         onClick={login}
         disabled={disable}
       >

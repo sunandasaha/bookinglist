@@ -175,24 +175,30 @@ const logTok = async (req, res) => {
     if (err) {
       res.json({ status: "failed" });
     } else {
-      const user = await Usermodel.findById(pl.id);
-      if (user.email) {
-        const tok = jwt.sign(
-          { id: user._id, role: user.role },
-          process.env.ACCESS_TOKEN
-        );
-        const cred = await getDet(user.role, user.sid);
-        const pending = await getPending(user?.role, user?.sid);
-        res.json({
-          status: "success",
-          user: {
-            role: user.role,
-            token: tok,
-            cred,
-            pending,
-            status: user.status,
-          },
-        });
+      try {
+        const user = await Usermodel.findById(pl.id);
+        if (user.email) {
+          const tok = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.ACCESS_TOKEN
+          );
+          const cred = await getDet(user.role, user.sid);
+          const pending = await getPending(user?.role, user?.sid);
+          res.json({
+            status: "success",
+            user: {
+              role: user.role,
+              token: tok,
+              cred,
+              pending,
+              status: user.status,
+            },
+          });
+        } else {
+          res.json({ status: "failed" });
+        }
+      } catch (error) {
+        res.json({ status: "failed" });
       }
     }
   });

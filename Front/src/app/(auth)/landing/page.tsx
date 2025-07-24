@@ -239,28 +239,37 @@ const Landing = () => {
         </div>
       </section>
       {/* About Us Section */}
-      <section ref={aboutRef} className="bg-blue-50 py-12 px-6 text-center">
-        <h2 className="text-2xl font-bold mb-4 text-blue-900">About Us</h2>
-        <p className="max-w-3xl mx-auto text-gray-800 text-sm sm:text-base leading-relaxed">
-          At <strong>Booking List</strong>, we help property owners and agents
-          to manage room bookings without the chaos. Whether it's a cozy
-          homestay, a lakeside resort, or a mountain camp our platform offers
-          everything you need: an intuitive calendar dashboard, secure UPI
-          payments, real time notification, and smart tools to simplify your
-          operations.
-          <br />
-          <br />
-          No tech skills needed. No complex setup. Just clean, efficient tools
-          to help you grow.
-        </p>
-        <div className="mt-6">
-          <a
-            href="/about_us"
-            className="inline-block bg-blue-900 hover:bg-blue-600 text-white font-semibold text-sm sm:text-base px-6 py-2 rounded-full transition-colors duration-200"
-          >
-            Learn More →
-          </a>
-        </div>
+      <section
+        ref={aboutRef}
+        className="land-abo-con bg-blue-50 py-12 px-6 text-center"
+      >
+        <Fadeup>
+          <h2 className="text-2xl font-bold mb-4 text-blue-900">About Us</h2>
+        </Fadeup>
+        <Fadeup del={2}>
+          <p className="max-w-3xl mx-auto text-gray-800 text-sm sm:text-base leading-relaxed">
+            At <strong>Booking List</strong>, we help property owners and agents
+            to manage room bookings without the chaos. Whether it's a cozy
+            homestay, a lakeside resort, or a mountain camp our platform offers
+            everything you need: an intuitive calendar dashboard, secure UPI
+            payments, real time notification, and smart tools to simplify your
+            operations.
+            <br />
+            <br />
+            No tech skills needed. No complex setup. Just clean, efficient tools
+            to help you grow.
+          </p>
+        </Fadeup>
+        <Fadeup del={4}>
+          <div className="mt-6">
+            <a
+              href="/about_us"
+              className="inline-block bg-blue-900 hover:bg-blue-600 text-white font-semibold text-sm sm:text-base px-6 py-2 rounded-full transition-colors duration-200"
+            >
+              Learn More →
+            </a>
+          </div>
+        </Fadeup>
       </section>
       {/* Footer */}
       <div ref={contactRef}>

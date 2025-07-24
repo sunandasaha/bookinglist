@@ -97,6 +97,10 @@ h1 {
   height: 100vh;
 }
 
+.land-abo-con {
+  height: 380px;
+}
+
 @media (max-width: 600px) {
   .land-con {
     flex-direction: column;

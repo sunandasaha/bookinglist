@@ -13,6 +13,7 @@ const agentroute = require("./routes/agentroute");
 const socetHandler = require("./sockets");
 const { setio } = require("./sockets/global");
 const { dailyCheckin } = require("./cron/daily_checkin");
+const helmet = require("helmet");
 mongoose.connect(process.env.API_URIS);
 
 const hid = new Map();
@@ -28,6 +29,7 @@ const io = new Server(ser, {
 app.use(cors({})); // cors allow origin
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(helmet());
 
 //routes
 app.use("/user", userroute);
