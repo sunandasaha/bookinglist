@@ -2,8 +2,9 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays } from "date-fns";
 import clsx from "clsx";
-import { User,Users, Plus,BedDouble,Phone,Wallet, CalendarCheck,CalendarX,IndianRupee,UserRound,CalendarPlus,
-  CalendarMinus,BadgeCheck, } from "lucide-react";
+import {Home, User,Users,Building2, Plus,BedDouble,Phone,Wallet,MapPin, CalendarCheck,CalendarX,IndianRupee,UserRound,CalendarPlus,
+  CalendarMinus,BadgeCheck,
+  MessageCircle, } from "lucide-react";
 import GuestBookingForm from "./GuestBookingForm";
 import { forwardRef, useImperativeHandle } from "react";
 import { putReq, site } from "../../_utils/request";
@@ -350,7 +351,7 @@ useImperativeHandle(ref, () => ({
       ref={containerRef}
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
-        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-900 text-white font-semibold">
+        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-900 text-white font-semibold">
           <div className=" text-center p-2 border-r sticky left-0 bg-blue-900  text-white text-sm sm:text-base font-medium">
             Tap Room <br />
             for info 👇 
@@ -358,13 +359,13 @@ useImperativeHandle(ref, () => ({
           {dates.map((date, i) => (
             <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
-              <div>{format(date, "dd MMM")}</div>
+              <div>{format(date, "dd ")}</div>
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-100 text-sm text-gray-800 font-medium">
+        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-100 text-sm text-gray-800 font-medium">
           <div className="p-2 border-r sticky left-0 bg-blue-100">
-            Availabile
+            Available
           </div>
           {dates.map((date, i) => {
             const dateStart = new Date(date).setHours(0, 0, 0, 0);
@@ -399,7 +400,7 @@ useImperativeHandle(ref, () => ({
         {rooms.map((room, rIdx) => (
           <div
             key={`room-${room.name}-${rIdx}`}
-            className="grid grid-cols-[120px_repeat(7,70px)] border-t grid-row room-column"
+            className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] border-t grid-row room-column"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
@@ -407,7 +408,7 @@ useImperativeHandle(ref, () => ({
                 if (!room.isDummy) setSelectedRoomName(room.name);
               }}
             >
-             <div className = " flex  items-center text-blue-800  gap-1 font-bold text-l">Room {room.name}: <span className="flex items-center text-black">
+             <div className = " flex  items-center text-blue-800  gap-1 font-bold text-l"><Home size={13} /> {room.name}: <span className="flex items-center text-black">
                       <User size={13} className="mr-0.5" />
                       {room.capacity}
                     </span></div>
@@ -562,18 +563,7 @@ useImperativeHandle(ref, () => ({
           <span className="font-semibold text-blue-900">Advance:</span>
           <span className="text-slate-800">₹{fetchedBooking.advanceAmount}</span>
         </div>
-
-        {fetchedBooking.agentCut != null && (
-          <>
-            <div className="flex items-center gap-2">
-              <BadgeCheck size={16} className="text-blue-900" />
-              <span className="font-semibold text-blue-900">Agent Pay:</span>
-              <span className="text-slate-800">
-                ₹{fetchedBooking.totalPrice - fetchedBooking.agentCut}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
               <Wallet size={16} className="text-blue-900" />
               <span className="font-semibold text-blue-900">Balance:</span>
               <span className="text-slate-800">
@@ -581,29 +571,44 @@ useImperativeHandle(ref, () => ({
                 {(fetchedBooking.totalPrice - fetchedBooking.agentCut) -
                   fetchedBooking.advanceAmount}
               </span>
+          </div>
+
+        {fetchedBooking.agentCut != null && (
+          <>
+            <div className="flex items-center gap-2">
+              <BadgeCheck size={16} className="text-green-900" />
+              <span className="font-semibold text-blue-900">Agent Pay:</span>
+              <span className="text-slate-800">
+                ₹{fetchedBooking.totalPrice - fetchedBooking.agentCut}
+              </span>
             </div>
           </>
         )}
         {fetchedBooking.agent_Id && (
           <div className="pt-3 border-t border-gray-200 space-y-1">
-            <div>
-              <span className="font-semibold text-blue-900">👤 Agent:</span>{" "}
+            <div className="flex items-center gap-2">
+              <User size={16} className="text-blue-900" />
+              <span className="font-semibold text-blue-900">Agent:</span>{" "}
               <span className="text-slate-800">{fetchedBooking.agent_Id.name}</span>
             </div>
-            <div>
-              <span className="font-semibold text-blue-900">🏢 Agency:</span>{" "}
+            <div className="flex items-center gap-2">
+              <Building2 size={16} className="text-green-900" />
+              <span className="font-semibold text-blue-900"> Agency:</span>{" "}
               <span className="text-slate-800">{fetchedBooking.agent_Id.agency}</span>
             </div>
-            <div>
-              <span className="font-semibold text-blue-900">📍 Location:</span>{" "}
+            <div className="flex items-center gap-2">
+              <MapPin size={16} className="text-blue-900" />
+              <span className="font-semibold text-blue-900">Location:</span>{" "}
               <span className="text-slate-800">{fetchedBooking.agent_Id.location}</span>
             </div>
-            <div>
-              <span className="font-semibold text-blue-900">💬 WhatsApp:</span>{" "}
+             <div className="flex items-center gap-2">
+              <MessageCircle size={16} className="text-green-900" />
+              <span className="font-semibold text-blue-900"> WhatsApp:</span>{" "}
               <span className="text-slate-800">{fetchedBooking.agent_Id.ph1}</span>
             </div>
-            <div>
-              <span className="font-semibold text-blue-900">💰 Commission:</span>{" "}
+            <div className="flex items-center gap-2">
+              <IndianRupee size={16} className="text-blue-900" />
+              <span className="font-semibold text-blue-900"> Commission:</span>{" "}
               <span className="text-slate-800">₹{fetchedBooking.agentCut.toFixed(2)}</span>
             </div>
           </div>

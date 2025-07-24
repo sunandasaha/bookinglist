@@ -360,29 +360,31 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     }
   };
   const handleScreenshotPayment = async (file) => {
+  const fd = new FormData();
+  fd.append("bid", bookingId);
+  fd.append("images", file);
+
+  const res = await fetch(site + "guestbooking/guest/ss", {
+    method: "POST",
+    body: fd,
+  });
+
+  const result = await res.json();
+
+  if (result.success) {
+    setBookingConfirmed(true);
+    onSave(result.booking);
+    setScreenshot(file); 
     alert(
-      `✅ Screenshot received.🎉 Booking done!
-        🆔 ID: ${bookingId}
-        📧 You'll get an email once the hotel confirms.`
+      `✅ Screenshot received.🎉 Booking done!\n🆔 ID: ${bookingId}\n📧 You'll get an email once the hotel confirms.`
     );
+    setShowQR(false);
+    onClose(null);
+  } else {
+    console.error("Booking error:");
+  }
+};
 
-    const fd = new FormData();
-    fd.append("bid", bookingId);
-    fd.append("images", file);
-
-    const res = await fetch(site + "guestbooking/guest/ss", {
-      method: "POST",
-      body: fd,
-    });
-
-    const result = await res.json();
-    if (result.success) {
-      setBookingConfirmed(true);
-      onSave(result.booking);
-    } else {
-      console.error("Booking error:");
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">

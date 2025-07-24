@@ -426,30 +426,30 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     }
   };
   const handleScreenshotPayment = async (file) => {
-     alert(
-      ` ✅ Screenshot received.🎉 Booking done!
-        🆔 ID: ${bookingId}
-        📧 You'll get an email once the hotel confirms.`
+  const fd = new FormData();
+  fd.append("bid", bookingId);
+  fd.append("images", file);
+
+  const res = await fetch(site + "guestbooking/guest/ss", {
+    method: "POST",
+    body: fd,
+  });
+
+  const result = await res.json();
+
+  if (result.success) {
+    setBookingConfirmed(true);
+    onSave(result.booking);
+    setScreenshot(file);
+    alert(
+      `✅ Screenshot received.🎉 Booking done!\n🆔 ID: ${bookingId}\n📧 You'll get an email once the hotel confirms.`
     );
-
-
-    const fd = new FormData();
-    fd.append("bid", bookingId);
-    fd.append("images", file);
-
-    const res = await fetch(site + "guestbooking/guest/ss", {
-      method: "POST",
-      body: fd,
-    });
-
-    const result = await res.json();
-    if (result.success) {
-      setBookingConfirmed(true);
-      onSave(result.booking);2
-    } else {
-      console.error("Booking error:");
-    }
-  };
+    setShowQR(false);
+    onClose(null);
+  } else {
+    console.error("Booking error:");
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
@@ -687,27 +687,22 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md space-y-4 mt-4">
                     <h2 className="font-bold text-lg">🕒 Payment Instructions</h2>
                     <ul className="list-decimal ml-5 space-y-1 text-sm text-black">
-                      <li>
-                        You have <strong>5 minutes</strong> to complete the booking.
-                      </li>
-                      <li>
-                        <strong>Scan the QR code</strong> using any UPI app on your phone.
-                      </li>
-                      <li>
-                        If the advance is <strong>less than ₹2000</strong>, you can take a screenshot and scan it from your gallery. 
-                        For amounts above ₹2000, please scan directly from another phone.
-                      </li>
-                      <li>
-                        After making the payment, <strong>upload the screenshot immediately</strong>.
-                      </li>
-                      <li>
-                        If the screenshot is not uploaded within 5 minutes,{" "}
-                        <span className="text-red-600 font-semibold">your booking will be cancelled.</span>
-                      </li>
-                      <li>
-                        The advance amount goes directly to the host’s account. 
-                        You can confirm with the host after booking.
-                      </li>
+                       <li>
+                      You have <strong>5 minutes</strong> to complete the booking.
+                    </li>
+                    <li>
+                      <strong>Scan the QR code</strong> from phone in any UPI app.
+                    </li>
+                    <li>
+                      After  payment, <strong>upload the screenshot immediately</strong>.
+                    </li>
+                    <li>
+                      If the screenshot is not uploaded within 5 minutes,{" "}
+                      <span className="text-red-600 font-semibold">your booking will be cancelled.</span>
+                    </li>
+                    <li>
+                      Advance goes to hotel, you’ll<strong>get email </strong> once they accept.
+                    </li>
                     </ul>
 
                     <div className="text-center">

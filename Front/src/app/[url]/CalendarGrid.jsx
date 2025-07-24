@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
-import { User, Plus, } from "lucide-react";
+import {Home,  User, Plus, } from "lucide-react";
 import GuestBookingForm from "./GuestBookingForm";
 import { site } from "../_utils/request";
 import { Context } from "../_components/ContextProvider";
@@ -183,8 +183,8 @@ const handleBookingSave = async () => {
       className="relative overflow-x-auto w-full bg-white"
       ref={containerRef}
     >
-      <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
-        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-900 text-white font-semibold">
+      <div className="inline-block sm:mx-auto min-w-max border rounded-xl shadow-xl select-none">
+        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-900 text-white font-semibold">
           <div className=" text-center p-2 border-r sticky left-0 bg-blue-900  text-white text-sm sm:text-base font-medium">
             Tap Room <br />
             for info 👇 
@@ -192,13 +192,13 @@ const handleBookingSave = async () => {
           {dates.map((date, i) => ( 
             <div key={i} className="p-2 text-center border-r">
               <div>{format(date, "EEE")}</div>
-              <div>{format(date, "dd MMM")}</div>
+              <div>{format(date, "dd")}</div>
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[120px_repeat(7,70px)] bg-blue-100 text-sm text-gray-800 font-medium">
+        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-100 text-sm text-gray-800 font-medium">
 
-          <div className="p-2 border-r sticky left-0 bg-blue-100">Availabile</div>
+          <div className="p-2 border-r sticky left-0 bg-blue-100">Available</div>
             {dates.map((date, i) => {
               const dateStart = new Date(date).setHours(0, 0, 0, 0);
               let bookedCount = 0;
@@ -232,13 +232,13 @@ const handleBookingSave = async () => {
         {rooms.map((room, rIdx) => (
           <div
             key={room.name}
-            className="grid border-t grid-row grid-cols-[120px_repeat(7,70px)]"
+            className="grid border-t grid-row grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] justify-center"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
               onClick={() => setSelectedRoomName(room.name)}
             >
-              <div className = " flex  items-center text-blue-800  gap-1 font-bold text-l">Room {room.name}: <span className="flex items-center text-black">
+                <div className = " flex  items-center text-blue-800  gap-1 font-bold text-l"><Home size={13} /> {room.name}: <span className="flex items-center text-black">
                       <User size={13} className="mr-0.5" />
                       {room.capacity}
                     </span></div>

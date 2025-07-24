@@ -54,7 +54,7 @@ export default function RescheduleModal({ booking, onClose }) {
           ×
         </button>
 
-        <h2 className="text-xl font-semibold mb-4 text-blue-600">
+        <h2 className="text-xl font-semibold mb-4 text-blue-900">
           Reschedule Booking
         </h2>
         <div className="space-y-2 text-sm mb-4">
@@ -93,7 +93,7 @@ export default function RescheduleModal({ booking, onClose }) {
           ) : (
             <div className="flex justify-center gap-4">
               <button
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+                className="bg-yellow-600 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition duration-300"
                 onClick={async () => {
                   console.log("Hold action");
                   const res = await putReq(
@@ -113,7 +113,7 @@ export default function RescheduleModal({ booking, onClose }) {
                 Reschedule Later
               </button>
               <button
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                className="bg-green-900 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition duration-300"
                 onClick={() => setShowForm(true)}
               >
                 Reschedule Now
@@ -147,14 +147,14 @@ export default function RescheduleModal({ booking, onClose }) {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                className="bg-gray-300 px-4 py-2 rounded-full hover:bg-blue-400"
                 onClick={() => setShowForm(false)}
               >
                 Back
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="bg-blue-900 text-white px-4 py-2 rounded-full hover:bg-blue-600"
                 onClick={(e) => {
                   e.preventDefault();
                   reschedule();
