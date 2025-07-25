@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format, addDays } from "date-fns";
-import { X } from "lucide-react";
+import { X, Baby, User,Upload, Camera } from "lucide-react";
 import { postReq, site } from "../../../_utils/request";
 import { useContext, useMemo } from "react";
 import { QRCodeCanvas } from "qrcode.react";
@@ -426,6 +426,11 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     }
   };
   const handleScreenshotPayment = async (file) => {
+    alert(
+      `✅ Screenshot received.🎉 Booking done!\n🆔 ID: ${bookingId}\n📧 You'll get an email once the hotel confirms.`
+    );
+    setShowQR(false);
+    onClose(null);
   const fd = new FormData();
   fd.append("bid", bookingId);
   fd.append("images", file);
@@ -441,11 +446,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     setBookingConfirmed(true);
     onSave(result.booking);
     setScreenshot(file);
-    alert(
-      `✅ Screenshot received.🎉 Booking done!\n🆔 ID: ${bookingId}\n📧 You'll get an email once the hotel confirms.`
-    );
-    setShowQR(false);
-    onClose(null);
   } else {
     console.error("Booking error:");
   }
@@ -455,231 +455,212 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4 pt-20">
       <div className="bg-white rounded-lg p-6 w-full max-w-sm max-h-[85vh] overflow-auto mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-green-600">
+          <h3 className="text-xl font-bold text-blue-900">
             {bookingConfirmed ? "Booking Confirmed" : "Guest Booking"}
           </h3>
           <button onClick={() => onClose(null)} aria-label="Close modal">
-            <X size={24} style={{ color: "red" }} />
+            <X size={24} className = "text-gray-500 hover:text-black" />
           </button>
         </div>
 
         {(!submitted || isEditing) && (
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-6 flex flex-col items-center"
-          >
-            <div className="bg-gray-100 p-3 rounded text-black w-full text-left">
-              <p>
-                <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
-                <strong>Checkout:</strong>{" "}
-                {format(addDays(booking.to, 1), "MMM dd")}
-              </p>
-              <p>
-                <strong>Rooms:</strong> {booking.roomNames.join(", ")}
-              </p>
-            </div>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="*👤Guest Name"
-              required
-              className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
-
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder="* 🏠Address"
-              required
-              className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
-
-            <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder=" 📞Phone Number(optional)"
-                className={`w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 ${
-                  errors.phone
-                    ? "border-red-500 ring-red-500"
-                    : "focus:ring-blue-500"
-                }`}
-              />
-              <input
-                type="tel"
-                name="whatsapp"
-                value={formData.whatsapp}
-                onChange={handleChange}
-                placeholder="* 💬WhatsApp Number"
-                required
-                className={`w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 ${
-                  errors.whatsapp
-                    ? "border-red-500 ring-red-500"
-                    : "focus:ring-blue-500"
-                }`}
-              />
-            </div>
-
-            {(errors.phone || errors.whatsapp) && (
-              <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
-                {errors.phone && <p>📞 {errors.phone}</p>}
-                {errors.whatsapp && <p>💬 {errors.whatsapp}</p>}
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
-              <div>
-                <label className="text-sm text-gray-600 ml-1">👨 Adults</label>
-                <input
-                  type="number"
-                  name="adults"
-                  value={formData.adults}
-                  onChange={handleChange}
-                  onWheel={(e) => e.target.blur()}
-                  placeholder=" * Adults"
-                  required
-                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-               {errors.max && (
-                    <div className="text-red-600 text-sm mt-2">
-                      {errors.max}
-                    </div>
-                  )}
-              <div>
-                <label className="text-sm text-gray-600 ml-1">
-                  👶 Children
-                </label>
-                <input
-                  type="number"
-                  name="children"
-                  onWheel={(e) => e.target.blur()}
-                  value={formData.children}
-                  onChange={handleChange}
-                  placeholder="Children"
-                  required
-                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              {errors.child && (
-                <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
-                  <p>{errors.child}</p>
+              <form onSubmit={handleSubmit} className="space-y-6 flex flex-col items-center">
+                <div className="bg-blue-100 p-3 rounded text-black w-full text-left text-sm">
+                  <p>
+                    <strong className="text-blue-900">Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
+                    <strong  className="text-blue-900">Checkout:</strong> {format(addDays(booking.to, 1), "MMM dd")}
+                  </p>
+                  <p>
+                    <strong  className="text-blue-900">Rooms:</strong> {booking.roomNames.join(", ")}
+                  </p>
                 </div>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
-              <div>
-                <label className="text-sm text-gray-600 ml-1">🧒 Age 0–5</label>
-                <input
-                  type="number"
-                  name="age_0_5"
-                  value={formData.age_0_5 === 0 ? "" : formData.age_0_5} 
-                  onWheel={(e) => e.target.blur()}
-                  onChange={handleChange}
-                  placeholder={pay_per?.person ? "Free" : ""}
-                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-600 ml-1">
-                  👦 Age 6–10
-                </label>
-                <input
-                  type="number"
-                  name="age_6_10"
-                  onWheel={(e) => e.target.blur()}
-                  value={formData.age_6_10 === 0 ? "" : formData.age_6_10} 
-                  onChange={handleChange}
-                  placeholder={pay_per?.person ? "Half Cost" : ""}
-                  className="no-spinner w-full p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
 
-            <textarea
-              readOnly
-              name="message"
-              rows={3}
-              value={formData.message}
-              onChange={handleChange}
-              required
-              className="w-full max-w-xs p-4 border rounded text-black text-lg focus:outline-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="* 👤 Guest Name"
+                  required
+                  className="w-full max-w-xs p-3 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
 
-            <button
-              type="submit"
-              className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-            >
-              Submit
-            </button>
-          </form>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="* 🏠 Address"
+                  required
+                  className="w-full max-w-xs p-3 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="* 📞 Phone "
+                    className={`p-3 border rounded-lg text-black focus:outline-none focus:ring-2 ${
+                      errors.phone ? "border-red-500 ring-red-500" : "focus:ring-blue-500"
+                    }`}
+                  />
+                  <input
+                    type="tel"
+                    name="whatsapp"
+                    value={formData.whatsapp}
+                    onChange={handleChange}
+                    placeholder="* 💬 WhatsApp"
+                    required
+                    className={`p-3 border rounded-lg text-black focus:outline-none focus:ring-2 ${
+                      errors.whatsapp ? "border-red-500 ring-red-500" : "focus:ring-blue-500"
+                    }`}
+                  />
+                </div>
+
+                {(errors.phone || errors.whatsapp) && (
+                  <div className="text-red-600 text-sm mt-1 max-w-xs w-full">
+                    {errors.phone && <p>📞 {errors.phone}</p>}
+                    {errors.whatsapp && <p>💬 {errors.whatsapp}</p>}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+                  <div>
+                    <label className="flex items-center gap-1 text-sm text-gray-600 ml-1"><span className="text-blue-900"><User size ={20} /></span> Adults</label>
+                    <input
+                      type="number"
+                      name="adults"
+                      value={formData.adults}
+                      onChange={handleChange}
+                      onWheel={(e) => e.target.blur()}
+                      placeholder="* Adults"
+                      required
+                      className="no-spinner w-full p-3 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-1 text-sm text-gray-600 ml-1"><span className="text-blue-900"><Baby size ={20} /></span>  Children</label>
+                    <input
+                      type="number"
+                      name="children"
+                      value={formData.children}
+                      onChange={handleChange}
+                      onWheel={(e) => e.target.blur()}
+                      placeholder="Children"
+                      className="no-spinner w-full p-3 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                {errors.max && <p className="text-red-600 text-sm">{errors.max}</p>}
+                {errors.child && <p className="text-red-600 text-sm">{errors.child}</p>}
+
+                <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+                  <div>
+                    <label className="flex items-center gap-1 text-sm text-gray-600 ml-1"><span className="text-blue-900"><Baby size ={20} /></span>  Age 0–5</label>
+                    <input
+                      type="number"
+                      name="age_0_5"
+                      value={formData.age_0_5 === 0 ? "" : formData.age_0_5}
+                      onChange={handleChange}
+                      placeholder={pay_per?.person ? "Free" : ""}
+                      onWheel={(e) => e.target.blur()}
+                      className="no-spinner w-full p-3 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-1  text-sm text-gray-600 ml-1"><span className="text-blue-900"><Baby size ={20} /></span>  Age 6–10</label>
+                    <input
+                      type="number"
+                      name="age_6_10"
+                      value={formData.age_6_10 === 0 ? "" : formData.age_6_10}
+                      onChange={handleChange}
+                      placeholder={pay_per?.person ? "Half Cost" : ""}
+                      onWheel={(e) => e.target.blur()}
+                      className="no-spinner w-full p-3 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <textarea
+                  readOnly
+                  name="message"
+                  rows={3}
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  className="w-full max-w-xs p-3 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <button
+                  type="submit"
+                  className="w-full max-w-md bg-blue-900 text-white py-3 rounded-full hover:bg-blue-600 transition"
+                >
+                  Submit
+                </button>
+              </form>
         )}
         {submitted && !bookingConfirmed && !isEditing && (
-          <div className="space-y-4 text-left text-black">
-            <p>
-              <strong>Name:</strong> {formData.name}
-            </p>
-              {formData.phone && (
-                  <p>
-                    <strong>Phone:</strong> {formData.phone}
-                  </p>
-                )}
-            <p>
-              <strong>whatsapp:</strong> {formData.whatsapp}
-            </p>
-            <p>
-              <strong>Adults:</strong> {formData.adults} |{" "}
-              <strong>Children:</strong> {formData.children}
-            </p>
-            <p>
-              <strong>0–5 yrs:</strong> {formData.age_0_5} |{" "}
-              <strong>6–10 yrs:</strong> {formData.age_6_10}
-            </p>
-            <p>
-              <strong>Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
-              <strong>Checkout:</strong>{" "}
-              {format(addDays(booking.to, 1), "MMM dd")}
-            </p>
-            <p>
-              <strong>Rooms:</strong> {booking.roomNames.join(", ")}
-            </p>
-            <p>
-              <strong>Message:</strong> {formData.message}
-            </p>
-            <p>
-              <strong>Total Price:</strong> ₹
-              {totalPrice ? totalPrice.toFixed(2) : 0}
-            </p>
-            <p>
-              <strong>Agent Commission:</strong> ₹
+              <div className="space-y-4 text-left text-black">
+                          <p>
+                            <strong className="text-blue-900">Name:</strong> {formData.name}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Phone:</strong> {formData.phone}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">whatsapp:</strong> {formData.whatsapp}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Email:</strong> {formData.email}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Adults:</strong> {formData.adults} |{" "}
+                            <strong className="text-blue-900">Children:</strong> {formData.children}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">0–5 yrs:</strong> {formData.age_0_5} |{" "}
+                            <strong className="text-blue-900">6–10 yrs:</strong> {formData.age_6_10}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Checkin:</strong> {format(booking.from, "MMM dd")} -{" "}
+                            <strong className="text-blue-900">Checkout:</strong>{" "}
+                            {format(addDays(booking.to, 1), "MMM dd")}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Rooms:</strong> {booking.roomNames.join(", ")}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Message:</strong> {formData.message}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Total Price:</strong> ₹
+                            {totalPrice ? totalPrice.toFixed(2) : 0}
+                          </p>
+                          <p>
+                            <strong className="text-blue-900">Advance to Pay:</strong> ₹
+                            {advanceAmount ? advanceAmount.toFixed(2) : 0}
+                          </p>
+              <p>
+              <strong className="text-blue-900">Agent Commission:</strong> ₹
               {agentCut? agentCut.toFixed(2): 0}
             </p>
             <p>
-              <strong>Agent Pay:</strong> ₹
+              <strong className="text-blue-900">Agent Pay:</strong> ₹
               {ActualPay? ActualPay.toFixed(2): 0}
             </p>
-            <p>
-              <strong>Advance to Pay:</strong> ₹
-              {advanceAmount ? advanceAmount.toFixed(2) : 0}
-            </p>
-
-            <button
+              <button
               onClick={() => setIsEditing(true)}
-              className="w-full max-w-xs bg-yellow-500 text-white py-3 rounded-lg font-semibold hover:bg-yellow-600 transition"
+              className="w-full px-7 py-2 bg-white-900 text-black border border-blue-600 rounded-full hover:bg-blue-600 transition"
             >
-              ✏ Edit Details
+               Edit Details
             </button>
             {!showInstructions && (
               <button
                 onClick={() => setShowInstructions(true)}
-                className="w-full max-w-xs bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                className=" w-full px-7 py-2 bg-blue-900 text-white border border-blue-600 rounded-full hover:bg-blue-600 transition"
               >
-                💸 Proceed to Payment
+                 Proceed to Payment
               </button>
             )}
             {showInstructions && !showQR && (
@@ -707,14 +688,14 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
 
                     <div className="text-center">
                       <button
-                        onClick={() => {
-                          setShowInstructions(false);
-                          handlePayment();
-                        }}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-                      >
-                        OK, Show Payment Options
-                      </button>
+                      onClick={() => {
+                        setShowInstructions(false);
+                        handlePayment();
+                      }}
+                      className="px-7 py-2 bg-blue-900 text-white border border-blue-600 rounded-full hover:bg-blue-600 transition"
+                    >
+                      OK, Show Payment Options
+                    </button>
                     </div>
                   </div>
                 </PopEffect>
@@ -723,7 +704,7 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
               <PopEffect cb={() => setShowQR(false)}>
                 <div className="space-y-4 mt-4 text-center text-black">
                   {/* Countdown Timer */}
-                  <p className="text-lg font-semibold">
+                  <p className="text-lg font-bold text-blue-900">
                     ⏱ Time Left: {Math.floor(countdown / 60)}:
                     {countdown % 60 < 10 ? "0" : ""}
                     {countdown % 60}
@@ -745,8 +726,8 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                   </div>
                   {!screenshot && countdown > 0 ? (
                     <>
-                      <p className="mt-4">
-                        📤 Upload payment screenshot{" "}
+                      <p className="flex items-center gap-2 mt-4 justify-center">
+                         Upload payment screenshot{" "}
                         <span className="inline-block animate-bounce">👇🏻</span>
                       </p>
 
@@ -764,9 +745,9 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                       />
                       <label
                         htmlFor="fileUpload"
-                        className="cursor-pointer bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mt-2 inline-block text-center"
+                        className="flex items-center gap-2 cursor-pointer px-7 py-2 bg-blue-900 text-white border border-blue-600 rounded-full hover:bg-blue-600 transition justify-center"
                       >
-                        📸 Choose Screenshot
+                        <Camera size={20}  />  Choose Screenshot
                       </label>
                     </>
                   ) : countdown <= 0 && !screenshot ? (

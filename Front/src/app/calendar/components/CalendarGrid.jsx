@@ -354,7 +354,7 @@ useImperativeHandle(ref, () => ({
       ref={containerRef}
     >
       <div className="inline-block min-w-max border rounded-xl shadow-xl select-none">
-        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-900 text-white font-semibold">
+        <div className="grid grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-900 text-white font-semibold">
           <div className=" text-center p-2 border-r sticky left-0 bg-blue-900  text-white text-sm sm:text-base font-medium">
             Tap Room <br />
             for info 👇 
@@ -366,7 +366,7 @@ useImperativeHandle(ref, () => ({
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-100 text-sm text-gray-800 font-medium">
+        <div className="grid grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-100 text-sm text-gray-800 font-medium">
           <div className="p-2 border-r sticky left-0 bg-blue-100">
             Available
           </div>
@@ -403,7 +403,7 @@ useImperativeHandle(ref, () => ({
         {rooms.map((room, rIdx) => (
           <div
             key={`room-${room.name}-${rIdx}`}
-            className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] border-t grid-row room-column"
+            className="grid grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] border-t grid-row room-column"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
@@ -415,7 +415,7 @@ useImperativeHandle(ref, () => ({
                       <User size={13} className="mr-0.5" />
                       {room.capacity}
                     </span></div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 flex items-center">
                 ₹
                {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
                   room.capacity === 1 ? `${room.price.one} /person`
@@ -570,10 +570,9 @@ useImperativeHandle(ref, () => ({
               <Wallet size={16} className="text-blue-900" />
               <span className="font-semibold text-blue-900">Balance:</span>
               <span className="text-slate-800">
-                ₹
-                {(fetchedBooking.totalPrice - fetchedBooking.agentCut) -
-                  fetchedBooking.advanceAmount}
-              </span>
+                  ₹
+                  {fetchedBooking.totalPrice - (fetchedBooking.agentCut || 0) - fetchedBooking.advanceAmount}
+                </span>
           </div>
 
         {fetchedBooking.agentCut != null && (

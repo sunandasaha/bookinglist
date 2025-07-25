@@ -184,7 +184,7 @@ const handleBookingSave = async () => {
       ref={containerRef}
     >
       <div className="inline-block sm:mx-auto min-w-max border rounded-xl shadow-xl select-none">
-        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-900 text-white font-semibold">
+        <div className="grid grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-900 text-white font-semibold">
           <div className=" text-center p-2 border-r sticky left-0 bg-blue-900  text-white text-sm sm:text-base font-medium">
             Tap Room <br />
             for info 👇 
@@ -196,7 +196,7 @@ const handleBookingSave = async () => {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-100 text-sm text-gray-800 font-medium">
+        <div className="grid grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] bg-blue-100 text-sm text-gray-800 font-medium">
 
           <div className="p-2 border-r sticky left-0 bg-blue-100">Available</div>
             {dates.map((date, i) => {
@@ -232,7 +232,7 @@ const handleBookingSave = async () => {
         {rooms.map((room, rIdx) => (
           <div
             key={room.name}
-            className="grid border-t grid-row grid-cols-[90px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] justify-center"
+            className="grid border-t grid-row grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] justify-center"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
@@ -242,7 +242,7 @@ const handleBookingSave = async () => {
                       <User size={13} className="mr-0.5" />
                       {room.capacity}
                     </span></div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500  flex  items-center">
                 ₹
                {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
                   room.capacity === 1 ? `${room.price.one} /person`

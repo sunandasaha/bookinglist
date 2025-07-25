@@ -42,15 +42,6 @@ export default function ProfileModal({ profile, onClose }) {
           <ProfileRow icon={<UserCircle size={16} />} label="Account Name" value={profile.accountName} />
           <ProfileRow icon={<BedDouble size={16} />} label="Rooms" value={profile.rooms} />
         </div>
-
-        <div className="inline p-5 justify-center flex gap-4">
-          <button
-            className="bg-blue-900 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300"
-            onClick={() => navigate.push("/hotel")}
-          >
-            Edit
-          </button>
-        </div>
       </div>
     </div>
   );
