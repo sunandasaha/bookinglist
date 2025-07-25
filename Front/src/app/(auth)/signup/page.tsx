@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { Context } from "../../_components/ContextProvider";
 import { postReq } from "../../_utils/request";
 import Image from "next/image";
+import Link from "next/link";
 
 type info = {
   email: string;
@@ -119,8 +120,14 @@ const Signup = () => {
         />
         <p>
           By signing up, you agree to our{" "}
-          <a href="/t&c" className="text-blue-600 hover:underline">Terms & Conditions</a> and{" "}
-          <a href="/contact_us" className="text-blue-600 hover:underline">Privacy Policy</a>.
+          <Link href="/t&c" className="text-blue-600 hover:underline">
+            Terms & Conditions
+          </Link>{" "}
+          and{" "}
+          <Link href="/contact_us" className="text-blue-600 hover:underline">
+            Privacy Policy
+          </Link>
+          .
         </p>
       </div>
 
