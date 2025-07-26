@@ -415,7 +415,7 @@ useImperativeHandle(ref, () => ({
                       <User size={13} className="mr-0.5" />
                       {room.capacity}
                     </span></div>
-              <div className="text-xs text-gray-500 flex items-center">
+              <div className="text-xs text-gray-600 flex items-center gap-1 whitespace-nowrap overflow-hidden text-ellipsis">
                 ₹
                {room.price?.one || room.price?.two || room.price?.three || room.price?.four ? (
                   room.capacity === 1 ? `${room.price.one} /person`
