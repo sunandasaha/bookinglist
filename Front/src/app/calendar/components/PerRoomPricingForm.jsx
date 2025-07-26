@@ -4,16 +4,7 @@ import React, { useState, useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
 import { site, delReq, putReq, imgurl } from "../../_utils/request";
-
-const facilityOptions = [
-  "Geyser",
-  "TV",
-  "WiFi",
-  "Breakfast",
-  "Food",
-  "Room service",
-  "Balcony",
-];
+import { facilityOptions } from "./data";
 
 const PerRoomPricingForm = () => {
   const { hosthotel, user, setHosthotel } = useContext(Context);
@@ -89,9 +80,15 @@ const PerRoomPricingForm = () => {
     setCategories(updated);
   };
 
-  const handleFacilitiesChange = (index, selectedOptions) => {
+  const handleFacilitiesChange = (index, chk, am) => {
     const updated = [...categories];
-    updated[index].facilities = selectedOptions;
+    if (chk) {
+      updated[index].amenities = updated[index].amenities.filter(
+        (el) => el !== am
+      );
+    } else {
+      updated[index].amenities.push(am);
+    }
     setCategories(updated);
   };
 
@@ -161,7 +158,10 @@ const PerRoomPricingForm = () => {
     for (let i = 0; i < cat.room_no.length; i++) {
       cat.room_no[i] = cat.room_no[i].trim();
       if (cat.room_no[i] === "" || set.has(cat.room_no[i])) {
-        setProblems((p) => ({ ...p, roomno: "Room name must be unique and not empty" }));
+        setProblems((p) => ({
+          ...p,
+          roomno: "Room name must be unique and not empty",
+        }));
         return;
       }
       set.add(cat.room_no[i]);
@@ -449,26 +449,26 @@ const PerRoomPricingForm = () => {
               </div>
               {/* Facilities */}
               <div>
-                <label className="font-medium">Facilities</label>
-                <select
-                  multiple
-                  value={cat.facilities}
-                  onChange={(e) =>
-                    handleFacilitiesChange(
-                      catIdx,
-                      Array.from(e.target.selectedOptions).map(
-                        (opt) => opt.value
-                      )
-                    )
-                  }
-                  className="input w-full h-28"
-                >
-                  {facilityOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                <label className="font-medium">Amenities</label>
+                <div>
+                  {facilityOptions.map((e) => {
+                    const chk = cat.amenities.includes(e);
+                    return (
+                      <div key={e}>
+                        <input
+                          type="checkbox"
+                          className="mx-2"
+                          id={e}
+                          checked={chk}
+                          onChange={() => {
+                            handleFacilitiesChange(catIdx, chk, e);
+                          }}
+                        />
+                        <label htmlFor={e}>{e}</label>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
               {/* Image Upload Section */}
               <div className="mb-4">

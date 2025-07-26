@@ -14,10 +14,8 @@ const AgentHistory = () => {
   const getData = async () => {
     try {
       const res = await getReq("guestbooking/agent", user?.token || "");
-      console.log(res);
-
       if (res?.success) {
-        setBookings(res.bookings || []);
+        setBookings(res.dbooks || []);
       }
     } catch (error) {
       console.error("Error fetching bookings:", error);

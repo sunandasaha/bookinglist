@@ -1,9 +1,12 @@
 import React from "react";
-<<<<<<< HEAD:Front/src/app/(auth)/Footer.tsx
-import {Facebook,Instagram,Youtube, Phone, MapPin, Mail} from "lucide-react";
-=======
-import { Facebook, Instagram, Youtube } from "lucide-react";
->>>>>>> 076570301107f312e761b212bae1fd19cb9569e8:Front/src/app/(auth)/Footer.jsx
+import {
+  Facebook,
+  Instagram,
+  Youtube,
+  Phone,
+  MapPin,
+  Mail,
+} from "lucide-react";
 import Image from "next/image";
 
 const Footer = () => {
@@ -71,19 +74,28 @@ const Footer = () => {
           <h4 className="font-semibold text-blue-900 mb-3">Get in Touch</h4>
           <ul className="space-y-2 text-gray-700 ">
             <li className="text-black hover:text-blue-600">Need any help?</li>
-<<<<<<< HEAD:Front/src/app/(auth)/Footer.tsx
-            <li className="flex items-center gap-1 text-black"><span className = " text-blue-900"><Phone size={18} /></span> 9832252849</li>
-            <li className="text-black hover:text-blue-600">Need live support?</li>
-            <li className="flex items-center gap-1 text-black"><span className = " text-blue-900"><Mail size={18} /></span>bookinglist.in@gmail.com</li>
-=======
-            <li className="text-black">📞 9832252849</li>
+            <li className="flex items-center gap-1 text-black">
+              <span className=" text-blue-900">
+                <Phone size={18} />
+              </span>{" "}
+              9832252849
+            </li>
             <li className="text-black hover:text-blue-600">
               Need live support?
             </li>
-            <li className="text-black">📧bookinglist.in@gmail.com</li>
->>>>>>> 076570301107f312e761b212bae1fd19cb9569e8:Front/src/app/(auth)/Footer.jsx
+            <li className="flex items-center gap-1 text-black">
+              <span className=" text-blue-900">
+                <Mail size={18} />
+              </span>
+              bookinglist.in@gmail.com
+            </li>
             <li className="text-black hover:text-blue-600">Visit Us</li>
-            <li className="flex items-center gap-1 text-black"><span className = " text-blue-900"><MapPin size={18} /></span> Siliguri, West Bengal</li>
+            <li className="flex items-center gap-1 text-black">
+              <span className=" text-blue-900">
+                <MapPin size={18} />
+              </span>{" "}
+              Siliguri, West Bengal
+            </li>
           </ul>
         </div>
       </div>

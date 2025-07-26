@@ -3,19 +3,8 @@ import React, { useState, useContext } from "react";
 import { Context } from "../../_components/ContextProvider";
 import { Trash2, Plus, X, Edit, Save } from "lucide-react";
 import { putReq, site, delReq, imgurl } from "../../_utils/request";
+import { facilityOptions } from "./data";
 
-const facilityOptions = [
-  "Kanchanjunga view",
-  "Geyser",
-  "TV",
-  "WiFi",
-  "Breakfast",
-  "Lunch",
-  "Snacks",
-  "Dinner",
-  "Room service",
-  "Balcony",
-];
 const PerPersonPricingForm = () => {
   const { hosthotel, setHosthotel, user } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
@@ -73,11 +62,18 @@ const PerPersonPricingForm = () => {
     setCategories(updated);
   };
 
-  const handleFacilitiesChange = (index, selectedOptions) => {
+  const handleFacilitiesChange = (index, chk, am) => {
     const updated = [...categories];
-    updated[index].amenities = selectedOptions;
+    if (chk) {
+      updated[index].amenities = updated[index].amenities.filter(
+        (el) => el !== am
+      );
+    } else {
+      updated[index].amenities.push(am);
+    }
     setCategories(updated);
   };
+
   const toggleEdit = async (index) => {
     const updated = [...categories];
     const cat = updated[index];
@@ -85,7 +81,10 @@ const PerPersonPricingForm = () => {
     for (let i = 0; i < cat.roomNumbers.length; i++) {
       cat.roomNumbers[i] = cat.roomNumbers[i].trim();
       if (cat.roomNumbers[i] === "" || set.has(cat.roomNumbers[i])) {
-        setProblems((p) => ({ ...p, roomno: "Room name must be unique and not empty" }));
+        setProblems((p) => ({
+          ...p,
+          roomno: "Room name must be unique and not empty",
+        }));
         return;
       }
       set.add(cat.roomNumbers[i]);
@@ -430,23 +429,25 @@ const PerPersonPricingForm = () => {
               {/* Amenities */}
               <div>
                 <label className="font-medium">Amenities</label>
-                <select
-                  multiple
-                  value={cat.amenities}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions).map(
-                      (opt) => opt.value
+                <div>
+                  {facilityOptions.map((e) => {
+                    const chk = cat.amenities.includes(e);
+                    return (
+                      <div key={e}>
+                        <input
+                          type="checkbox"
+                          name={e}
+                          id={e}
+                          checked={chk}
+                          onChange={() => {
+                            handleFacilitiesChange(catIdx, chk, e);
+                          }}
+                        />
+                        <label htmlFor={e}>{e}</label>
+                      </div>
                     );
-                    handleFacilitiesChange(catIdx, selected);
-                  }}
-                  className="border rounded p-2 w-full h-28"
-                >
-                  {facilityOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                  })}
+                </div>
               </div>
               {/* Image Upload */}
               <div className="mb-4">

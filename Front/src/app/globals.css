@@ -234,7 +234,7 @@ body {
 }
 
 .popcon {
-  max-width: 350px;
+  max-width: 600px;
   background-color: white;
   border-radius: 10px;
   border: 1px solid #242424;
@@ -248,15 +248,15 @@ body {
   overflow-y: auto;
   justify-content: space-evenly;
 }
-input[type='number'].no-spinner {
+input[type="number"].no-spinner {
   appearance: textfield;
-  -moz-appearance: textfield; 
+  -moz-appearance: textfield;
 }
 
-input[type='number'].no-spinner::-webkit-inner-spin-button,
-input[type='number'].no-spinner::-webkit-outer-spin-button {
-  appearance: none; 
-  -webkit-appearance: none; 
+input[type="number"].no-spinner::-webkit-inner-spin-button,
+input[type="number"].no-spinner::-webkit-outer-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
   margin: 0;
 }
 @media (max-width: 450px) {
