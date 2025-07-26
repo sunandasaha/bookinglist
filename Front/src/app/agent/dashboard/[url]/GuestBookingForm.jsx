@@ -612,9 +612,6 @@ export default function GuestBookingForm({ booking, onSave, onClose }) {
                             <strong className="text-blue-900">whatsapp:</strong> {formData.whatsapp}
                           </p>
                           <p>
-                            <strong className="text-blue-900">Email:</strong> {formData.email}
-                          </p>
-                          <p>
                             <strong className="text-blue-900">Adults:</strong> {formData.adults} |{" "}
                             <strong className="text-blue-900">Children:</strong> {formData.children}
                           </p>
