@@ -535,7 +535,7 @@ export default function TopBar({
                       </button>
                     </div>
                   </div>
-                ))}x
+                ))}
               </div>
             ) : (
               <div className="text-sm text-gray-500 py-4 text-center">
