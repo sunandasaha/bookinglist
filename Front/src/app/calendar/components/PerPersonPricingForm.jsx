@@ -134,6 +134,7 @@ const PerPersonPricingForm = () => {
       setLoadingIndex(null);
     }
   };
+
   const handleRoomNumberChange = (catIdx, rIdx, value) => {
     const updated = [...categories];
     updated[catIdx].roomNumbers[rIdx] = value;
@@ -431,7 +432,7 @@ const PerPersonPricingForm = () => {
                 <label className="font-medium">Amenities</label>
                 <div>
                   {facilityOptions.map((e) => {
-                    const chk = cat.amenities.includes(e);
+                    const chk = cat.amenities?.includes(e);
                     return (
                       <div key={e}>
                         <input

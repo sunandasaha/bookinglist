@@ -23,7 +23,7 @@ const PerRoomPricingForm = () => {
             agent_com: { amount: 0, percent: true },
             advance: { amount: 0, percent: true },
             images: [],
-            facilities: [],
+            amenities: [],
             isEditing: true,
           },
         ]
@@ -452,7 +452,7 @@ const PerRoomPricingForm = () => {
                 <label className="font-medium">Amenities</label>
                 <div>
                   {facilityOptions.map((e) => {
-                    const chk = cat.amenities.includes(e);
+                    const chk = cat.amenities?.includes(e);
                     return (
                       <div key={e}>
                         <input
