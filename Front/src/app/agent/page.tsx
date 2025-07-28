@@ -17,7 +17,7 @@ const def: agent = {
 };
 
 const Hotel = () => {
-  const { user, agent, setAgent } = useContext(Context);
+  const { user, agent, setAgent, setUser } = useContext(Context);
   const navigate = useRouter();
   const [info, setInfo] = useState<agent>(agent || def);
   const imgref = useRef<HTMLInputElement>(null);
@@ -44,7 +44,9 @@ const Hotel = () => {
         setAgent(res.agent);
         navigate.push("/agent/dashboard");
       } else {
-        navigate.push("/status");
+        setUser(null);
+        localStorage.removeItem("tok");
+        navigate.push("/");
       }
     } else {
       console.log(res);
@@ -81,19 +83,25 @@ const Hotel = () => {
                 ref={imgref}
                 accept="image/*"
                 onChange={(e) => {
-                  const fileName = e.target.files?.[0]?.name || "No file chosen";
-                  document.getElementById("file-name-display").textContent = `Selected: ${fileName}`;
+                  const fileName =
+                    e.target.files?.[0]?.name || "No file chosen";
+                  document.getElementById(
+                    "file-name-display"
+                  ).textContent = `Selected: ${fileName}`;
                 }}
                 className="block w-full text-sm text-gray-700 file:bg-blue-900 file:text-white file:font-medium file:py-2 file:px-4 file:rounded-full file:border-0 file:cursor-pointer hover:file:bg-blue-700"
               />
-              <div id="file-name-display" className="text-sm text-gray-600 mt-1 text-center"></div>
+              <div
+                id="file-name-display"
+                className="text-sm text-gray-600 mt-1 text-center"
+              ></div>
             </div>
           )}
 
           {info._id && info.visiting_card && (
             <div className="flex items-center justify-center gap-2 text-blue-900 font-medium mb-2 text-center mt-6">
-                <Image size={18} />
-                <span>Visiting Card:</span>
+              <Image size={18} />
+              <span>Visiting Card:</span>
               <img
                 src={imgurl + info.visiting_card}
                 alt="Visiting Card"

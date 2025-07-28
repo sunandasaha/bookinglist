@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Footer from "../Footer";
+import Footer from "./Footer";
 import {
   Menu,
   X,
@@ -11,8 +11,8 @@ import {
   CreditCard,
   ShieldCheck,
 } from "lucide-react";
-import Fadeup from "../../_components/Fadeup";
-import InviewFade from "../../_components/InviewFade";
+import Fadeup from "../_components/Fadeup";
+import InviewFade from "../_components/InviewFade";
 import "./land.css";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -31,7 +31,7 @@ const Landing = () => {
     { label: "About Us", action: () => scrollTo(aboutRef) },
     { label: "Contact Us", action: () => scrollTo(contactRef) },
     { label: "Terms & Conditions", path: "/t&c" },
-    { label: "Privacy Policy", path: "/contact_us" },
+    { label: "Privacy Policy", path: "/privacy_policy" },
   ];
   const iconClass =
     "text-blue-600 w-6 h-6 shrink-0 hover:text-gray-600 transition duration-200";

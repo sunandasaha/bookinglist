@@ -1,14 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
+import { Context } from "../../_components/ContextProvider";
 
 const Page = () => {
   const navigate = useRouter();
+  const { setAgent, setUser, setHosthotel } = useContext(Context);
 
   useEffect(() => {
     localStorage.removeItem("tok");
+    setAgent(null);
+    setUser(null);
+    setHosthotel(null);
   }, []);
 
   const handleClose = () => {

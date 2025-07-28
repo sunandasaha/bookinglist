@@ -1,22 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Context, hostHotel } from "./_components/ContextProvider";
 import { postReq } from "./_utils/request";
 import { motion } from "framer-motion";
+import Landing from "./_landing/Landing";
 
 export default function Home() {
   const navigate = useRouter();
   const { setUser, user, setHosthotel, setAgent, setPending } =
     useContext(Context);
 
-  const addstuff = (dat: hostHotel) => {
-    if (!dat.pay_per) {
-      dat.pay_per = { person: false, room: true };
-    }
-    return dat;
-  };
+  const [land, setLand] = useState(false);
+
+  // const addstuff = (dat: hostHotel) => {
+  //   if (!dat.pay_per) {
+  //     dat.pay_per = { person: false, room: true };
+  //   }
+  //   return dat;
+  // };
 
   const logtok = async () => {
     try {
@@ -54,16 +57,16 @@ export default function Home() {
               navigate.push("/agent");
             }
           } else {
-            navigate.push("/landing");
+            setLand(true);
           }
         } else {
-          navigate.push("/landing");
+          setLand(true);
         }
       } else {
-        navigate.push("/landing");
+        setLand(true);
       }
     } catch (error) {
-      navigate.push("/landing");
+      setLand(true);
     }
   };
 
@@ -75,13 +78,19 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="h-full w-full grid place-items-center">
-      <motion.img
-        initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: 1, scale: 1 }}
-        src="/svgs/logo.png"
-        style={{ height: 100, width: 100 }}
-      />
-    </div>
+    <>
+      {land ? (
+        <Landing />
+      ) : (
+        <div className="h-full w-full grid place-items-center">
+          <motion.img
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            src="/svgs/logo.png"
+            style={{ height: 100, width: 100 }}
+          />
+        </div>
+      )}
+    </>
   );
 }

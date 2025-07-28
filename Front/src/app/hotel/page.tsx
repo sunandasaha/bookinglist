@@ -4,7 +4,18 @@ import { useContext, useEffect, useState } from "react";
 import { Context, hostHotel } from "../_components/ContextProvider";
 import { useRouter } from "next/navigation";
 import { postReq, putReq } from "../_utils/request";
-import { ArrowLeft, Building2, MapPin, User, IndianRupee, Phone, MessageCircle, BedDouble, UserRound, Users} from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  MapPin,
+  User,
+  IndianRupee,
+  Phone,
+  MessageCircle,
+  BedDouble,
+  UserRound,
+  Users,
+} from "lucide-react";
 const def = {
   name: "",
   location: "",
@@ -16,7 +27,7 @@ const def = {
 };
 
 const Hotel = () => {
-  const { user, hosthotel, setHosthotel } = useContext(Context);
+  const { user, hosthotel, setHosthotel, setUser } = useContext(Context);
   const navigate = useRouter();
   const [info, setInfo] = useState<hostHotel>(hosthotel || def);
 
@@ -32,7 +43,9 @@ const Hotel = () => {
         setHosthotel(res.hotel);
         navigate.push("/calendar");
       } else {
-        navigate.push("/status");
+        setUser(null);
+        localStorage.removeItem("tok");
+        navigate.push("/");
       }
     } else {
       console.log(res);
@@ -48,13 +61,27 @@ const Hotel = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     switch (e.target.id) {
-      case "hname": setInfo((p) => ({ ...p, name: val })); break;
-      case "hloc": setInfo((p) => ({ ...p, location: val })); break;
-      case "hacc": setInfo((p) => ({ ...p, accountName: val })); break;
-      case "hupi": setInfo((p) => ({ ...p, upi_id: val })); break;
-      case "hph1": setInfo((p) => ({ ...p, ph1: val })); break;
-      case "hph2": setInfo((p) => ({ ...p, ph2: val })); break;
-      case "hnr": setInfo((p) => ({ ...p, rooms: Number(val) })); break;
+      case "hname":
+        setInfo((p) => ({ ...p, name: val }));
+        break;
+      case "hloc":
+        setInfo((p) => ({ ...p, location: val }));
+        break;
+      case "hacc":
+        setInfo((p) => ({ ...p, accountName: val }));
+        break;
+      case "hupi":
+        setInfo((p) => ({ ...p, upi_id: val }));
+        break;
+      case "hph1":
+        setInfo((p) => ({ ...p, ph1: val }));
+        break;
+      case "hph2":
+        setInfo((p) => ({ ...p, ph2: val }));
+        break;
+      case "hnr":
+        setInfo((p) => ({ ...p, rooms: Number(val) }));
+        break;
     }
   };
 
@@ -65,7 +92,6 @@ const Hotel = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-      
       <div className="w-full max-w-2xl border border-gray-300 rounded-xl shadow-md bg-white p-6">
         <button
           onClick={() => navigate.back()}
@@ -74,7 +100,7 @@ const Hotel = () => {
           <ArrowLeft size={22} />
         </button>
         <h2 className="text-3xl font-semibold text-blue-900 text-center  mb-4">
-         🏨 Hotel Profile
+          🏨 Hotel Profile
         </h2>
         <div className="w-full max-w-lg bg-white p-6 md:p-10 rounded-2xl shadow-xl mx-auto">
           <div className="space-y-5">
@@ -181,14 +207,14 @@ const Hotel = () => {
             </div>
           </div>
           <div className="mt-6 flex justify-center">
-          <button
-            className="bg-blue-900 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300"
-            onClick={update}
-          >
-            {hosthotel?._id ? "Update" : "Create"}
-          </button>
+            <button
+              className="bg-blue-900 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300"
+              onClick={update}
+            >
+              {hosthotel?._id ? "Update" : "Create"}
+            </button>
+          </div>
         </div>
-        </div>      
       </div>
     </div>
   );
