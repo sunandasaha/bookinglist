@@ -1,4 +1,4 @@
-const site = "http://localhost:8080/";
+const site = "https://api.bookinglist.in/";
 const imgurl =
   "https://bookinglist-bucket.s3.ap-south-1.amazonaws.com/bookinglist-bucket/";
 const postReq = async (surl: string, data: {}, tok: string) => {
