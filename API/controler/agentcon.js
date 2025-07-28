@@ -1,6 +1,7 @@
 const Agentmodel = require("../models/Agent");
 const Usermodel = require("../models/Users");
 const fs = require("fs");
+const { deleteFile } = require("../utils/upload");
 
 const createAgent = async (req, res) => {
   const data = JSON.parse(req.body.details);
@@ -31,7 +32,7 @@ const updateAgent = async (req, res) => {
       agt.ph1 = data.ph1;
       agt.ph2 = data.ph2;
       agt.upi_id = data.upi_id;
-      await hot.save();
+      await agt.save();
       res.json({ status: "success", agent: agt });
     } catch (error) {
       res.json({ status: "failed" });
@@ -46,12 +47,7 @@ const updateVisitingCard = async (req, res) => {
   const agt = await Agentmodel.findById(req.user.sid);
   if (agt) {
     if (agt.visiting_card) {
-      fs.unlink(
-        path.join(__dirname, "..", "uploads", agt.visiting_card),
-        (err) => {
-          if (err) console.log(err);
-        }
-      );
+      deleteFile(agt.visiting_card);
     }
     if (req.savedImages.length > 0) {
       agt.visiting_card = req.savedImages[0];

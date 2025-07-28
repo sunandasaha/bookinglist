@@ -43,9 +43,7 @@ const Hotel = () => {
         setHosthotel(res.hotel);
         navigate.push("/calendar");
       } else {
-        setUser(null);
-        localStorage.removeItem("tok");
-        navigate.push("/");
+        navigate.push("/status");
       }
     } else {
       console.log(res);
@@ -94,7 +92,13 @@ const Hotel = () => {
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="w-full max-w-2xl border border-gray-300 rounded-xl shadow-md bg-white p-6">
         <button
-          onClick={() => navigate.back()}
+          onClick={() => {
+            if (user.status === 0) {
+              navigate.push("/role");
+            } else {
+              navigate.back();
+            }
+          }}
           className="mb-6 flex items-center gap-2 text-black hover:text-indigo-800 transition"
         >
           <ArrowLeft size={22} />

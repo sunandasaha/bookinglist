@@ -4,6 +4,7 @@ const {
   updateVisitingCard,
 } = require("../controler/agentcon");
 const { authUser, chkAgent } = require("../middleware/auth");
+const { s3upload } = require("../middleware/bucket");
 const { uploadImages, resizeAndSaveImages } = require("../middleware/multer");
 
 const agentroute = require("express").Router();
@@ -14,6 +15,7 @@ agentroute.post(
   chkAgent,
   uploadImages,
   resizeAndSaveImages,
+  s3upload,
   createAgent
 );
 agentroute.put("/", authUser, chkAgent, updateAgent);
@@ -23,6 +25,7 @@ agentroute.put(
   chkAgent,
   uploadImages,
   resizeAndSaveImages,
+  s3upload,
   updateVisitingCard
 );
 

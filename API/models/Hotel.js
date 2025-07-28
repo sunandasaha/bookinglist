@@ -28,6 +28,8 @@ const HotelSchema = new mongoose.Schema({
   },
   ph1: String,
   ph2: String,
+  description: String,
+  imgs: [String],
   rooms: Number,
   room_cat: [{ type: mongoose.Schema.Types.ObjectId, ref: "roomcats" }],
   per_person_cat: [{ type: mongoose.Schema.Types.ObjectId, ref: "perperson" }],

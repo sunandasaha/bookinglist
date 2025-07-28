@@ -3,7 +3,11 @@ const Hotelmodel = require("../models/Hotel");
 const Usermodel = require("../models/Users");
 
 const pendingUser = async (req, res) => {
-  const users = await Usermodel.find({ status: 0, role: { $ne: "sadmin" } });
+  const users = await Usermodel.find({
+    status: 0,
+    role: { $ne: "sadmin" },
+    sid: { $exists: true },
+  });
   for (let i = 0; i < users.length; i++) {
     if (users[i].role === "host") {
       users[i].sid = await Hotelmodel.findById(users[i].sid);
