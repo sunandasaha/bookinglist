@@ -113,6 +113,7 @@ const Hotel = () => {
                 value={info.name}
                 onChange={handleChange}
                 className="flex-1 pinput"
+                required
               />
             </div>
             <div className="flex items-center gap-3">
@@ -121,6 +122,7 @@ const Hotel = () => {
                 id="hloc"
                 type="text"
                 placeholder="Location"
+                required
                 value={info.location}
                 onChange={handleChange}
                 className="flex-1 pinput"
@@ -132,6 +134,7 @@ const Hotel = () => {
                 id="hacc"
                 type="text"
                 placeholder="Account Holder Name"
+                required
                 value={info.accountName}
                 onChange={handleChange}
                 className="flex-1 pinput"
@@ -143,6 +146,7 @@ const Hotel = () => {
                 id="hupi"
                 type="text"
                 placeholder="UPI ID"
+                required
                 value={info.upi_id}
                 onChange={handleChange}
                 className="flex-1 pinput"
@@ -154,9 +158,10 @@ const Hotel = () => {
                 id="hph1"
                 type="number"
                 placeholder="WhatsApp Number"
+                required
                 value={info.ph1}
                 onChange={handleChange}
-                className="flex-1 pinput"
+                className="no-spinner flex-1 pinput"
               />
             </div>
             <div className="flex items-center gap-3">
@@ -165,9 +170,10 @@ const Hotel = () => {
                 id="hph2"
                 type="number"
                 placeholder="Second Phone (optional)"
+                required
                 value={info.ph2 || ""}
                 onChange={handleChange}
-                className="flex-1 pinput"
+                className="no-spinner flex-1 pinput"
               />
             </div>
             <div className="flex items-center gap-3">
@@ -178,7 +184,7 @@ const Hotel = () => {
                 placeholder="Number of Rooms"
                 value={info.rooms === 0 ? "" : info.rooms}
                 onChange={handleChange}
-                className="flex-1 pinput"
+                className="no-spinner flex-1 pinput"
               />
             </div>
             <div className="flex items-center justify-start gap-6 mt-4 px-2">

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Context } from "../../_components/ContextProvider";
 import { postReq } from "../../_utils/request";
 
@@ -22,6 +23,12 @@ const SelectRole = () => {
   };
     return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <button
+        onClick={() => navigate.back()}
+        className="absolute top-4 left-4 text-gray-600 hover:text-blue-800 font-semibold"
+      >
+        <ArrowLeft size={24} />
+      </button>
       <div className="text-center">
         <h1 className="text-3xl font-bold text-blue-800 mb-8">Select Your Role</h1>
 

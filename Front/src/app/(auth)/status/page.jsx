@@ -26,7 +26,7 @@ const Page = () => {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-6 text-center bg-gray-100">
       <h1 className="text-xl font-semibold mb-4 text-red-700">
-        Your account is still pending or deactivated temporarily.
+        Your account is still pending .
       </h1>
       <p className="mb-6 text-gray-700">Please contact the admin for access.</p>
 

@@ -31,6 +31,7 @@ const AgentForm = ({ info, setInfo }: props) => {
           value={info.name}
           placeholder="Name"
           onChange={handleChange}
+          required
         />
       </div>
       <div className="flex items-center gap-3">
@@ -41,6 +42,7 @@ const AgentForm = ({ info, setInfo }: props) => {
           id="hagency"
           value={info.agency}
           placeholder="Agency Name"
+          required
           onChange={handleChange}
         />
       </div>
@@ -52,17 +54,7 @@ const AgentForm = ({ info, setInfo }: props) => {
           id="hloc"
           value={info.location}
           placeholder="Location"
-          onChange={handleChange}
-        />
-      </div>
-      <div className="flex items-center gap-3">
-        <IndianRupee className="text-indigo-900" />
-        <input
-          type="text"
-          className="flex-1 pinput"
-          id="hupi"
-          value={info.upi_id}
-          placeholder="UPI ID"
+          required
           onChange={handleChange}
         />
       </div>
@@ -70,10 +62,11 @@ const AgentForm = ({ info, setInfo }: props) => {
         <MessageCircle className="text-indigo-900" />
         <input
           type="number"
-          className="flex-1 pinput"
+          className=" no-spinner flex-1 pinput"
           id="hph1"
           value={info.ph1}
           placeholder="WhatsApp Number"
+          required
           onChange={handleChange}
         />
       </div>
@@ -81,10 +74,11 @@ const AgentForm = ({ info, setInfo }: props) => {
         <Phone className="text-indigo-900" />
         <input
           type="number"
-          className="flex-1 pinput"
+          className=" no-spinner flex-1 pinput"
           id="hph2"
           value={info.ph2 || ""}
           placeholder="Second Phone Number"
+          required
           onChange={handleChange}
         />
       </div>

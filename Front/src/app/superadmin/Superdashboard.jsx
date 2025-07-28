@@ -239,14 +239,14 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                     <button
                       className="flex-1 bg-green-600 text-white py-2 rounded"
                       onClick={() => {
-                        handleNot(1, u._id);
+                        handleNot(1,selectedApprovedUser._id);
                       }}
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => {
-                        handleDelete(u._id);
+                        handleDelete(selectedApprovedUser._id);
                       }}
                       className="flex-1 bg-red-600 text-white py-2 rounded"
                     >
@@ -316,6 +316,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                       onClick={(e) => {
                         e.stopPropagation();
                         handleNot(1, u._id);
+                        setShowNot(false);
                       }}
                     >
                       Approve
@@ -324,6 +325,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(u._id);
+                        setShowNot(false);
                       }}
                       className="flex-1 bg-red-600 text-white py-2 rounded"
                     >
