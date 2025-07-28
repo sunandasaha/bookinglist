@@ -13,7 +13,6 @@ const AgentSchema = new mongoose.Schema({
   agency: {
     type: String,
     required: true,
-    unique: true,
   },
   ph1: {
     type: String,

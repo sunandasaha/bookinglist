@@ -54,6 +54,6 @@ const resizeAndSaveImages = async (req, res, next) => {
 };
 
 module.exports = {
-  uploadImages: upload.array("images", 4), // field name = 'images'
+  uploadImages: upload.array("images", 8), // field name = 'images'
   resizeAndSaveImages,
 };

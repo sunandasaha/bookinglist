@@ -1,6 +1,7 @@
 const Agentmodel = require("../models/Agent");
 const Hotelmodel = require("../models/Hotel");
 const Usermodel = require("../models/Users");
+const { deleteFile } = require("../utils/upload");
 
 const pendingUser = async (req, res) => {
   const users = await Usermodel.find({
@@ -48,13 +49,14 @@ const statusUpdate = async (req, res) => {
 const deleteId = async (req, res) => {
   const id = req.body?.id || req.params?.id;
   const usr = await Usermodel.findById(id);
-  console.log("yolo", id, usr);
-
   if (usr) {
     if (usr.role === "host") {
       if (usr.sid) await Hotelmodel.findByIdAndDelete(usr.sid);
     } else {
-      if (usr.sid) await Agentmodel.findByIdAndDelete(usr.sid);
+      if (usr.sid) {
+        const agt = await Agentmodel.findByIdAndDelete(usr.sid);
+        if (agt && agt.visiting_card) deleteFile(agt.visiting_card);
+      }
     }
     await Usermodel.findByIdAndDelete(usr._id);
     res.json({ success: true });

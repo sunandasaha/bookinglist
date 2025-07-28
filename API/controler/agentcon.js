@@ -17,6 +17,9 @@ const createAgent = async (req, res) => {
     res.json({ status: "success", agent: hot });
   } catch (error) {
     res.json({ status: "failed" });
+    if (req.savedImages.length > 0) {
+      deleteFile(req.savedImages[0]);
+    }
     console.log(error);
   }
 };
