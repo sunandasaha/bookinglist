@@ -1,5 +1,7 @@
 const Agentmodel = require("../models/Agent");
 const Hotelmodel = require("../models/Hotel");
+const PerPersonmodel = require("../models/PerPerson");
+const RoomCatmodel = require("../models/Rooms");
 const Usermodel = require("../models/Users");
 const { deleteFile } = require("../utils/upload");
 
@@ -51,7 +53,33 @@ const deleteId = async (req, res) => {
   const usr = await Usermodel.findById(id);
   if (usr) {
     if (usr.role === "host") {
-      if (usr.sid) await Hotelmodel.findByIdAndDelete(usr.sid);
+      if (usr.sid) {
+        const hot = await Hotelmodel.findByIdAndDelete(usr.sid);
+        if (hot.room_cat && hot.room_cat.length > 0) {
+          for (let i = 0; i < hot.room_cat.length; i++) {
+            const cat = await RoomCatmodel.findByIdAndDelete(
+              hot.room_cat[i].toString()
+            );
+            if (cat.images && cat.images.length > 0) {
+              for (let j = 0; j < cat.images.length; j++) {
+                await deleteFile(cat.images[j]);
+              }
+            }
+          }
+        }
+        if (hot.per_person_cat && hot.per_person_cat.length > 0) {
+          for (let i = 0; i < hot.room_cat.length; i++) {
+            const cat = await PerPersonmodel.findByIdAndDelete(
+              hot.room_cat[i].toString()
+            );
+            if (cat.images && cat.images.length > 0) {
+              for (let j = 0; j < cat.images.length; j++) {
+                await deleteFile(cat.images[j]);
+              }
+            }
+          }
+        }
+      }
     } else {
       if (usr.sid) {
         const agt = await Agentmodel.findByIdAndDelete(usr.sid);

@@ -27,7 +27,7 @@ const def = {
 };
 
 const Hotel = () => {
-  const { user, hosthotel, setHosthotel, setUser } = useContext(Context);
+  const { user, hosthotel, setHosthotel } = useContext(Context);
   const navigate = useRouter();
   const [info, setInfo] = useState<hostHotel>(hosthotel || def);
 
@@ -39,7 +39,7 @@ const Hotel = () => {
       res = await postReq("hotel/", info, user.token);
     }
     if (res.status === "success") {
-      if (user.status === 1) {
+      if (user?.status === 1) {
         setHosthotel(res.hotel);
         navigate.push("/calendar");
       } else {
@@ -51,7 +51,7 @@ const Hotel = () => {
   };
 
   useEffect(() => {
-    if (user.role !== "host") {
+    if (user?.role !== "host") {
       navigate.push("/");
     }
   }, []);
@@ -93,7 +93,7 @@ const Hotel = () => {
       <div className="w-full max-w-2xl border border-gray-300 rounded-xl shadow-md bg-white p-6">
         <button
           onClick={() => {
-            if (user.status === 0) {
+            if (user?.status === 0) {
               navigate.push("/role");
             } else {
               navigate.back();
