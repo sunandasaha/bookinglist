@@ -5,6 +5,7 @@ const { sendNewBook, sendSsBook } = require("../sockets/global");
 const { setFalse } = require("../middleware/bookingQue");
 const { deleteTimeout, addTimeOut } = require("./timercon");
 const { decrypt, encrypt } = require("../utils/encription");
+const Agentmodel = require("../models/Agent");
 
 const createBooking = async (req, res) => {
   const data = req.body;
@@ -75,6 +76,8 @@ const createBooking = async (req, res) => {
         });
 
         const dnbook = decryptData(newBooking);
+        if (dnbook.agent_Id)
+          dnbook.agent_Id = await Agentmodel.findById(dnbook.agent_Id);
         if (req.user?.role !== "host") {
           sendNewBook(data.hotelId, dnbook);
           addTimeOut(newBooking._id);
@@ -112,7 +115,7 @@ const decryptData = (data) => {
 const uploadScreenShot = async (req, res) => {
   const bid = req.body.bid;
   deleteTimeout(bid);
-  const booking = await GuestModel.findById(bid);
+  const booking = await GuestModel.findById(bid).populate("agent_Id");
   if (booking) {
     booking.advance_ss = req.savedImages[0];
     await booking.save();

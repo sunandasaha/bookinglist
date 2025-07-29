@@ -12,7 +12,7 @@ const categoryroute = require("./routes/categoryroute");
 const agentroute = require("./routes/agentroute");
 const socetHandler = require("./sockets");
 const { setio } = require("./sockets/global");
-const { dailyCheckin } = require("./cron/daily_checkin");
+const { dailyCheckin, dailyChkOut } = require("./cron/daily_checkin");
 const helmet = require("helmet");
 mongoose.connect(process.env.API_URIS);
 
@@ -41,6 +41,7 @@ app.use("/category", categoryroute);
 
 //cron
 app.get("/cron", dailyCheckin);
+app.get("/cronco", dailyChkOut);
 
 //socket
 socetHandler(io, hid);

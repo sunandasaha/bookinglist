@@ -12,7 +12,9 @@ const HotelPage = ({ params }) => {
 
   const getHotel = async () => {
     const hotelurl = (await params).url;
-    const data = await fetch(site + "hotel/", { headers: { hotelurl } });
+    const data = await fetch(site + "hotel/", {
+      headers: { hotelurl, agnt: "agnt" },
+    });
     const res = await data.json();
     console.log(res);
 
@@ -26,7 +28,6 @@ const HotelPage = ({ params }) => {
     getHotel();
   }, []);
   return (
-
     <div>
       {load ? (
         <div>

@@ -53,12 +53,18 @@ const updateHotel = async (req, res) => {
 };
 
 const getHotelViaUrl = async (req, res) => {
-  const { hotelurl } = req.headers;
+  const { hotelurl, agnt } = req.headers;
   const hotel = await Hotelmodel.findOne({ url: hotelurl })
     .populate("room_cat")
     .populate("per_person_cat");
   if (hotel) {
     res.json({ success: true, hotel });
+    if (agnt) {
+      hotel.agentClicks = (hotel.agentClicks || 0) + 1;
+    } else {
+      hotel.guestClicks = (hotel.guestClicks || 0) + 1;
+    }
+    hotel.save();
   } else {
     res.json({ success: false });
   }

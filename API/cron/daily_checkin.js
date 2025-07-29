@@ -1,4 +1,5 @@
 const GuestModel = require("../models/GuestBooking");
+const { deleteFile } = require("../utils/upload");
 
 const dailyCheckin = async (req, res) => {
   date = new Date(new Date().toISOString().substring(0, 10));
@@ -12,8 +13,16 @@ const dailyChkOut = async (req, res) => {
     status: 11,
     toDate: { $lte: date },
     advance_ss: { $exists: true },
-  }).select("advance_ss");
-  res.json({ success: true, bookings });
+  });
+  for (let i = 0; i < bookings.length; i++) {
+    const bok = bookings[i];
+    await deleteFile(bok.advance_ss);
+    bok.advance_ss = undefined;
+    bok.status = 12;
+    bok.amountPaid = bok.totalPrice - bok.advanceAmount;
+    await bok.save();
+  }
+  res.json({ success: true });
 };
 
-module.exports = { dailyCheckin };
+module.exports = { dailyCheckin, dailyChkOut };

@@ -46,7 +46,9 @@ const getDet = async (role, id) => {
 
 const getPending = async (role, id) => {
   if (role === "host" && id) {
-    const pen = await GuestModel.find({ status: 0, hotelId: id });
+    const pen = await GuestModel.find({ status: 0, hotelId: id }).populate(
+      "agent_Id"
+    );
     pen.map((e) => decryptData(e));
     return pen;
   }
