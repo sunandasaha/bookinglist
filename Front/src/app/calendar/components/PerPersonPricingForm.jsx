@@ -125,8 +125,9 @@ const PerPersonPricingForm = () => {
           body: fd,
         });
         const result = await res.json();
-        if (result.success && result.data?._id) {
-          updated[index]._id = result.data._id;
+        if (result.success && result.hotel?._id) {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.room_cat);
         }
       }
     } catch (err) {

@@ -40,19 +40,19 @@ const Hotel = () => {
       res = await postReq("hotel/", info, user.token);
     }
     if (res.status === "success") {
-        setErrors({}); 
-        if (user?.status === 1) {
-          setHosthotel(res.hotel);
-          navigate.push("/calendar");
-        } else {
-          navigate.push("/status");
-        }
+      setErrors({});
+      if (user?.status === 1) {
+        setHosthotel(res.hotel);
+        navigate.push("/calendar");
+      } else {
+        navigate.push("/status");
+      }
     } else {
-        if (res.field && res.message) {
-          setErrors({ [res.field]: res.message });
-        } else {
-          alert(res.message || "Something went wrong");
-        }
+      if (res.field && res.message) {
+        setErrors({ [res.field]: res.message });
+      } else {
+        alert(res.message || "Something went wrong");
+      }
     }
   };
 
@@ -149,10 +149,10 @@ const Hotel = () => {
                 onChange={handleChange}
                 className="flex-1 pinput"
               />
-               {errors.accountName && (
-                  <p className="text-red-600 text-sm pl-9">{errors.accountName}</p>
-                )}
             </div>
+            {errors.accountName && (
+              <p className="text-red-600 text-sm pl-9">{errors.accountName}</p>
+            )}
             <div className="flex items-center gap-3">
               <IndianRupee className="text-indigo-900" />
               <input
@@ -164,10 +164,10 @@ const Hotel = () => {
                 onChange={handleChange}
                 className="flex-1 pinput"
               />
-                {errors.upi_id && (
-                <p className="text-red-600 text-sm pl-9">{errors.upi_id}</p>
-              )}
             </div>
+            {errors.upi_id && (
+              <p className="text-red-600 text-sm pl-9">{errors.upi_id}</p>
+            )}
             <div className="flex items-center gap-3">
               <MessageCircle className="text-indigo-900" />
               <input

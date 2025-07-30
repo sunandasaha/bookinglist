@@ -17,7 +17,7 @@ const createPerPersonCategory = async (req, res) => {
       const ho = await Hotelmodel.findById(req.user.sid).populate(
         "per_person_cat"
       );
-      res.json({ status: "success", hotel: ho });
+      res.json({ status: "success", hotel: ho, success: true });
     } else {
       res.json({ status: "cannot find the hotel" });
     }
@@ -45,7 +45,7 @@ const modifyPerPersonCategory = async (req, res) => {
     const hot = await Hotelmodel.findById(req.user.sid).populate(
       "per_person_cat"
     );
-    res.json({ status: "success", hotel: hot });
+    res.json({ status: "success", hotel: hot, success: true });
   } else {
     res.json({ status: "failed" });
   }
@@ -85,7 +85,7 @@ const deleteImgPerPerson = async (req, res) => {
     const hot = await Hotelmodel.findById(req.user.sid).populate(
       "per_person_cat"
     );
-    res.json({ status: "success", hotel: hot });
+    res.json({ status: "success", hotel: hot, success: true });
   } else {
     res.json({ status: "failed" });
   }
@@ -108,7 +108,7 @@ const deletePerPersonCategory = async (req, res) => {
     const ho = await Hotelmodel.findById(req.user.sid).populate(
       "per_person_cat"
     );
-    res.json({ status: "success", hotel: ho });
+    res.json({ status: "success", hotel: ho, success: true });
   } catch (err) {
     console.log(err);
 
