@@ -178,6 +178,9 @@ export default function TopBar({
       console.error("Tour failed to start:", error);
     }
   };
+  if (typeof window !== "undefined") {
+  window.startTour = startTour;
+}
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hasRoomData =

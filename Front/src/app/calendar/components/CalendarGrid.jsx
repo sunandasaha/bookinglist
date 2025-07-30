@@ -185,7 +185,7 @@ if (booking) {
   return;
 }
 if (rooms[r]?.isDummy) {
-  alert("This room is not available for booking.");
+  alert("🚫 This room is not available. Please go to the 'Rooms & Pricing' section in the sidebar to make it available for booking.");
   return;
 }
 setTappedCells((prev) => {

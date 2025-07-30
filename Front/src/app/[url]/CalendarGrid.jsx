@@ -2,12 +2,37 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { format, addDays, isWithinInterval } from "date-fns";
 import clsx from "clsx";
+import 'intro.js/introjs.css';
 import {Home,  User, Plus, } from "lucide-react";
 import GuestBookingForm from "./GuestBookingForm";
 import { site } from "../_utils/request";
 import { Context } from "../_components/ContextProvider";
 import RoomInfoPopup from "./RoomInfoPopup";
-
+const waitForElement = (selector, timeout = 5000) =>
+  new Promise((resolve, reject) => {
+    const interval = 100;
+    const maxTries = timeout / interval;
+    let tries = 0;
+    const check = () => {
+      const el = document.querySelector(selector);
+      if (el){
+        resolve(el);
+      } else if (tries++ > maxTries) {s
+        reject("Timeout: " + selector);
+      } else {
+        setTimeout(check, interval);
+      }
+    };
+    check();
+  });
+const waitForEvent = (eventName) =>
+  new Promise((resolve) => {
+    const handler = () => {
+      window.removeEventListener(eventName, handler);
+      resolve();
+    };
+    window.addEventListener(eventName, handler);
+  });
 export default function CalendarGrid({ startDate }) {
   const [dates, setDates] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -18,7 +43,101 @@ export default function CalendarGrid({ startDate }) {
 
   const { hosthotel, user } = useContext(Context);
   const containerRef = useRef(null);
+ const guestTourStarted = useRef(false);
+const startGuestTour = async () => {
+  if (guestTourStarted.current) return;
+  guestTourStarted.current = true;
 
+  const introJs = (await import("intro.js")).default;
+
+  try {
+    await waitForElement(".room-column .sticky.left-0");
+
+    const roomTour = introJs();
+    roomTour.setOptions({
+      steps: [
+        {
+          element: ".room-column .sticky.left-0",
+          intro: "Tap on a room name to view room info.",
+          position: "auto",
+        },
+      ],
+      showButtons: true,
+      exitOnOverlayClick: false,
+      exitOnEsc: false,
+    });
+
+    await new Promise((resolve) => {
+      roomTour.oncomplete(resolve);
+      roomTour.onexit(resolve);
+      roomTour.start();
+    });
+    await waitForElement(".grid-cell:not(.bg-gray-300)");
+
+    const cellTour = introJs();
+    cellTour.setOptions({
+      steps: [
+        {
+          element: ".grid-cell:not(.bg-gray-300)",
+          intro: "📅 Tap on an available date to begin booking.",
+          position: "auto",
+          disableInteraction: false,
+        },
+      ],
+      showButtons: false,
+      exitOnOverlayClick: false,
+      exitOnEsc: false,
+    });
+
+    cellTour.start();
+    await new Promise((resolve) =>
+      window.addEventListener("cellTapped", resolve, { once: true })
+    );
+    cellTour.exit();
+    await waitForElement(".guest-tour-target");
+    const bookBtn = document.querySelector(".guest-tour-target");
+    bookBtn?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const bookTour = introJs();
+    bookTour.setOptions({
+      steps: [
+        {
+          element: ".guest-tour-target",
+          intro: "Tap button to open the guest booking form.",
+          position: "auto",
+          disableInteraction: false,
+        },
+        {
+          intro: `
+            🎉 You're all set!after clicking on button Fill the form to complete your booking.
+          `,
+        },
+      ],
+      showButtons: true,
+      exitOnOverlayClick: false,
+      exitOnEsc: false,
+      showStepNumbers: false,
+    });
+
+    bookTour.oncomplete(() => {
+      localStorage.setItem("guestCalendarTourDone", "true");
+    });
+
+    bookTour.onexit(() => {
+      localStorage.setItem("guestCalendarTourDone", "true");
+    });
+
+    bookTour.start();
+  } catch (e) {
+    console.warn("Guest tour failed:", e);
+  }
+};
+useEffect(() => {
+  const seen = localStorage.getItem("guestCalendarTourDone");
+  const forced = new URLSearchParams(window.location.search).get("tour") === "true";
+  if (!seen || forced) {
+    startGuestTour();
+  }
+}, []);
   const getBookings = async () => {
     try {
       const res = await fetch(site + "guestbooking/bookings", {
@@ -135,8 +254,8 @@ export default function CalendarGrid({ startDate }) {
     const anyBooked = next.some(([x, y]) =>
       getBookingForCell(rooms[x].name, dates[y])
     );
-
     setHasBookedCellsInSelection(anyBooked);
+     window.dispatchEvent(new Event("cellTapped"));
     return next;
   });
 };
@@ -232,7 +351,7 @@ const handleBookingSave = async () => {
         {rooms.map((room, rIdx) => (
           <div
             key={room.name}
-            className="grid border-t grid-row grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] justify-center"
+            className="grid border-t grid-row grid-cols-[100px_repeat(7,60px)] sm:grid-cols-[150px_repeat(7,90px)] justify-center room-column"
           >
             <div
               className="p-2 border-r bg-white sticky left-0 cursor-pointer"
@@ -286,9 +405,10 @@ const handleBookingSave = async () => {
         {selectedCells.length > 0 && !selectedBooking && (
             <div className="fixed bottom-6 right-6  z-50">
                 <button
+                  id = "guest-book-button"
                   onClick={handleBookClick}
                   disabled={hasBookedCellsInSelection}
-                  className={clsx("Book w-15 h-15 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
+                  className={clsx("Book guest-tour-target w-15 h-15 rounded-full bg-blue-500 text-white flex items-center justify-center overflow-hidden",
                     hasBookedCellsInSelection? "bg-gray-400 cursor-not-allowed": "bg-blue-600 hover:bg-blue-700"
                    )}
                   >

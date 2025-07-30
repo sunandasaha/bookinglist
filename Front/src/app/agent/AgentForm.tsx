@@ -1,12 +1,13 @@
 import { agent } from "../_components/ContextProvider";
 import { Building2, MapPin, User, IndianRupee, MessageCircle, Phone } from "lucide-react";
-
 type props = {
   info: agent;
   setInfo: React.Dispatch<React.SetStateAction<agent>>;
+  errors: { [key: string]: string };
 };
 
-const AgentForm = ({ info, setInfo }: props) => {
+
+const AgentForm = ({ info, setInfo, errors }: props) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.id === "hname")
       setInfo((p) => ({ ...p, name: e.target.value }));
@@ -69,6 +70,7 @@ const AgentForm = ({ info, setInfo }: props) => {
           required
           onChange={handleChange}
         />
+        {errors.ph1 && <p className="text-red-600 text-sm pl-9">{errors.ph1}</p>}
       </div>
       <div className="flex items-center gap-3">
         <Phone className="text-indigo-900" />

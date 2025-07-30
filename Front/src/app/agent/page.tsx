@@ -20,9 +20,11 @@ const Hotel = () => {
   const { user, agent, setAgent, setUser } = useContext(Context);
   const navigate = useRouter();
   const [info, setInfo] = useState<agent>(agent || def);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const imgref = useRef<HTMLInputElement>(null);
 
   const update = async () => {
+    setErrors({});
     let res;
     if (agent?._id) {
       res = await putReq("agent/", info, user.token);
@@ -38,7 +40,7 @@ const Hotel = () => {
       });
       res = await result.json();
     }
-
+        console.log("Error Response:", res);
     if (res.status === "success") {
       if (user?.status === 1) {
         setAgent(res.agent);
@@ -46,9 +48,16 @@ const Hotel = () => {
       } else {
         navigate.push("/status");
       }
-    } else {
-      console.log(res);
-    }
+    }  else {
+  if (res.status === "failed" && res.field) {
+    setErrors({
+      [res.field]: res.message, // e.g., upi_id: "The upi_id is already in use."
+    });
+  } else {
+    alert(res.message || "Something went wrong.");
+  }
+}
+
   };
 
   useEffect(() => {
@@ -78,8 +87,7 @@ const Hotel = () => {
         </h2>
 
         <div className="w-full max-w-lg bg-white p-6 md:p-10 rounded-2xl shadow-xl mx-auto">
-          <AgentForm setInfo={setInfo} info={info} />
-
+          <AgentForm setInfo={setInfo} info={info} errors={errors} />
           {!info._id && (
             <div className="mt-4">
               <input

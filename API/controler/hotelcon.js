@@ -21,9 +21,20 @@ const createHotel = async (req, res) => {
     await usr.save();
     res.json({ status: "success", hotel: hot });
   } catch (error) {
-    res.json({ status: "failed" });
-    console.log(error);
+  console.log(error);
+  if (error.code === 11000) {
+    const duplicateField = Object.keys(error.keyPattern)[0];
+    const duplicateValue = error.keyValue[duplicateField];
+
+    return res.status(400).json({
+      status: "failed",
+      field: duplicateField,
+      value: duplicateValue,
+      message: `The ${duplicateField} "${duplicateValue}" is already in use.`,
+    });
   }
+  return res.status(500).json({ status: "failed", message: "Something went wrong." });
+}
 };
 
 const updateHotel = async (req, res) => {

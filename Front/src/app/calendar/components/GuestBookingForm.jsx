@@ -321,16 +321,6 @@ useEffect(() => {
                 <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="* 📞 Phone "
-                    className={`p-3 border rounded-lg text-black focus:outline-none focus:ring-2 ${
-                      errors.phone ? "border-red-500 ring-red-500" : "focus:ring-blue-500"
-                    }`}
-                  />
-                  <input
-                    type="tel"
                     name="whatsapp"
                     value={formData.whatsapp}
                     onChange={handleChange}
@@ -338,6 +328,16 @@ useEffect(() => {
                     required
                     className={`p-3 border rounded-lg text-black focus:outline-none focus:ring-2 ${
                       errors.whatsapp ? "border-red-500 ring-red-500" : "focus:ring-blue-500"
+                    }`}
+                  />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="* 📞 Phone "
+                    className={`p-3 border rounded-lg text-black focus:outline-none focus:ring-2 ${
+                      errors.phone ? "border-red-500 ring-red-500" : "focus:ring-blue-500"
                     }`}
                   />
                 </div>
@@ -458,11 +458,19 @@ useEffect(() => {
               <strong className="text-blue-900">Total Price:</strong> ₹
               {totalPrice ? totalPrice.toFixed(2) : 0}
             </p>
-            <p>
-              <strong className="text-blue-900">Advance to Pay:</strong> ₹
-              {advanceAmount ? advanceAmount.toFixed(2) : 0}
-            </p>
-
+              <div className="flex items-center gap-2">
+                <label htmlFor="advanceAmount" className="text-blue-900 font-semibold">
+                  Advance to Pay:
+                </label>
+                <input
+                  type="number"
+                  id="advanceAmount"
+                  min={0}
+                  className="no-spinner w-28 p-1 px-2 border rounded-md text-right text-blue-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={customAdvance ?? advanceAmount}
+                  onChange={(e) => setCustomAdvance(Number(e.target.value))}
+                />
+              </div>
             <button
               onClick={() => setIsEditing(true)}
               className="w-full px-7 py-2 bg-white-900 text-black border border-blue-600 rounded-full hover:bg-blue-600 transition"

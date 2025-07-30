@@ -154,6 +154,9 @@ const PerRoomPricingForm = () => {
   const toggleEdit = async (index) => {
     const updated = [...categories];
     const cat = updated[index];
+    if (categories.length === 1 && cat.name.trim() === "") {
+          cat.name = "Normal";
+      }
     const set = new Set();
     for (let i = 0; i < cat.room_no.length; i++) {
       cat.room_no[i] = cat.room_no[i].trim();

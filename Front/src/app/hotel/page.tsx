@@ -28,6 +28,7 @@ const def = {
 
 const Hotel = () => {
   const { user, hosthotel, setHosthotel } = useContext(Context);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const navigate = useRouter();
   const [info, setInfo] = useState<hostHotel>(hosthotel || def);
 
@@ -39,14 +40,19 @@ const Hotel = () => {
       res = await postReq("hotel/", info, user.token);
     }
     if (res.status === "success") {
-      if (user?.status === 1) {
-        setHosthotel(res.hotel);
-        navigate.push("/calendar");
-      } else {
-        navigate.push("/status");
-      }
+        setErrors({}); 
+        if (user?.status === 1) {
+          setHosthotel(res.hotel);
+          navigate.push("/calendar");
+        } else {
+          navigate.push("/status");
+        }
     } else {
-      console.log(res);
+        if (res.field && res.message) {
+          setErrors({ [res.field]: res.message });
+        } else {
+          alert(res.message || "Something went wrong");
+        }
     }
   };
 
@@ -143,6 +149,9 @@ const Hotel = () => {
                 onChange={handleChange}
                 className="flex-1 pinput"
               />
+               {errors.accountName && (
+                  <p className="text-red-600 text-sm pl-9">{errors.accountName}</p>
+                )}
             </div>
             <div className="flex items-center gap-3">
               <IndianRupee className="text-indigo-900" />
@@ -155,6 +164,9 @@ const Hotel = () => {
                 onChange={handleChange}
                 className="flex-1 pinput"
               />
+                {errors.upi_id && (
+                <p className="text-red-600 text-sm pl-9">{errors.upi_id}</p>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <MessageCircle className="text-indigo-900" />
