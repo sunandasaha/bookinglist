@@ -155,8 +155,8 @@ const PerRoomPricingForm = () => {
     const updated = [...categories];
     const cat = updated[index];
     if (categories.length === 1 && cat.name.trim() === "") {
-          cat.name = "Normal";
-      }
+      cat.name = "Normal";
+    }
     const set = new Set();
     for (let i = 0; i < cat.room_no.length; i++) {
       cat.room_no[i] = cat.room_no[i].trim();
@@ -208,10 +208,9 @@ const PerRoomPricingForm = () => {
           });
 
           const result = await res.json();
-          console.log(result);
-
-          if (result.success && result.data?._id) {
-            updated[index]._id = result.data._id;
+          if (result.success && result.hotel?._id) {
+            setHosthotel(result.hotel);
+            setCategories(result.hotel.room_cat);
           }
         } catch (error) {
           console.error("Failed to save category:", error);
@@ -282,7 +281,7 @@ const PerRoomPricingForm = () => {
         agent_com: { amount: 0, percent: true },
         advance: { amount: 0, percent: true },
         images: [],
-        facilities: [],
+        amenities: [],
         isEditing: true,
       },
     ]);

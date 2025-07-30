@@ -16,7 +16,7 @@ const createRoomCategory = async (req, res) => {
       hot.room_cat = [...hot.room_cat, roomcat._id];
       await hot.save();
       const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-      res.json({ status: "success", hotel: ho });
+      res.json({ status: "success", hotel: ho, success: true });
     } else {
       res.json({ status: "cannot find the hotel" });
     }
@@ -40,7 +40,7 @@ const modifyRoomCategory = async (req, res) => {
     cat.price_for_extra_person = data.price_for_extra_person;
     await cat.save();
     const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-    res.json({ status: "success", hotel: hot });
+    res.json({ status: "success", hotel: hot, success: true });
   } else {
     res.json({ status: "failed" });
   }
@@ -53,7 +53,7 @@ const addImg = async (req, res) => {
     cat.images = [...cat.images, ...req.savedImages];
     await cat.save();
     const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-    res.json({ status: "success", hotel: hot });
+    res.json({ status: "success", hotel: hot, success: true });
   } else {
     req.savedImages.forEach((el) => {
       fs.unlink(`../upload/${el}`, (err) => {
@@ -76,7 +76,7 @@ const deleteImg = async (req, res) => {
     });
     await cat.save();
     const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-    res.json({ status: "success", hotel: hot });
+    res.json({ status: "success", hotel: hot, success: true });
   } else {
     res.json({ status: "failed" });
   }
@@ -95,7 +95,7 @@ const deleteRoomCategory = async (req, res) => {
     });
     await RoomCatmodel.findByIdAndDelete(data._id);
     const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-    res.json({ status: "success", hotel: ho });
+    res.json({ status: "success", hotel: ho, success: true });
   } catch (err) {
     console.log(err);
 
