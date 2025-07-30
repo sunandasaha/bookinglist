@@ -127,10 +127,10 @@ const PerRoomPricingForm = () => {
   const handleAddPhoto = (catIdx, files) => {
     const updated = [...categories];
     const currentPhotos = updated[catIdx].images || [];
-    if (currentPhotos.length + files.length > 4) {
+    if (currentPhotos.length + files.length > 8) {
       setProblems((prev) => ({
         ...prev,
-        [`cat-${catIdx}-images`]: "Only 4 images allowed per category.",
+        [`cat-${catIdx}-images`]: "Only 8 images allowed per category.",
       }));
       return;
     }
@@ -141,11 +141,10 @@ const PerRoomPricingForm = () => {
     });
     updated[catIdx].images = [
       ...currentPhotos,
-      ...Array.from(files).slice(0, 4 - currentPhotos.length),
+      ...Array.from(files).slice(0, 8 - currentPhotos.length),
     ];
     setCategories(updated);
   };
-
   const removePhoto = (catIdx, photoIdx) => {
     const updated = [...categories];
     updated[catIdx].images.splice(photoIdx, 1);
@@ -215,7 +214,8 @@ const PerRoomPricingForm = () => {
           }
         } catch (error) {
           console.error("Failed to save category:", error);
-        }
+        } 
+
       }
     }
 
@@ -307,7 +307,7 @@ const PerRoomPricingForm = () => {
               value={cat.name}
               placeholder="Category name"
               onChange={(e) => handleChange(catIdx, "name", e.target.value)}
-              className="font-semibold text-lg border p-2 rounded w-1/2"
+              className="font-semibold text-lg border p-2 rounded w-full"
               disabled={!cat.isEditing}
             />
             {!cat.isEditing && (
@@ -531,7 +531,9 @@ const PerRoomPricingForm = () => {
                 </button>
 
                 <button
-                  onClick={() => toggleEdit(catIdx)}
+                  onClick={() =>  {
+                    toggleEdit(catIdx);
+                  }}
                   className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
                   disabled={loadingIndex === catIdx}
                 >

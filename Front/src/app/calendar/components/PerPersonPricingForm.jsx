@@ -77,6 +77,9 @@ const PerPersonPricingForm = () => {
   const toggleEdit = async (index) => {
     const updated = [...categories];
     const cat = updated[index];
+    if (categories.length === 1 && cat.name.trim() === "") {
+          cat.name = "Normal";
+      }
     const set = new Set();
     for (let i = 0; i < cat.roomNumbers.length; i++) {
       cat.roomNumbers[i] = cat.roomNumbers[i].trim();
@@ -170,10 +173,10 @@ const PerPersonPricingForm = () => {
   const handleAddPhoto = (catIdx, files) => {
     const updated = [...categories];
     const currentPhotos = updated[catIdx].images || [];
-    if (currentPhotos.length + files.length > 4) {
+    if (currentPhotos.length + files.length > 8) {
       setProblems((prev) => ({
         ...prev,
-        [`cat-${catIdx}-images`]: "Only 4 images allowed per category.",
+        [`cat-${catIdx}-images`]: "Only 8 images allowed per category.",
       }));
       return;
     }
@@ -184,11 +187,10 @@ const PerPersonPricingForm = () => {
     });
     updated[catIdx].images = [
       ...currentPhotos,
-      ...Array.from(files).slice(0, 4 - currentPhotos.length),
+      ...Array.from(files).slice(0, 8 - currentPhotos.length),
     ];
     setCategories(updated);
   };
-
   const removePhoto = (catIdx, photoIdx) => {
     const updated = [...categories];
     updated[catIdx].images.splice(photoIdx, 1);
@@ -281,7 +283,7 @@ const PerPersonPricingForm = () => {
               value={cat.name}
               placeholder="Category name"
               onChange={(e) => handleChange(catIdx, "name", e.target.value)}
-              className="font-semibold text-lg border p-2 rounded w-1/2"
+              className="font-semibold text-lg border p-2 rounded w-full"
               disabled={!cat.isEditing}
             />
             {!cat.isEditing && (
@@ -398,7 +400,6 @@ const PerPersonPricingForm = () => {
                   </select>
                 </div>
               </div>
-
               {/* Advance */}
               <div className="space-y-2">
                 <label className="font-medium">Advance</label>
