@@ -22,6 +22,11 @@ const createRoomCategory = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    if (req.savedImages && req.savedImages.length > 0) {
+      req.savedImages.forEach((e) => {
+        deleteFile(e);
+      });
+    }
     res.json({ status: "failed", error });
   }
 };

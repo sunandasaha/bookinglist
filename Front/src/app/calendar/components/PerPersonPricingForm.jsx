@@ -5,7 +5,7 @@ import { Trash2, Plus, X, Edit, Save } from "lucide-react";
 import { putReq, site, delReq, imgurl } from "../../_utils/request";
 import { facilityOptions } from "./data";
 
-const PerPersonPricingForm = () => {
+const PerPersonPricingForm = ({ cb }) => {
   const { hosthotel, setHosthotel, user } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
   const [problems, setProblems] = useState({});
@@ -75,11 +75,12 @@ const PerPersonPricingForm = () => {
   };
 
   const toggleEdit = async (index) => {
+    setLoadingIndex(index);
     const updated = [...categories];
     const cat = updated[index];
     if (categories.length === 1 && cat.name.trim() === "") {
-          cat.name = "Normal";
-      }
+      cat.name = "Normal";
+    }
     const set = new Set();
     for (let i = 0; i < cat.roomNumbers.length; i++) {
       cat.roomNumbers[i] = cat.roomNumbers[i].trim();
@@ -88,6 +89,7 @@ const PerPersonPricingForm = () => {
           ...p,
           roomno: "Room name must be unique and not empty",
         }));
+        setLoadingIndex(null);
         return;
       }
       set.add(cat.roomNumbers[i]);
@@ -95,6 +97,7 @@ const PerPersonPricingForm = () => {
     if (!cat.isEditing) {
       updated[index].isEditing = true;
       setCategories(updated);
+      setLoadingIndex(null);
       return;
     }
 
@@ -104,9 +107,9 @@ const PerPersonPricingForm = () => {
         ...prev,
         [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.`,
       }));
+      setLoadingIndex(null);
       return;
     }
-    setLoadingIndex(index);
     try {
       if (cat._id) {
         const result = await putReq("category/perperson", cat, user.token);
@@ -128,6 +131,7 @@ const PerPersonPricingForm = () => {
         if (result.success && result.hotel?._id) {
           setHosthotel(result.hotel);
           setCategories(result.hotel.room_cat);
+          cb();
         }
       }
     } catch (err) {

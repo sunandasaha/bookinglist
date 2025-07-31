@@ -31,6 +31,7 @@ import PopEffect from "../../_components/PopEffect";
 import { Context } from "../../_components/ContextProvider.tsx";
 import RoomsPricing from "./RoomsPricing";
 import { imgurl, postReq, site } from "../../_utils/request.ts";
+import { AnimatePresence } from "framer-motion";
 const waitForElement = (selector, timeout = 3000) =>
   new Promise((resolve) => {
     const interval = setInterval(() => {
@@ -179,8 +180,8 @@ export default function TopBar({
     }
   };
   if (typeof window !== "undefined") {
-  window.startTour = startTour;
-}
+    window.startTour = startTour;
+  }
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hasRoomData =
@@ -425,19 +426,21 @@ export default function TopBar({
           </div>
         )}
       </div>
-      {showProfile && (
-        <ProfileModal
-          profile={hosthotel}
-          onClose={() => setShowProfile(false)}
-        />
-      )}
-      {showRoomsPricing && (
-        <PopEffect cb={() => setShowRoomsPricing(false)}>
-          <div className="bg-white p-4 rounded-md shadow-md max-w-xl w-full">
-            <RoomsPricing pricingType={hosthotel?.pricingType} />
-          </div>
-        </PopEffect>
-      )}
+      <AnimatePresence>
+        {showProfile && (
+          <ProfileModal
+            profile={hosthotel}
+            onClose={() => setShowProfile(false)}
+          />
+        )}
+        {showRoomsPricing && (
+          <PopEffect cb={() => setShowRoomsPricing(false)}>
+            <div className="bg-white p-4 rounded-md shadow-md max-w-xl w-full">
+              <RoomsPricing cb={() => setShowRoomsPricing(false)} />
+            </div>
+          </PopEffect>
+        )}
+      </AnimatePresence>
 
       {showNot && (
         <>

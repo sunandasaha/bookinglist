@@ -23,6 +23,11 @@ const createPerPersonCategory = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    if (req.savedImages && req.savedImages.length > 0) {
+      req.savedImages.forEach((e) => {
+        deleteFile(e);
+      });
+    }
     res.json({ status: "failed", error });
   }
 };
@@ -111,7 +116,6 @@ const deletePerPersonCategory = async (req, res) => {
     res.json({ status: "success", hotel: ho, success: true });
   } catch (err) {
     console.log(err);
-
     res.json({ status: "failed", err });
   }
 };

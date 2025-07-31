@@ -6,7 +6,7 @@ import { Trash2, Plus, X, Edit, Save } from "lucide-react";
 import { site, delReq, putReq, imgurl } from "../../_utils/request";
 import { facilityOptions } from "./data";
 
-const PerRoomPricingForm = () => {
+const PerRoomPricingForm = ({ cb }) => {
   const { hosthotel, user, setHosthotel } = useContext(Context);
   const totalRoomsAllowed = hosthotel?.rooms || 0;
 
@@ -150,32 +150,37 @@ const PerRoomPricingForm = () => {
     updated[catIdx].images.splice(photoIdx, 1);
     setCategories(updated);
   };
+
   const toggleEdit = async (index) => {
     const updated = [...categories];
     const cat = updated[index];
-    if (categories.length === 1 && cat.name.trim() === "") {
-      cat.name = "Normal";
-    }
-    const set = new Set();
-    for (let i = 0; i < cat.room_no.length; i++) {
-      cat.room_no[i] = cat.room_no[i].trim();
-      if (cat.room_no[i] === "" || set.has(cat.room_no[i])) {
-        setProblems((p) => ({
-          ...p,
-          roomno: "Room name must be unique and not empty",
-        }));
-        return;
-      }
-      set.add(cat.room_no[i]);
-    }
-
     if (cat.isEditing) {
+      setLoadingIndex(index);
+      if (categories.length === 1 && cat.name.trim() === "") {
+        cat.name = "Normal";
+      }
+      const set = new Set();
+      for (let i = 0; i < cat.room_no.length; i++) {
+        cat.room_no[i] = cat.room_no[i].trim();
+        if (cat.room_no[i] === "" || set.has(cat.room_no[i])) {
+          setProblems((p) => ({
+            ...p,
+            roomno: "Room name must be unique and not empty",
+          }));
+          setLoadingIndex(null);
+          return;
+        }
+        set.add(cat.room_no[i]);
+      }
+
       if (cat._id) {
         const result = await putReq("category/room", cat, user.token);
         if (result.success) {
           setHosthotel(result.hotel);
           setCategories(result.hotel.room_cat);
+          cb();
         }
+        setLoadingIndex(null);
       } else {
         const formData = new FormData();
 
@@ -210,11 +215,13 @@ const PerRoomPricingForm = () => {
           if (result.success && result.hotel?._id) {
             setHosthotel(result.hotel);
             setCategories(result.hotel.room_cat);
+            cb();
           }
+          setLoadingIndex(null);
         } catch (error) {
+          setLoadingIndex(null);
           console.error("Failed to save category:", error);
-        } 
-
+        }
       }
     }
 
@@ -521,7 +528,9 @@ const PerRoomPricingForm = () => {
               </div>
               <div className="relative flex justify-end gap-4 pt-4 border-t">
                 <button
-                  onClick={() => handleDeleteCategory(catIdx)}
+                  onClick={() => {
+                    handleDeleteCategory(catIdx);
+                  }}
                   className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
                   disabled={loadingIndex === catIdx}
                 >
@@ -530,7 +539,7 @@ const PerRoomPricingForm = () => {
                 </button>
 
                 <button
-                  onClick={() =>  {
+                  onClick={() => {
                     toggleEdit(catIdx);
                   }}
                   className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"

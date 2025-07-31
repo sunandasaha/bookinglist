@@ -65,6 +65,7 @@ const glogin = async (req, res) => {
       password: "google",
       role: "",
       status: 0,
+      validUpto: new Date(new Date().setDate(new Date().getDate() + 60)),
     });
   }
   if (user._id) {
@@ -159,6 +160,7 @@ const signup = async (req, res) => {
       password: hpass,
       role: "",
       status: 0,
+      validUpto: new Date(new Date().setDate(new Date().getDate() + 60)),
     });
     const tok = jwt.sign(
       { id: user._id, role: user.role },
