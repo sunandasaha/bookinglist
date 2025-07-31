@@ -19,7 +19,7 @@ const dailyChkOut = async (req, res) => {
     await deleteFile(bok.advance_ss);
     bok.advance_ss = undefined;
     bok.status = 12;
-    bok.amountPaid = bok.totalPrice - bok.advanceAmount;
+    bok.amountPaid = bok.totalPrice - bok.advanceAmount - (bok.agentCut || 0);
     await bok.save();
   }
   res.json({ success: true });
