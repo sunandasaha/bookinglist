@@ -82,6 +82,11 @@ const PerPersonPricingForm = ({ cb }) => {
       cat.name = "Normal";
     }
     const set = new Set();
+    updated.forEach((i) => {
+      i.room_no.forEach((j) => {
+        set.add(cat.room_no[j]);
+      });
+    });
     for (let i = 0; i < cat.roomNumbers.length; i++) {
       cat.roomNumbers[i] = cat.roomNumbers[i].trim();
       if (cat.roomNumbers[i] === "" || set.has(cat.roomNumbers[i])) {

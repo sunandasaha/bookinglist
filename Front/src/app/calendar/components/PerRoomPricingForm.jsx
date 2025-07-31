@@ -160,6 +160,11 @@ const PerRoomPricingForm = ({ cb }) => {
         cat.name = "Normal";
       }
       const set = new Set();
+      updated.forEach((i) => {
+        i.room_no.forEach((j) => {
+          set.add(cat.room_no[j]);
+        });
+      });
       for (let i = 0; i < cat.room_no.length; i++) {
         cat.room_no[i] = cat.room_no[i].trim();
         if (cat.room_no[i] === "" || set.has(cat.room_no[i])) {
