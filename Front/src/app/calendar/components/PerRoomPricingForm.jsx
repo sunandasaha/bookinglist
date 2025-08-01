@@ -150,155 +150,157 @@ const PerRoomPricingForm = ({ cb }) => {
     updated[catIdx].images.splice(photoIdx, 1);
     setCategories(updated);
   };
-const toggleEdit = async (index) => {
-  const isEditing = categories.some((cat, idx) => idx !== index && cat.isEditing);
-  if (isEditing) {
-    alert("Please save the currently open category before editing another.");
-    return;
-  }
-
-  const updated = [...categories];
-  const cat = updated[index];
-  if (!cat.isEditing) {
-    const backups = [...backupCategories];
-    backups[index] = JSON.parse(JSON.stringify(cat));
-    setBackupCategories(backups);
-
-    updated[index].isEditing = true;
-    setCategories(updated);
-    return;
-  }
-  setLoadingIndex(index);
-
-  if (categories.length === 1 && cat.name.trim() === "") {
-    cat.name = "Normal";
-  }
-  const allRooms = new Set();
-  let hasDuplicate = false;
-  let hasEmpty = false;
-
-  for (let i = 0; i < updated.length; i++) {
-    const category = updated[i];
-    const localSet = new Set();
-    for (let j = 0; j < category.room_no.length; j++) {
-      const room = category.room_no[j].trim();
-      category.room_no[j] = room;
-
-      if (!room) {
-        hasEmpty = true;
-        break;
-      }
-      if (localSet.has(room) || allRooms.has(room)) {
-        hasDuplicate = true;
-        break;
-      }
-      localSet.add(room);
-      allRooms.add(room);
+  const toggleEdit = async (index) => {
+    const isEditing = categories.some(
+      (cat, idx) => idx !== index && cat.isEditing
+    );
+    if (isEditing) {
+      alert("Please save the currently open category before editing another.");
+      return;
     }
-    if (hasEmpty || hasDuplicate) break;
-  }
 
-  if (hasEmpty || hasDuplicate) {
-    setProblems((prev) => ({
-      ...prev,
-      roomno: hasEmpty
-        ? "Room name must not be empty"
-        : "Room name must be unique across and within categories",
-    }));
-    setLoadingIndex(null);
-    return;
-  } else {
-    setProblems((prev) => {
-      const p = { ...prev };
-      delete p.roomno;
-      return p;
-    });
-  }
+    const updated = [...categories];
+    const cat = updated[index];
+    if (!cat.isEditing) {
+      const backups = [...backupCategories];
+      backups[index] = JSON.parse(JSON.stringify(cat));
+      setBackupCategories(backups);
 
-  try {
-    if (cat._id) {
-      const result = await putReq("category/room", cat, user.token);
-      if (result.success) {
-        setHosthotel(result.hotel);
-        setCategories(result.hotel.room_cat);
-        const totalUsed = result.hotel.room_cat.reduce(
-          (sum, cat) => sum + (cat.room_no?.length || 0),
-          0
-        );
-        const registered = result.hotel.rooms || 0;
-        if (totalUsed === registered) {
-          cb(totalUsed);
+      updated[index].isEditing = true;
+      setCategories(updated);
+      return;
+    }
+    setLoadingIndex(index);
+
+    if (categories.length === 1 && cat.name.trim() === "") {
+      cat.name = "Normal";
+    }
+    const allRooms = new Set();
+    let hasDuplicate = false;
+    let hasEmpty = false;
+
+    for (let i = 0; i < updated.length; i++) {
+      const category = updated[i];
+      const localSet = new Set();
+      for (let j = 0; j < category.room_no.length; j++) {
+        const room = category.room_no[j].trim();
+        category.room_no[j] = room;
+
+        if (!room) {
+          hasEmpty = true;
+          break;
         }
+        if (localSet.has(room) || allRooms.has(room)) {
+          hasDuplicate = true;
+          break;
+        }
+        localSet.add(room);
+        allRooms.add(room);
       }
+      if (hasEmpty || hasDuplicate) break;
+    }
+
+    if (hasEmpty || hasDuplicate) {
+      setProblems((prev) => ({
+        ...prev,
+        roomno: hasEmpty
+          ? "Room name must not be empty"
+          : "Room name must be unique across and within categories",
+      }));
+      setLoadingIndex(null);
+      return;
     } else {
-      const formData = new FormData();
-      const details = {
-        name: cat.name,
-        capacity: Number(cat.capacity),
-        price: Number(cat.price),
-        price_for_extra_person: Number(cat.price_for_extra_person),
-        agent_com: {
-          amount: Number(cat.agent_com.amount),
-          percent: cat.agent_com.percent,
-        },
-        advance: {
-          amount: Number(cat.advance.amount),
-          percent: cat.advance.percent,
-        },
-        room_no: cat.room_no,
-        amenities: cat.facilities || [],
-      };
-
-      formData.append("details", JSON.stringify(details));
-      cat.images.forEach((img) => formData.append("images", img));
-
-      const res = await fetch(site + "category/room", {
-        method: "POST",
-        headers: { authorization: user.token },
-        body: formData,
+      setProblems((prev) => {
+        const p = { ...prev };
+        delete p.roomno;
+        return p;
       });
+    }
 
-      const result = await res.json();
-      if (result.success && result.hotel?._id) {
-        setHosthotel(result.hotel);
-        setCategories(result.hotel.room_cat);
-        const totalUsed = result.hotel.room_cat.reduce(
-          (sum, cat) => sum + (cat.room_no?.length || 0),
-          0
-        );
-        const registered = result.hotel.rooms || 0;
-        if (totalUsed === registered) {
-          cb();
+    try {
+      if (cat._id) {
+        const result = await putReq("category/room", cat, user.token);
+        if (result.success) {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.room_cat);
+          const totalUsed = result.hotel.room_cat.reduce(
+            (sum, cat) => sum + (cat.room_no?.length || 0),
+            0
+          );
+          const registered = result.hotel.rooms || 0;
+          if (totalUsed === registered) {
+            cb();
+          }
+        }
+      } else {
+        const formData = new FormData();
+        const details = {
+          name: cat.name,
+          capacity: Number(cat.capacity),
+          price: Number(cat.price),
+          price_for_extra_person: Number(cat.price_for_extra_person),
+          agent_com: {
+            amount: Number(cat.agent_com.amount),
+            percent: cat.agent_com.percent,
+          },
+          advance: {
+            amount: Number(cat.advance.amount),
+            percent: cat.advance.percent,
+          },
+          room_no: cat.room_no,
+          amenities: cat.facilities || [],
+        };
+
+        formData.append("details", JSON.stringify(details));
+        cat.images.forEach((img) => formData.append("images", img));
+
+        const res = await fetch(site + "category/room", {
+          method: "POST",
+          headers: { authorization: user.token },
+          body: formData,
+        });
+
+        const result = await res.json();
+        if (result.success && result.hotel?._id) {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.room_cat);
+          const totalUsed = result.hotel.room_cat.reduce(
+            (sum, cat) => sum + (cat.room_no?.length || 0),
+            0
+          );
+          const registered = result.hotel.rooms || 0;
+          if (totalUsed === registered) {
+            cb();
+          }
         }
       }
+    } catch (err) {
+      console.error("Failed to save category:", err);
+    } finally {
+      setLoadingIndex(null);
     }
-  } catch (err) {
-    console.error("Failed to save category:", err);
-  } finally {
-    setLoadingIndex(null);
-  }
-};
+  };
 
-const discardChanges = (index) => {
-  const backup = backupCategories[index];
-  if (!backup) return;
+  const discardChanges = (index) => {
+    const backup = backupCategories[index];
+    if (!backup) return;
 
-  const updated = [...categories];
-  updated[index] = { ...backup, isEditing: false };
-  setCategories(updated);
+    const updated = [...categories];
+    updated[index] = { ...backup, isEditing: false };
+    setCategories(updated);
 
-  setErrorMsg((prev) => {
-    const msg = { ...prev };
-    delete msg[index];
-    return msg;
-  });
+    setErrorMsg((prev) => {
+      const msg = { ...prev };
+      delete msg[index];
+      return msg;
+    });
 
-  setProblems((prev) => {
-    const newProblems = { ...prev };
-    delete newProblems.roomno;
-    return newProblems;
-  });
-};
+    setProblems((prev) => {
+      const newProblems = { ...prev };
+      delete newProblems.roomno;
+      return newProblems;
+    });
+  };
   const handleDeleteCategory = async (catIdx) => {
     const categoryId = categories[catIdx]._id;
     if (categoryId) {
@@ -335,11 +337,11 @@ const discardChanges = (index) => {
   };
 
   const handleAddCategory = () => {
-     const isEditing = categories.some((cat) => cat.isEditing);
-  if (isEditing) {
-    alert("Please save the current category before adding a new one.");
-    return;
-  }
+    const isEditing = categories.some((cat) => cat.isEditing);
+    if (isEditing) {
+      alert("Please save the current category before adding a new one.");
+      return;
+    }
     if (getTotalUsedRooms() >= totalRoomsAllowed) {
       setProblems((prev) => ({
         ...prev,
@@ -401,16 +403,16 @@ const discardChanges = (index) => {
               </button>
             )}
           </div>
-            {errorMsg && cat.isEditing && (
-                  <>
-                    {errorMsg.name && (
-                      <p className="text-red-600 font-medium">{errorMsg.name}</p>
-                    )}
-                    {errorMsg.roomno && (
-                      <p className="text-red-600 font-medium">{errorMsg.roomno}</p>
-                    )}
-                  </>
-                )}
+          {errorMsg && cat.isEditing && (
+            <>
+              {errorMsg.name && (
+                <p className="text-red-600 font-medium">{errorMsg.name}</p>
+              )}
+              {errorMsg.roomno && (
+                <p className="text-red-600 font-medium">{errorMsg.roomno}</p>
+              )}
+            </>
+          )}
           {cat.isEditing && (
             <>
               <div>
@@ -609,12 +611,12 @@ const discardChanges = (index) => {
               </div>
               <div className="relative flex justify-end gap-4 pt-4 border-t">
                 <button
-                      onClick={() => discardChanges(catIdx)}
-                      className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                      disabled={loadingIndex === catIdx}
-                    >
-                      <span>Discard changes</span>
-                    </button>
+                  onClick={() => discardChanges(catIdx)}
+                  className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  disabled={loadingIndex === catIdx}
+                >
+                  <span>Discard changes</span>
+                </button>
                 <button
                   onClick={() => {
                     handleDeleteCategory(catIdx);
