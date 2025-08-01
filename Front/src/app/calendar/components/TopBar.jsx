@@ -77,6 +77,31 @@ export default function TopBar({
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
   const toggleSideMenu = () => setShowSideMenu((prev) => !prev);
   const toggleSearch = () => setSearchOpen((prev) => !prev);
+  const handleCloseIfAllRoomsDone = () => {
+  const allowed = hosthotel?.rooms || 0;
+  const isPerRoom = hosthotel?.pay_per?.room;
+
+  const categories = isPerRoom
+    ? hosthotel?.room_cat || []
+    : hosthotel?.per_person_cat || []; 
+
+  const totalUsed = categories.reduce(
+    (sum, cat) =>
+      sum + (isPerRoom ? cat.room_no?.length || 0 : cat.roomNumbers?.length || 0),
+    0
+  );
+
+  if (totalUsed === allowed) {
+    setShowRoomsPricing(false);
+  } else {
+    const confirmClose = confirm(
+      `You’ve added only ${totalUsed} of ${allowed} rooms. Still want to close?`
+    );
+    if (confirmClose) setShowRoomsPricing(false);
+  }
+};
+
+
   const handleBookingDecision = async (id, res) => {
     if (socket) {
       socket.emit("pending", { id, res });
@@ -434,12 +459,15 @@ export default function TopBar({
           />
         )}
         {showRoomsPricing && (
-          <PopEffect cb={() => setShowRoomsPricing(false)}>
+          <PopEffect cb={handleCloseIfAllRoomsDone }>
             <div className="bg-white p-4 rounded-md shadow-md max-w-xl w-full">
-              <RoomsPricing cb={() => setShowRoomsPricing(false)} />
+              <RoomsPricing cb={handleCloseIfAllRoomsDone}/>
             </div>
           </PopEffect>
+          
         )}
+       
+
       </AnimatePresence>
 
       {showNot && (

@@ -11,6 +11,7 @@ const PerPersonPricingForm = ({ cb }) => {
   const [problems, setProblems] = useState({});
   const [loadingIndex, setLoadingIndex] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [backupCategories, setBackupCategories] = useState([]);
   const [categories, setCategories] = useState(
     hosthotel.per_person_cat?.length > 0
       ? hosthotel.per_person_cat.map((cat) => ({ ...cat, isEditing: false }))
@@ -73,82 +74,137 @@ const PerPersonPricingForm = ({ cb }) => {
     }
     setCategories(updated);
   };
-
   const toggleEdit = async (index) => {
-    setLoadingIndex(index);
-    const updated = [...categories];
-    const cat = updated[index];
-    if (categories.length === 1 && cat.name.trim() === "") {
-      cat.name = "Normal";
+  const isEditing = categories.some((cat, idx) => idx !== index && cat.isEditing);
+  if (isEditing) {
+    alert("Please save the currently open category before editing another.");
+    return;
+  }
+  setLoadingIndex(index);
+  const updated = [...categories];
+  const cat = updated[index];
+  
+  if (!cat.isEditing) {
+    const backups = [...backupCategories];
+    backups[index] = JSON.parse(JSON.stringify(cat));
+    setBackupCategories(backups);
+  }
+
+  if (categories.length === 1 && cat.name.trim() === "") {
+    cat.name = "Normal";
+  }
+  const allRooms = new Set();
+  let hasDuplicate = false;
+  let hasEmpty = false;
+  for (let i = 0; i < updated.length; i++) {
+    const category = updated[i];
+    const localSet = new Set();
+    for (let j = 0; j < category.roomNumbers.length; j++) {
+      const room = category.roomNumbers[j].trim();
+      category.roomNumbers[j] = room;
+
+      if (!room) {
+        hasEmpty = true;
+        break;
+      }
+      if (localSet.has(room) || allRooms.has(room)) {
+        hasDuplicate = true;
+        break;
+      }
+      localSet.add(room);
+      allRooms.add(room);
     }
-    const set = new Set();
-    updated.forEach((i) => {
-      i.room_no.forEach((j) => {
-        set.add(cat.room_no[j]);
-      });
+    if (hasEmpty || hasDuplicate) break;
+  }
+
+  if (hasEmpty || hasDuplicate) {
+    setProblems((prev) => ({
+      ...prev,
+      roomno: hasEmpty
+        ? "Room name must not be empty"
+        : "Room name must be unique across and within categories",
+    }));
+    setLoadingIndex(null);
+    return;
+  } else {
+    setProblems((prev) => {
+      const p = { ...prev };
+      delete p.roomno;
+      return p;
     });
-    for (let i = 0; i < cat.roomNumbers.length; i++) {
-      cat.roomNumbers[i] = cat.roomNumbers[i].trim();
-      if (cat.roomNumbers[i] === "" || set.has(cat.roomNumbers[i])) {
-        setProblems((p) => ({
-          ...p,
-          roomno: "Room name must be unique and not empty",
-        }));
-        setLoadingIndex(null);
-        return;
+  }
+  if (!cat.isEditing) {
+    updated[index].isEditing = true;
+    setCategories(updated);
+    setLoadingIndex(null);
+    return;
+  }
+  const baseRate = cat[`rate${cat.capacity}`];
+  if (!cat.capacity || !baseRate) {
+    setErrorMsg((prev) => ({
+      ...prev,
+      [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.`,
+    }));
+    setLoadingIndex(null);
+    return;
+  }
+
+  try {
+    if (cat._id) {
+      const result = await putReq("category/perperson", cat, user.token);
+      if (result.success) {
+        setHosthotel(result.hotel);
+        setCategories(result.hotel.per_person_cat);
+        updated[index].isEditing = false;
       }
-      set.add(cat.roomNumbers[i]);
-    }
-    if (!cat.isEditing) {
-      updated[index].isEditing = true;
-      setCategories(updated);
-      setLoadingIndex(null);
-      return;
-    }
+    } else {
+      const fd = new FormData();
+      fd.append("details", JSON.stringify({ ...cat, images: [] }));
+      cat.images.forEach((f) => fd.append("images", f));
 
-    const baseRate = cat[`rate${cat.capacity}`];
-    if (!cat.capacity || !baseRate) {
-      setErrorMsg((prev) => ({
-        ...prev,
-        [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.`,
-      }));
-      setLoadingIndex(null);
-      return;
-    }
-    try {
-      if (cat._id) {
-        const result = await putReq("category/perperson", cat, user.token);
-        if (result.success) {
-          setHosthotel(result.hotel);
-          setCategories(result.hotel.per_person_cat);
-        }
-      } else {
-        const fd = new FormData();
-        fd.append("details", JSON.stringify({ ...cat, images: [] }));
-        cat.images.forEach((f) => fd.append("images", f));
-
-        const res = await fetch(site + "category/perperson", {
-          method: "POST",
-          headers: { authorization: user.token },
-          body: fd,
-        });
-        const result = await res.json();
-        if (result.success && result.hotel?._id) {
-          setHosthotel(result.hotel);
-          setCategories(result.hotel.room_cat);
-          cb();
-        }
+      const res = await fetch(site + "category/perperson", {
+        method: "POST",
+        headers: { authorization: user.token },
+        body: fd,
+      });
+      const result = await res.json();
+      if (result.success && result.hotel?._id) {
+        setHosthotel(result.hotel);
+        setCategories(result.hotel.per_person_cat);
+        updated[index].isEditing = false;
+        cb();
       }
-    } catch (err) {
-      console.error("Failed to save category:", err);
-      setErrorMsg("Failed to save. Please try again.");
-    } finally {
-      updated[index].isEditing = !cat.isEditing;
-      setLoadingIndex(null);
     }
-  };
+  } catch (err) {
+    console.error("Failed to save category:", err);
+    setErrorMsg((prev) => ({
+      ...prev,
+      [index]: "Failed to save. Please try again.",
+    }));
+  } finally {
+    setCategories(updated);
+    setLoadingIndex(null);
+  }
+};
+const discardChanges = (index) => {
+  const backup = backupCategories[index];
+  if (!backup) return;
+  const updated = [...categories];
+  updated[index] = { ...backup, isEditing: false };
+  setCategories(updated);
+  setErrorMsg((prev) => {
+    const msg = { ...prev };
+    delete msg[index];
+    return msg;
+  });
 
-  const handleRoomNumberChange = (catIdx, rIdx, value) => {
+  setProblems((prev) => {
+    const newProblems = { ...prev };
+    delete newProblems.roomno;
+    return newProblems;
+  });
+};
+const handleRoomNumberChange = (catIdx, rIdx, value) => {
     const updated = [...categories];
     updated[catIdx].roomNumbers[rIdx] = value;
     setCategories(updated);
@@ -243,6 +299,11 @@ const PerPersonPricingForm = ({ cb }) => {
   };
 
   const handleAddCategory = () => {
+    const isEditing = categories.some((cat) => cat.isEditing);
+  if (isEditing) {
+    alert("Please save the current category before adding a new one.");
+    return;
+  }
     if (getTotalUsedRooms() >= totalRoomsAllowed) {
       setProblems((prev) => ({
         ...prev,
@@ -464,7 +525,7 @@ const PerPersonPricingForm = ({ cb }) => {
               {/* Image Upload */}
               <div className="mb-4">
                 <label className="block font-medium mb-1">
-                  Upload Room Photos (max 4):
+                  Upload Room Photos (max 8):
                 </label>
                 <div
                   className="border border-gray-400 rounded-md p-4 cursor-pointer text-center text-sm text-blue-500 hover:border-gray-500 transition"
@@ -510,6 +571,13 @@ const PerPersonPricingForm = ({ cb }) => {
               </div>
               {/* Action Buttons at Bottom */}
               <div className="relative flex justify-end gap-4 pt-4 border-t">
+                 <button
+                      onClick={() => discardChanges(catIdx)}
+                      className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                      disabled={loadingIndex === catIdx}
+                    >
+                      <span>Discard changes</span>
+                    </button>
                 <button
                   onClick={() => handleDeleteCategory(catIdx)}
                   className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"

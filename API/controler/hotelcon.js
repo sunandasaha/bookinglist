@@ -36,7 +36,6 @@ const createHotel = async (req, res) => {
   return res.status(500).json({ status: "failed", message: "Something went wrong." });
 }
 };
-
 const updateHotel = async (req, res) => {
   const data = req.body;
   const hot = await Hotelmodel.findById(data._id)
@@ -62,7 +61,6 @@ const updateHotel = async (req, res) => {
     res.json({ status: "No hotel found" });
   }
 };
-
 const getHotelViaUrl = async (req, res) => {
   const { hotelurl, agnt } = req.headers;
   const hotel = await Hotelmodel.findOne({ url: hotelurl })
