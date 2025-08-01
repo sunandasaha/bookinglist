@@ -165,7 +165,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                 />
                 <ProfileRow
                   label="💬 Whatsapp"
-                  value={selectedApprovedUser.parsed?.phone}
+                  value={selectedApprovedUser.parsed?.ph1}
                 />
                 {selectedApprovedUser.role === "agent" && (
                   <>
