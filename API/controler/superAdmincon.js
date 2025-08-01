@@ -59,24 +59,24 @@ const deleteId = async (req, res) => {
     if (usr.role === "host") {
       if (usr.sid) {
         const hot = await Hotelmodel.findByIdAndDelete(usr.sid);
-        if (hot.room_cat && hot.room_cat.length > 0) {
+        if (hot?.room_cat && hot.room_cat.length > 0) {
           for (let i = 0; i < hot.room_cat.length; i++) {
             const cat = await RoomCatmodel.findByIdAndDelete(
               hot.room_cat[i].toString()
             );
-            if (cat.images && cat.images.length > 0) {
+            if (cat?.images && cat.images.length > 0) {
               for (let j = 0; j < cat.images.length; j++) {
                 await deleteFile(cat.images[j]);
               }
             }
           }
         }
-        if (hot.per_person_cat && hot.per_person_cat.length > 0) {
+        if (hot?.per_person_cat && hot.per_person_cat.length > 0) {
           for (let i = 0; i < hot.room_cat.length; i++) {
             const cat = await PerPersonmodel.findByIdAndDelete(
               hot.room_cat[i].toString()
             );
-            if (cat.images && cat.images.length > 0) {
+            if (cat?.images && cat.images.length > 0) {
               for (let j = 0; j < cat.images.length; j++) {
                 await deleteFile(cat.images[j]);
               }
