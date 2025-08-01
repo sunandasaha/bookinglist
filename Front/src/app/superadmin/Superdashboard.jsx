@@ -53,7 +53,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
           <img
             src="/svgs/logo.png"
             onClick={() => {
-              setAdmin(null);
+              getData();
             }}
             className="h-8 w-auto"
             alt="logo"

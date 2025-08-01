@@ -1,7 +1,5 @@
-const fs = require("fs");
 const RoomCatmodel = require("../models/Rooms");
 const Hotelmodel = require("../models/Hotel");
-const path = require("path");
 const { deleteFile } = require("../utils/upload");
 
 const createRoomCategory = async (req, res) => {
@@ -61,9 +59,7 @@ const addImg = async (req, res) => {
     res.json({ status: "success", hotel: hot, success: true });
   } else {
     req.savedImages.forEach((el) => {
-      fs.unlink(`../upload/${el}`, (err) => {
-        console.log(err);
-      });
+      deleteFile(el);
     });
     res.json({ status: "failed" });
   }
@@ -74,9 +70,7 @@ const deleteImg = async (req, res) => {
   const cat = await RoomCatmodel.findById(data._id);
   if (cat) {
     data.images.forEach((el) => {
-      fs.unlink(path.join(__dirname, "..", "uploads", el), (err) => {
-        if (err) console.log(err);
-      });
+      deleteFile(el);
       cat.images = cat.images.filter((e) => e !== el);
     });
     await cat.save();

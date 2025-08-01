@@ -78,29 +78,29 @@ export default function TopBar({
   const toggleSideMenu = () => setShowSideMenu((prev) => !prev);
   const toggleSearch = () => setSearchOpen((prev) => !prev);
   const handleCloseIfAllRoomsDone = () => {
-  const allowed = hosthotel?.rooms || 0;
-  const isPerRoom = hosthotel?.pay_per?.room;
+    const allowed = hosthotel?.rooms || 0;
+    const isPerRoom = hosthotel?.pay_per?.room;
 
-  const categories = isPerRoom
-    ? hosthotel?.room_cat || []
-    : hosthotel?.per_person_cat || []; 
+    const categories = isPerRoom
+      ? hosthotel?.room_cat || []
+      : hosthotel?.per_person_cat || [];
 
-  const totalUsed = categories.reduce(
-    (sum, cat) =>
-      sum + (isPerRoom ? cat.room_no?.length || 0 : cat.roomNumbers?.length || 0),
-    0
-  );
-
-  if (totalUsed === allowed) {
-    setShowRoomsPricing(false);
-  } else {
-    const confirmClose = confirm(
-      `You’ve added only ${totalUsed} of ${allowed} rooms. Still want to close?`
+    const totalUsed = categories.reduce(
+      (sum, cat) =>
+        sum +
+        (isPerRoom ? cat.room_no?.length || 0 : cat.roomNumbers?.length || 0),
+      0
     );
-    if (confirmClose) setShowRoomsPricing(false);
-  }
-};
 
+    if (totalUsed === allowed) {
+      setShowRoomsPricing(false);
+    } else {
+      const confirmClose = confirm(
+        `You’ve added only ${totalUsed} of ${allowed} rooms. Still want to close?`
+      );
+      if (confirmClose) setShowRoomsPricing(false);
+    }
+  };
 
   const handleBookingDecision = async (id, res) => {
     if (socket) {
@@ -459,15 +459,16 @@ export default function TopBar({
           />
         )}
         {showRoomsPricing && (
-          <PopEffect cb={handleCloseIfAllRoomsDone }>
+          <PopEffect cb={handleCloseIfAllRoomsDone}>
             <div className="bg-white p-4 rounded-md shadow-md max-w-xl w-full">
-              <RoomsPricing cb={handleCloseIfAllRoomsDone}/>
+              <RoomsPricing
+                cb={() => {
+                  setShowRoomsPricing(false);
+                }}
+              />
             </div>
           </PopEffect>
-          
         )}
-       
-
       </AnimatePresence>
 
       {showNot && (
