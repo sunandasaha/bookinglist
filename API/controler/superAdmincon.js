@@ -12,11 +12,13 @@ const pendingUser = async (req, res) => {
     sid: { $exists: true },
   });
   for (let i = 0; i < users.length; i++) {
+    let dat;
     if (users[i].role === "host") {
-      users[i].sid = await Hotelmodel.findById(users[i].sid);
+      dat = await Hotelmodel.findById(users[i].sid);
     } else {
-      users[i].sid = await Agentmodel.findById(users[i].sid);
+      dat = await Agentmodel.findById(users[i].sid);
     }
+    users[i].sid = JSON.stringify(dat);
   }
   res.json({ success: true, users });
 };
@@ -27,11 +29,13 @@ const allUsers = async (req, res) => {
     role: { $ne: "sadmin" },
   });
   for (let i = 0; i < users.length; i++) {
+    let dat;
     if (users[i].role === "host") {
-      users[i].sid = await Hotelmodel.findById(users[i].sid);
+      dat = await Hotelmodel.findById(users[i].sid);
     } else {
-      users[i].sid = await Agentmodel.findById(users[i].sid);
+      dat = await Agentmodel.findById(users[i].sid);
     }
+    users[i].sid = JSON.stringify(dat);
   }
   res.json({ success: true, users });
 };

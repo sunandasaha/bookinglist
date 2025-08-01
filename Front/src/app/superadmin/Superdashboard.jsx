@@ -25,29 +25,9 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
   useEffect(() => {
     getData();
   }, []);
+
   const parseSID = (sidString) => {
-    if (typeof sidString !== "string") return null;
-
-    const extract = (key) => {
-      const regex = new RegExp(`${key}:\\s*'([^']+)'`);
-      const match = sidString.match(regex);
-      return match?.[1] || "";
-    };
-    const roomsMatch = sidString.match(/rooms:\s*(\d+)/);
-    const rooms = roomsMatch ? parseInt(roomsMatch[1]) : null;
-    const visitingCardMatch = sidString.match(/visiting_card:\s*'([^']+)'/);
-    const visiting_card = visitingCardMatch?.[1] || "";
-
-    return {
-      name: extract("name"),
-      url: extract("url"),
-      location: extract("location"),
-      agency: extract("agency"),
-      phone: extract("ph1"),
-      upi_id: extract("upi_id"),
-      rooms,
-      visiting_card,
-    };
+    return JSON.parse(sidString);
   };
 
   const handleNot = async (status, uid) => {
@@ -196,7 +176,8 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                         </span>
                         <img
                           src={
-                            imgurl + selectedApprovedUser.parsed.visiting_card
+                            imgurl +
+                            (selectedApprovedUser.parsed.visiting_card || "")
                           }
                           alt="Visiting Card"
                           className="w-40 h-auto rounded border"
@@ -230,6 +211,14 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                       label="🛏️ Rooms"
                       value={selectedApprovedUser.parsed?.rooms}
                     />
+                    <ProfileRow
+                      label="Guest Clicks"
+                      value={selectedApprovedUser.parsed?.guestClicks || 0}
+                    />
+                    <ProfileRow
+                      label="Agent Clicks"
+                      value={selectedApprovedUser.parsed?.agentClicks || 0}
+                    />
                   </>
                 )}
               </div>
@@ -239,7 +228,7 @@ export default function SuperAdminDashboard({ admin, setAdmin }) {
                     <button
                       className="flex-1 bg-green-600 text-white py-2 rounded"
                       onClick={() => {
-                        handleNot(1,selectedApprovedUser._id);
+                        handleNot(1, selectedApprovedUser._id);
                       }}
                     >
                       Approve
