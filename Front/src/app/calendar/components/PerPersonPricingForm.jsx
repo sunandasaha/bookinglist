@@ -75,136 +75,147 @@ const PerPersonPricingForm = ({ cb }) => {
     setCategories(updated);
   };
   const toggleEdit = async (index) => {
-  const isEditing = categories.some((cat, idx) => idx !== index && cat.isEditing);
-  if (isEditing) {
-    alert("Please save the currently open category before editing another.");
-    return;
-  }
-  setLoadingIndex(index);
-  const updated = [...categories];
-  const cat = updated[index];
-  
-  if (!cat.isEditing) {
-    const backups = [...backupCategories];
-    backups[index] = JSON.parse(JSON.stringify(cat));
-    setBackupCategories(backups);
-  }
-
-  if (categories.length === 1 && cat.name.trim() === "") {
-    cat.name = "Normal";
-  }
-  const allRooms = new Set();
-  let hasDuplicate = false;
-  let hasEmpty = false;
-  for (let i = 0; i < updated.length; i++) {
-    const category = updated[i];
-    const localSet = new Set();
-    for (let j = 0; j < category.roomNumbers.length; j++) {
-      const room = category.roomNumbers[j].trim();
-      category.roomNumbers[j] = room;
-
-      if (!room) {
-        hasEmpty = true;
-        break;
-      }
-      if (localSet.has(room) || allRooms.has(room)) {
-        hasDuplicate = true;
-        break;
-      }
-      localSet.add(room);
-      allRooms.add(room);
+    const isEditing = categories.some(
+      (cat, idx) => idx !== index && cat.isEditing
+    );
+    if (isEditing) {
+      alert("Please save the currently open category before editing another.");
+      return;
     }
-    if (hasEmpty || hasDuplicate) break;
-  }
+    setLoadingIndex(index);
+    const updated = [...categories];
+    const cat = updated[index];
 
-  if (hasEmpty || hasDuplicate) {
-    setProblems((prev) => ({
-      ...prev,
-      roomno: hasEmpty
-        ? "Room name must not be empty"
-        : "Room name must be unique across and within categories",
-    }));
-    setLoadingIndex(null);
-    return;
-  } else {
-    setProblems((prev) => {
-      const p = { ...prev };
-      delete p.roomno;
-      return p;
-    });
-  }
-  if (!cat.isEditing) {
-    updated[index].isEditing = true;
-    setCategories(updated);
-    setLoadingIndex(null);
-    return;
-  }
-  const baseRate = cat[`rate${cat.capacity}`];
-  if (!cat.capacity || !baseRate) {
-    setErrorMsg((prev) => ({
-      ...prev,
-      [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.`,
-    }));
-    setLoadingIndex(null);
-    return;
-  }
+    if (!cat.isEditing) {
+      const backups = [...backupCategories];
+      backups[index] = JSON.parse(JSON.stringify(cat));
+      setBackupCategories(backups);
+    }
 
-  try {
-    if (cat._id) {
-      const result = await putReq("category/perperson", cat, user.token);
-      if (result.success) {
-        setHosthotel(result.hotel);
-        setCategories(result.hotel.per_person_cat);
-        updated[index].isEditing = false;
+    if (categories.length === 1 && cat.name.trim() === "") {
+      cat.name = "Normal";
+    }
+    const allRooms = new Set();
+    let hasDuplicate = false;
+    let hasEmpty = false;
+    for (let i = 0; i < updated.length; i++) {
+      const category = updated[i];
+      const localSet = new Set();
+      for (let j = 0; j < category.roomNumbers.length; j++) {
+        const room = category.roomNumbers[j].trim();
+        category.roomNumbers[j] = room;
+
+        if (!room) {
+          hasEmpty = true;
+          break;
+        }
+        if (localSet.has(room) || allRooms.has(room)) {
+          hasDuplicate = true;
+          break;
+        }
+        localSet.add(room);
+        allRooms.add(room);
       }
+      if (hasEmpty || hasDuplicate) break;
+    }
+
+    if (hasEmpty || hasDuplicate) {
+      setProblems((prev) => ({
+        ...prev,
+        roomno: hasEmpty
+          ? "Room name must not be empty"
+          : "Room name must be unique across and within categories",
+      }));
+      setLoadingIndex(null);
+      return;
     } else {
-      const fd = new FormData();
-      fd.append("details", JSON.stringify({ ...cat, images: [] }));
-      cat.images.forEach((f) => fd.append("images", f));
-
-      const res = await fetch(site + "category/perperson", {
-        method: "POST",
-        headers: { authorization: user.token },
-        body: fd,
+      setProblems((prev) => {
+        const p = { ...prev };
+        delete p.roomno;
+        return p;
       });
-      const result = await res.json();
-      if (result.success && result.hotel?._id) {
-        setHosthotel(result.hotel);
-        setCategories(result.hotel.per_person_cat);
-        updated[index].isEditing = false;
-        cb();
-      }
     }
-  } catch (err) {
-    console.error("Failed to save category:", err);
-    setErrorMsg((prev) => ({
-      ...prev,
-      [index]: "Failed to save. Please try again.",
-    }));
-  } finally {
-    setCategories(updated);
-    setLoadingIndex(null);
-  }
-};
-const discardChanges = (index) => {
-  const backup = backupCategories[index];
-  if (!backup) return;
-  const updated = [...categories];
-  updated[index] = { ...backup, isEditing: false };
-  setCategories(updated);
-  setErrorMsg((prev) => {
-    const msg = { ...prev };
-    delete msg[index];
-    return msg;
-  });
+    if (!cat.isEditing) {
+      updated[index].isEditing = true;
+      setCategories(updated);
+      setLoadingIndex(null);
+      return;
+    }
+    const baseRate = cat[`rate${cat.capacity}`];
+    if (!cat.capacity || !baseRate) {
+      setErrorMsg((prev) => ({
+        ...prev,
+        [index]: `Rate for (${cat.capacity || "?"}) occupancy is required.`,
+      }));
+      setLoadingIndex(null);
+      return;
+    }
 
-  setProblems((prev) => {
-    const newProblems = { ...prev };
-    delete newProblems.roomno;
-    return newProblems;
-  });
-};
-const handleRoomNumberChange = (catIdx, rIdx, value) => {
+    try {
+      if (cat._id) {
+        const result = await putReq("category/perperson", cat, user.token);
+        if (result.success) {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.per_person_cat);
+          updated[index].isEditing = false;
+        }
+      } else {
+        const fd = new FormData();
+        fd.append("details", JSON.stringify({ ...cat, images: [] }));
+        cat.images.forEach((f) => fd.append("images", f));
+
+        const res = await fetch(site + "category/perperson", {
+          method: "POST",
+          headers: { authorization: user.token },
+          body: fd,
+        });
+        const result = await res.json();
+        if (result.success && result.hotel?._id) {
+          setHosthotel(result.hotel);
+          setCategories(result.hotel.per_person_cat);
+          updated[index].isEditing = false;
+          const totalUsed = result.hotel.per_person_cat.reduce(
+            (sum, cat) => sum + (cat.roomNumbers?.length || 0),
+            0
+          );
+          const registered = result.hotel.rooms || 0;
+          console.log(totalUsed, registered);
+
+          if (totalUsed === registered) {
+            cb();
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to save category:", err);
+      setErrorMsg((prev) => ({
+        ...prev,
+        [index]: "Failed to save. Please try again.",
+      }));
+    } finally {
+      setCategories(updated);
+      setLoadingIndex(null);
+    }
+  };
+  const discardChanges = (index) => {
+    const backup = backupCategories[index];
+    if (!backup) return;
+    const updated = [...categories];
+    updated[index] = { ...backup, isEditing: false };
+    setCategories(updated);
+    setErrorMsg((prev) => {
+      const msg = { ...prev };
+      delete msg[index];
+      return msg;
+    });
+
+    setProblems((prev) => {
+      const newProblems = { ...prev };
+      delete newProblems.roomno;
+      return newProblems;
+    });
+  };
+  const handleRoomNumberChange = (catIdx, rIdx, value) => {
     const updated = [...categories];
     updated[catIdx].roomNumbers[rIdx] = value;
     setCategories(updated);
@@ -300,10 +311,10 @@ const handleRoomNumberChange = (catIdx, rIdx, value) => {
 
   const handleAddCategory = () => {
     const isEditing = categories.some((cat) => cat.isEditing);
-  if (isEditing) {
-    alert("Please save the current category before adding a new one.");
-    return;
-  }
+    if (isEditing) {
+      alert("Please save the current category before adding a new one.");
+      return;
+    }
     if (getTotalUsedRooms() >= totalRoomsAllowed) {
       setProblems((prev) => ({
         ...prev,
@@ -571,13 +582,13 @@ const handleRoomNumberChange = (catIdx, rIdx, value) => {
               </div>
               {/* Action Buttons at Bottom */}
               <div className="relative flex justify-end gap-4 pt-4 border-t">
-                 <button
-                      onClick={() => discardChanges(catIdx)}
-                      className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                      disabled={loadingIndex === catIdx}
-                    >
-                      <span>Discard changes</span>
-                    </button>
+                <button
+                  onClick={() => discardChanges(catIdx)}
+                  className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  disabled={loadingIndex === catIdx}
+                >
+                  <span>Discard changes</span>
+                </button>
                 <button
                   onClick={() => handleDeleteCategory(catIdx)}
                   className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"

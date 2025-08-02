@@ -5,16 +5,27 @@ const { deleteFile } = require("../utils/upload");
 const createRoomCategory = async (req, res) => {
   const data = JSON.parse(req.body.details);
   try {
-    const hot = await Hotelmodel.findById(req.user.sid);
+    const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+
     if (hot) {
-      const roomcat = await RoomCatmodel.create({
-        ...data,
-        images: req.savedImages,
-      });
-      hot.room_cat = [...hot.room_cat, roomcat._id];
-      await hot.save();
-      const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
-      res.json({ status: "success", hotel: ho, success: true });
+      const pnr = hot.room_cat.reduce((t, e) => {
+        return t + e.room_no.length;
+      }, 0);
+      if (hot.rooms <= pnr + data.room_no.length) {
+        const roomcat = await RoomCatmodel.create({
+          ...data,
+          images: req.savedImages,
+        });
+        hot.room_cat = [...hot.room_cat, roomcat._id];
+        await hot.save();
+        const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+        res.json({ status: "success", hotel: ho, success: true });
+      } else {
+        res.json({
+          status: "number of rooms exceding total no. of rooms",
+          success: false,
+        });
+      }
     } else {
       res.json({ status: "cannot find the hotel" });
     }
@@ -89,7 +100,7 @@ const deleteRoomCategory = async (req, res) => {
       { $pull: { room_cat: data._id } }
     );
     const cat = await RoomCatmodel.findById(data._id);
-    cat.images.forEach((el) => {
+    cat?.images.forEach((el) => {
       deleteFile(el);
     });
     await RoomCatmodel.findByIdAndDelete(data._id);
@@ -97,7 +108,6 @@ const deleteRoomCategory = async (req, res) => {
     res.json({ status: "success", hotel: ho, success: true });
   } catch (err) {
     console.log(err);
-
     res.json({ status: "failed", err });
   }
 };
