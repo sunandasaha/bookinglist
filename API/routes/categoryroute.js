@@ -1,18 +1,18 @@
 const express = require("express");
 const { uploadImages, resizeAndSaveImages } = require("../middleware/multer");
 const {
-  createRoomCategory,
   modifyRoomCategory,
   deleteImg,
   addImg,
   deleteRoomCategory,
+  createPerRoom,
 } = require("../controler/categorycon");
 const {
-  createPerPersonCategory,
   modifyPerPersonCategory,
   deleteImgPerPerson,
   addImgPerPerson,
   deletePerPersonCategory,
+  createPerPersonCategory,
 } = require("../controler/perpersoncon");
 const { authUser, chkHost } = require("../middleware/auth");
 const { s3upload } = require("../middleware/bucket");
@@ -28,7 +28,7 @@ categoryroute.post(
   uploadImages,
   resizeAndSaveImages,
   s3upload,
-  createRoomCategory
+  createPerRoom
 );
 categoryroute.put("/room", authUser, chkHost, modifyRoomCategory);
 categoryroute.delete("/room/img", authUser, chkHost, deleteImg);
