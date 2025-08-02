@@ -7,9 +7,6 @@ import PerPersonPricingForm from "./PerPersonPricingForm";
 const RoomsPricing = ({ cb }) => {
   const { hosthotel } = useContext(Context);
   const pricingType = hosthotel?.pay_per?.room ? "PerRoom" : "PerPerson";
-  console.log("hosthotel:", hosthotel);
-  console.log("pay_per:", hosthotel?.pay_per);
-
   if (!hosthotel) {
     return <div>Loading hotel data...</div>;
   }
