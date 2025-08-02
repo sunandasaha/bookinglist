@@ -6,14 +6,13 @@ const path = require("path");
 const createPerPersonCategory = async (req, res) => {
   const data = JSON.parse(req.body.details);
   try {
-    const hot = await Hotelmodel.findById(req.user.sid).populate(
-      "per_person_cat"
-    );
+    const hot = await Hotelmodel.findById(req.user.sid);
     if (hot) {
-      const pnr = hot.per_person_cat.reduce(
-        (t, e) => t + e.roomNumbers.length,
-        0
-      );
+      let pnr = 0;
+      for (let i = 0; i < hot.per_person_cat.length; i++) {
+        pnr += (await PerPersonmodel.findById(hot.per_person_cat[i]))
+          .roomNumbers.length;
+      }
       if (hot.rooms >= pnr + data.roomNumbers.length) {
         const roomcat = await PerPersonmodel.create({
           ...data,
@@ -21,7 +20,10 @@ const createPerPersonCategory = async (req, res) => {
         });
         hot.per_person_cat = [...hot.per_person_cat, roomcat._id];
         await hot.save();
-        res.json({ status: "success", hotel: hot, success: true });
+        const ho = await Hotelmodel.findById(req.user.sid).populate(
+          "per_person_cat"
+        );
+        res.json({ status: "success", hotel: ho, success: true });
       } else {
         res.json({
           status: "number of rooms exceding total no. of rooms",

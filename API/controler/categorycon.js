@@ -5,9 +5,12 @@ const { deleteFile } = require("../utils/upload");
 const createPerRoom = async (req, res) => {
   const data = JSON.parse(req.body.details);
   try {
-    const hot = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+    const hot = await Hotelmodel.findById(req.user.sid);
     if (hot) {
-      const pnr = hot.room_cat.reduce((t, e) => t + e.room_no.length, 0);
+      let pnr = 0;
+      for (let i = 0; i < hot.room_cat.length; i++) {
+        pnr += (await RoomCatmodel.findById(hot.room_cat[i])).room_no.length;
+      }
       if (hot.rooms >= pnr + data.room_no.length) {
         const roomcat = await RoomCatmodel.create({
           ...data,
@@ -15,7 +18,8 @@ const createPerRoom = async (req, res) => {
         });
         hot.room_cat = [...hot.room_cat, roomcat._id];
         await hot.save();
-        res.json({ status: "success", hotel: hot, success: true });
+        const ho = await Hotelmodel.findById(req.user.sid).populate("room_cat");
+        res.json({ status: "success", hotel: ho, success: true });
       } else {
         res.json({
           status: "number of rooms exceding total no. of rooms",
