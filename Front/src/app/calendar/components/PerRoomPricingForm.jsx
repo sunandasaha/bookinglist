@@ -612,7 +612,7 @@ const PerRoomPricingForm = ({ cb }) => {
               <div className="relative flex justify-end gap-4 pt-4 border-t">
                 <button
                   onClick={() => discardChanges(catIdx)}
-                  className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  className="flex items-center gap-1 bg-yellow-500 text-white px-5 py-3 rounded hover:bg-yellow-600"
                   disabled={loadingIndex === catIdx}
                 >
                   <span>Discard changes</span>

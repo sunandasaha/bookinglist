@@ -351,7 +351,6 @@ const PerPersonPricingForm = ({ cb }) => {
     updated[index].name = value;
     setCategories(updated);
   };
-
   return (
     <div className="space-y-6">
       {categories.map((cat, catIdx) => (
@@ -581,17 +580,17 @@ const PerPersonPricingForm = ({ cb }) => {
                 )}
               </div>
               {/* Action Buttons at Bottom */}
-              <div className="relative flex justify-end gap-4 pt-4 border-t">
+              <div className="relative flex justify-end gap-1 pt-4 border-t">
                 <button
                   onClick={() => discardChanges(catIdx)}
-                  className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  className="flex items-center text-xs  gap-1 bg-yellow-500 text-white px-2 py-1  rounded hover:bg-yellow-600"
                   disabled={loadingIndex === catIdx}
                 >
                   <span>Discard changes</span>
                 </button>
                 <button
                   onClick={() => handleDeleteCategory(catIdx)}
-                  className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-50"
+                  className="flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-50"
                   disabled={loadingIndex === catIdx}
                 >
                   <Trash2 size={16} />
@@ -600,7 +599,7 @@ const PerPersonPricingForm = ({ cb }) => {
 
                 <button
                   onClick={() => toggleEdit(catIdx)}
-                  className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                  className="flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
                   disabled={loadingIndex === catIdx}
                 >
                   {loadingIndex === catIdx ? (

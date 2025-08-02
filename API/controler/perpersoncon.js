@@ -2,7 +2,6 @@ const fs = require("fs");
 const Hotelmodel = require("../models/Hotel");
 const PerPersonmodel = require("../models/PerPerson");
 const path = require("path");
-
 const createPerPersonCategory = async (req, res) => {
   const data = JSON.parse(req.body.details);
   try {
@@ -33,16 +32,47 @@ const createPerPersonCategory = async (req, res) => {
     } else {
       res.json({ status: "cannot find the hotel" });
     }
-  } catch (error) {
-    console.log(error);
-    if (req.savedImages && req.savedImages.length > 0) {
-      req.savedImages.forEach((e) => {
-        deleteFile(e);
+
+    const pnr = hot.per_person_cat.reduce((t, e) => t + e.roomNumbers.length, 0);
+
+    if (hot.rooms < pnr + data.roomNumbers.length) {
+      return res.json({
+        status: "number of rooms exceeding total no. of rooms",
+        success: false,
       });
     }
-    res.json({ status: "failed", error });
+
+    const roomcat = await PerPersonmodel.create({
+      ...data,
+      images: req.savedImages,
+    });
+
+    hot.per_person_cat.push(roomcat._id);
+    await hot.save();
+
+    const updatedHotel = await Hotelmodel.findById(req.user.sid).populate("per_person_cat");
+
+    return res.json({ status: "success", hotel: updatedHotel, success: true });
+  } catch (error) {
+    console.log(error);
+
+    // Clean up saved images if error occurs
+    if (!res.headersSent && req.savedImages?.length > 0) {
+      req.savedImages.forEach((e) => {
+        try {
+          fs.unlinkSync(path.join(__dirname, "..", "uploads", e));
+        } catch (err) {
+          console.error("Image cleanup failed:", err);
+        }
+      });
+    }
+
+    if (!res.headersSent) {
+      return res.json({ status: "failed", error });
+    }
   }
 };
+
 
 const modifyPerPersonCategory = async (req, res) => {
   const data = req.body;
@@ -62,9 +92,9 @@ const modifyPerPersonCategory = async (req, res) => {
     const hot = await Hotelmodel.findById(req.user.sid).populate(
       "per_person_cat"
     );
-    res.json({ status: "success", hotel: hot, success: true });
+    return res.json({ status: "success", hotel: hot, success: true });
   } else {
-    res.json({ status: "failed" });
+    return res.json({ status: "failed" });
   }
 };
 
@@ -77,14 +107,14 @@ const addImgPerPerson = async (req, res) => {
     const hot = await Hotelmodel.findById(req.user.sid).populate(
       "per_person_cat"
     );
-    res.json({ status: "success", hotel: hot });
+    return res.json({ status: "success", hotel: hot });
   } else {
     req.savedImages.forEach((el) => {
       fs.unlink(`../upload/${el}`, (err) => {
         console.log(err);
       });
     });
-    res.json({ status: "failed" });
+    return res.json({ status: "failed" });
   }
 };
 
@@ -102,9 +132,9 @@ const deleteImgPerPerson = async (req, res) => {
     const hot = await Hotelmodel.findById(req.user.sid).populate(
       "per_person_cat"
     );
-    res.json({ status: "success", hotel: hot, success: true });
+    return res.json({ status: "success", hotel: hot, success: true });
   } else {
-    res.json({ status: "failed" });
+   return res.json({ status: "failed" });
   }
 };
 
@@ -125,10 +155,10 @@ const deletePerPersonCategory = async (req, res) => {
     const ho = await Hotelmodel.findById(req.user.sid).populate(
       "per_person_cat"
     );
-    res.json({ status: "success", hotel: ho, success: true });
+   return res.json({ status: "success", hotel: ho, success: true });
   } catch (err) {
     console.log(err);
-    res.json({ status: "failed", err });
+   return res.json({ status: "failed", err });
   }
 };
 

@@ -24,6 +24,7 @@ import {
   LogOut,
   MessageCircle,
   BedDouble,
+  IndianRupee,
 } from "lucide-react";
 import ProfileModal from "./ProfileModal";
 import { useRouter } from "next/navigation";
@@ -532,6 +533,12 @@ export default function TopBar({
                         <BedDouble size={20} />
                       </span>{" "}
                       {bk.rooms.join(", ")}
+                    </div>
+                    <div className="flex gap-1 items-center text-sm text-gray-700 truncate">
+                      <span className="text-blue-900">
+                        <IndianRupee size={20} />
+                      </span>{" "}
+                     <p>Advance: {bk.advanceAmount} </p>
                     </div>
                     {bk.agent_Id?.name && (
                       <div className="text-sm text-gray-700">

@@ -21,6 +21,15 @@ const categoryroute = express.Router();
 
 //yolo
 
+/*categoryroute.post(
+  "/room",
+  authUser,
+  chkHost,
+  uploadImages,
+  resizeAndSaveImages,
+  s3upload,
+  createRoomCategory
+); */
 categoryroute.post(
   "/room",
   authUser,
@@ -29,6 +38,7 @@ categoryroute.post(
   resizeAndSaveImages,
   s3upload,
   createPerRoom
+
 );
 categoryroute.put("/room", authUser, chkHost, modifyRoomCategory);
 categoryroute.delete("/room/img", authUser, chkHost, deleteImg);
